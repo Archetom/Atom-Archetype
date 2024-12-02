@@ -1,0 +1,15 @@
+######################## 开发环境使用 ####################
+### 生成DAO层配置
+### 数据库信息
+datasource:
+  url: jdbc:mysql://10.10.10.193:3360/location-ie?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+  username: locationie
+  password: Location@ie
+### mybatis-plus
+mybatis-plus:
+  # generate 配置参数
+  # dal项目相对路径
+  output-path: ./infra/src/main/java/
+  # dal资源项目绝对路径
+  mapper-path: ./infra/src/main/resources/mapper
+  parent-package: ${package}.infra.persistence

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Log4j有三个主要的组件：Loggers(记录器)，Appender (输出源)和Layouts(布局)。这里可简单理解为日志类别，日志要输出的地方和日志以何种形式输出 -->
+    <!-- Loggers组件在此系统中被分为五个级别：DEBUG、INFO、WARN、ERROR和FATAL。这五个级别是有顺序的，DEBUG < INFO < WARN < ERROR < FATAL，分别用来指定这条日志信息的重要程度，明白这一点很重要，Log4j有一个规则：只输出级别不低于设定级别的日志信息，假设Loggers级别设定为INFO，则INFO、WARN、ERROR和FATAL级别的日志信息都会输出，而级别比INFO低的DEBUG则不会输出-->
+    <!-- 获取 application.yml 中的配置-->
+    <springProperty scope="context" name="APP_LOG_PATH" source="logging.file.path" defaultValue="./logs/app"/>
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name"/>
+    <springProperty scope="context" name="APP_ACTIVE" source="spring.profiles.active" defaultValue="ie"/>
+    <springProperty scope="context" name="LOG_LEVEL" source="logging.level.root" defaultValue="info"/>
+
+    <!--为了防止进程退出时，内存中的数据丢失，请加上此选项-->
+    <shutdownHook class="ch.qos.logback.core.hook.DefaultShutdownHook"/>
+
+    <!-- 日志格式及保存时间 -->
+    <property name="MAX_HISTORY" value="7"/>
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p - %msg%n"/>
+    <property name="LOG_PATTERN-PERF"
+              value="%n - %msg%n"/>
+
+    <!--****************************************************** 以下信息不要动 ****************************************-->
+    <!-- 控制台的appender -->
+    <appender name="CONSOLE_APPENDER" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!--****************************************************** 以上信息不要动 ****************************************-->
+    <!-- 日志文件的appender -->
+    <appender name="FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${APP_LOG_PATH}/${APP_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${APP_LOG_PATH}/${APP_NAME}.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${LOG_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <!-- 应该被每个业务logger使用 错误日志文件的appender -->
+    <appender name="ERROR_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${APP_LOG_PATH}/${APP_NAME}-error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${APP_LOG_PATH}/${APP_NAME}-error.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${LOG_PATTERN}</Pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>error</level>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--****************************************************** 以下是每个模块的日志配置；新增新的模块时，可以新增对应配置 ****************************************-->
+    <root level="info">
+        <appender-ref ref="CONSOLE_APPENDER"/>
+        <appender-ref ref="FILE_APPENDER"/>
+        <appender-ref ref="ERROR_FILE_APPENDER"/>
+    </root>
+    <!--****************************************************** 以上是每个模块的日志配置；新增新的模块时，可以新增对应配置 ****************************************-->
+
+</configuration>

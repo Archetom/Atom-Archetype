@@ -1,0 +1,36 @@
+######################## 生产环境使用 ####################
+spring:
+  application:
+    name: ${rootArtifactId}
+  cloud:
+    nacos:
+      config:
+        import-check:
+          enabled: false
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.H2Dialect
+
+# 日志配置
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    root: info
+  file:
+    path: ./logs/app
+
+# mybatis-plus
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: deleted_time
+      logic-not-delete-value: "null"
+      logic-delete-value: now()
+      insert-strategy: default
+      update-strategy: ignored
