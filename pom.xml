@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.archetom</groupId>
     <artifactId>atom-archetype</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>maven-archetype</packaging>
 
     <name>Atom :: Archetype</name>
@@ -41,7 +41,7 @@
         <maven.archetype.packaging.version>3.3.1</maven.archetype.packaging.version>
         <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
         <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
-        <maven.javadoc.plugin.version>3.11.1</maven.javadoc.plugin.version>
+        <maven.javadoc.plugin.version>3.11.2</maven.javadoc.plugin.version>
         <maven.gpg.plugin.version>3.2.7</maven.gpg.plugin.version>
         <maven.central.plugin.version>0.6.0</maven.central.plugin.version>
     </properties>
@@ -90,6 +90,7 @@
                 </executions>
             </plugin>
 
+            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -104,6 +105,7 @@
             </plugin>
 
             <!-- GPG 签名 -->
+            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -127,6 +129,7 @@
             </plugin>
 
             <!-- 发布到 Maven Central -->
+            <!-- https://mvnrepository.com/artifact/org.sonatype.central/central-publishing-maven-plugin -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>

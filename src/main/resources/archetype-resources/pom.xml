@@ -35,17 +35,17 @@
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <!-- Common -->
-        <atom.common.version>1.0.0-SNAPSHOT</atom.common.version>
+        <atom.common.version>1.0.0</atom.common.version>
         <lombok.version>1.18.36</lombok.version>
 
         <!-- Database -->
         <mysql.version>9.1.0</mysql.version>
-        <druid.version>1.2.23</druid.version>
+        <druid.version>1.2.24</druid.version>
         <mybatis.plus.version>3.5.9</mybatis.plus.version>
 
         <!-- Nacos -->
         <nacos.version>2.4.3</nacos.version>
-        <nacos.config.spring.cloud.version>2023.0.1.3</nacos.config.spring.cloud.version>
+        <nacos.config.spring.cloud.version>2023.0.3.2</nacos.config.spring.cloud.version>
 
         <!-- MapStruct -->
         <mapstruct.version>1.6.3</mapstruct.version>
