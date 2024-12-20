@@ -16,7 +16,7 @@ Atom 脚手架是一个基于 DDD (Domain-Driven Design) 设计理念构建的 J
 mvn archetype:generate                  \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype  \
-  -DarchetypeVersion=1.0.0              \
+  -DarchetypeVersion=1.0.1              \
   -DgroupId=com.foo.bar                 \
   -DartifactId=demo                     \
   -Dpackage=com.foo.bar                 \
