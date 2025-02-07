@@ -39,9 +39,9 @@
         <lombok.version>1.18.36</lombok.version>
 
         <!-- Database -->
-        <mysql.version>9.1.0</mysql.version>
+        <mysql.version>9.2.0</mysql.version>
         <druid.version>1.2.24</druid.version>
-        <mybatis.plus.version>3.5.9</mybatis.plus.version>
+        <mybatis.plus.version>3.5.10.1</mybatis.plus.version>
 
         <!-- Nacos -->
         <nacos.version>2.4.3</nacos.version>
