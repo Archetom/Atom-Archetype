@@ -43,10 +43,6 @@
         <druid.version>1.2.24</druid.version>
         <mybatis.plus.version>3.5.10.1</mybatis.plus.version>
 
-        <!-- Nacos -->
-        <nacos.version>2.4.3</nacos.version>
-        <nacos.config.spring.cloud.version>2023.0.3.2</nacos.config.spring.cloud.version>
-
         <!-- MapStruct -->
         <mapstruct.version>1.6.3</mapstruct.version>
     </properties>
@@ -108,21 +104,6 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-generator</artifactId>
                 <version>${mybatis.plus.version}</version>
-            </dependency>
-
-            <!-- Nacos -->
-            <!-- https://mvnrepository.com/artifact/com.alibaba.nacos/nacos-client -->
-            <!-- https://github.com/alibaba/nacos -->
-            <dependency>
-                <groupId>com.alibaba.nacos</groupId>
-                <artifactId>nacos-client</artifactId>
-                <version>${nacos.version}</version>
-            </dependency>
-            <!-- https://mvnrepository.com/artifact/com.alibaba.cloud/spring-cloud-starter-alibaba-nacos-config -->
-            <dependency>
-                <groupId>com.alibaba.cloud</groupId>
-                <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-                <version>${nacos.config.spring.cloud.version}</version>
             </dependency>
 
             <!-- Project Modules -->

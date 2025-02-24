@@ -47,16 +47,6 @@
             <artifactId>mysql-connector-j</artifactId>
         </dependency>
 
-        <!-- Nacos -->
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-        </dependency>
-
         <!-- Project Module -->
         <dependency>
             <groupId>${groupId}</groupId>
