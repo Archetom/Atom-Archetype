@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.3</version>
+        <version>3.4.4</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -31,7 +31,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <kotlin.version>2.0.0</kotlin.version>
+        <kotlin.version>2.1.20</kotlin.version>
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <!-- Common -->
@@ -41,7 +41,7 @@
         <!-- Database -->
         <mysql.version>9.2.0</mysql.version>
         <druid.version>1.2.24</druid.version>
-        <mybatis.plus.version>3.5.10.1</mybatis.plus.version>
+        <mybatis.plus.version>3.5.11</mybatis.plus.version>
 
         <!-- MapStruct -->
         <mapstruct.version>1.6.3</mapstruct.version>

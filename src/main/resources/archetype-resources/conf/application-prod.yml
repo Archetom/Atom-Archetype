@@ -28,4 +28,4 @@ mybatis-plus:
       logic-not-delete-value: "null"
       logic-delete-value: now()
       insert-strategy: default
-      update-strategy: ignored
+      update-strategy: default
