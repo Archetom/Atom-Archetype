@@ -1,6 +1,6 @@
 # 分层对象规范（DTO/VO/PO/Request/Response 使用说明）
 
-## 一、概念区分
+## 1. 概念区分
 
 - **DTO（Data Transfer Object）数据传输对象**
     - 用于服务、模块、微服务之间的数据传递。
@@ -23,7 +23,7 @@
 
 ---
 
-## 二、典型流转方向
+## 2. 典型流转方向
 ```text
 Controller/Facade
 ↓
@@ -46,7 +46,7 @@ Controller/Facade
 
 ---
 
-## 三、默认目录
+## 3. 默认目录
 
 - `api/dto/request/`  — 接口请求对象（Request）
 - `api/dto/response/` — 接口返回对象（Response）
@@ -55,7 +55,7 @@ Controller/Facade
 
 ---
 
-## 四、使用规范
+## 4. 使用规范
 
 1. **Request/Response 对象与 DTO/VO 区分使用，不混用**
 2. **同一接口建议 Request/Response 成对出现**
@@ -64,7 +64,7 @@ Controller/Facade
 
 ---
 
-## 五、团队协作建议
+## 5. 团队协作建议
 
 - 统一对象命名规范，Request/Response 明确表示接口输入输出。
 - 代码评审时检查是否使用了正确的对象类型。
@@ -72,7 +72,7 @@ Controller/Facade
 
 ---
 
-## 六、示例结构
+## 6. 示例结构
 ```java
 // 请求参数对象
 public class UserRequest {
@@ -102,7 +102,7 @@ public class UserResponse {
 
 ---
 
-## 七、常见误用举例
+## 7. 常见误用举例
 
 - ❌ Controller 方法直接接收/返回 PO/DO。
 - ❌ 一个对象在 Request、Response、VO、DTO 间混用。
@@ -110,11 +110,20 @@ public class UserResponse {
 
 ---
 
-## 八、总结
+## 8. 总结
 
 - **Request/Response 专属 rest 层，确保接口解耦**
 - **DTO/VO 适用于 service/application/domain 层**
 - **PO/DO 专注持久化，绝不直接暴露**
+
+---
+
+## 9. 文档链接索引
+
+- [架构设计说明](./architecture.md)
+- [开发指南](./usage-guide.md)
+- [配置说明](./configuration.md)
+- [测试指南](./test-guide.md)
 
 ---
 

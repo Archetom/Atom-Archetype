@@ -3,14 +3,14 @@
 Atom 脚手架
 
 ![Requirement](https://img.shields.io/badge/JDK-17+-green.svg)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4.4-brightgreen.svg)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.0-brightgreen.svg)
 ![atom version](https://img.shields.io/badge/Atom_Archetype-1.0.1-blue)
 
 Atom 脚手架是一个基于 DDD (Domain-Driven Design) 设计理念构建的 Java 项目开发模板，支持快速生成高可维护性、高扩展性的工程结构。
 
 ## 快速开始
-### 安装脚手架
-使用 Maven 快速生成项目模板：
+1. 下载或 clone 本项目
+2. 使用 Maven archetype 生成项目
 
 ``` bash
 mvn archetype:generate                  \
