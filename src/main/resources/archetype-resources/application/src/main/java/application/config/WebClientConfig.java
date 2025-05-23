@@ -1,3 +1,7 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+
 package ${package}.application.config;
 
 import io.netty.channel.ChannelOption;
@@ -21,13 +25,13 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${webclient.connect-timeout:10000}")
+    @Value("$symbol_dollar{webclient.connect-timeout:10000}")
     private int connectTimeoutMillis;
 
-    @Value("${webclient.read-timeout:10000}")
+    @Value("$symbol_dollar{webclient.read-timeout:10000}")
     private int readTimeoutMillis;
 
-    @Value("${webclient.write-timeout:10000}")
+    @Value("$symbol_dollar{webclient.write-timeout:10000}")
     private int writeTimeoutMillis;
 
     @Bean
