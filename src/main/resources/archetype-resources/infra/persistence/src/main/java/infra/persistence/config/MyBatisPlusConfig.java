@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @author hanfeng
  */
 @Configuration
-@MapperScan(basePackages ="${package}.infra.persistence.mapper", sqlSessionTemplateRef = "sqlSessionTemplate")
+@MapperScan(basePackages ="${package}.infra.persistence.mysql.mapper", sqlSessionTemplateRef = "sqlSessionTemplate")
 public class MyBatisPlusConfig {
 
     @Bean
