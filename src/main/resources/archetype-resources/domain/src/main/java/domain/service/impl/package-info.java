@@ -15,4 +15,4 @@
  * }
  * </pre>
  */
-package ${package}.application.service;
+package ${package}.domain.service.impl;
