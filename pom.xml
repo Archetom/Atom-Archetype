@@ -38,7 +38,7 @@
         <java.version>17</java.version>
 
         <!-- Maven Plugin -->
-        <maven.archetype.packaging.version>3.3.1</maven.archetype.packaging.version>
+        <maven.archetype.packaging.version>3.4.0</maven.archetype.packaging.version>
         <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
         <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
         <maven.javadoc.plugin.version>3.11.2</maven.javadoc.plugin.version>
