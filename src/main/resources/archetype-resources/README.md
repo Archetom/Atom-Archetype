@@ -35,3 +35,7 @@ ${artifactId}-infra <-- ${artifactId}-shared (公共工具模块)
       |
 ${artifactId}-start       系统启动模块
 ```
+
+## 文档目录
+
+- [对象分层及流转规范](docs/object-layering.md)
