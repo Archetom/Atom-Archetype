@@ -1,4 +1,4 @@
-package ${package}.infra.util;
+package ${package}.infra.persistence.mysql.util;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.archetom.common.result.Pager;
