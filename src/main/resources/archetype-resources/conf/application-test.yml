@@ -1,0 +1,152 @@
+# 测试环境配置
+spring:
+  application:
+    name: ${artifactId}-test
+
+  # 数据源配置（Testcontainers 会动态覆盖）
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 10000
+      idle-timeout: 300000
+      max-lifetime: 900000
+
+  # Redis 配置（Testcontainers 会动态覆盖）
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 1  # 使用独立的测试数据库
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 5
+          max-idle: 3
+          min-idle: 1
+
+  # 缓存配置
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000  # 5分钟
+      cache-null-values: false
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 测试时输出SQL
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: deletedTime
+      logic-delete-value: 'NOW()'
+      logic-not-delete-value: 'NULL'
+      id-type: auto
+    banner: false  # 关闭banner
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: ${package}.infra.persistence.mysql.po
+
+# 线程池配置
+task:
+  executor:
+    core-pool-size: 2
+    max-pool-size: 4
+    queue-capacity: 50
+    keep-alive-seconds: 30
+    thread-name-prefix: "test-task-"
+
+# WebClient 配置
+webclient:
+  connect-timeout: 5000
+  read-timeout: 5000
+  write-timeout: 5000
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    ${package}: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.transaction: DEBUG
+    org.mybatis: DEBUG
+    com.baomidou.mybatisplus: DEBUG
+    org.springframework.data.redis: DEBUG
+    org.testcontainers: INFO
+    com.github.dockerjava: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}:%line] - %msg%n"
+
+# 服务器配置
+server:
+  port: 0  # 随机端口，避免测试冲突
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# 测试专用配置
+test:
+  # 数据库初始化
+  database:
+    init-mode: always
+    schema-locations: classpath:sql/schema-test.sql
+    data-locations: classpath:sql/data-test.sql
+
+  # 外部服务Mock配置
+  external:
+    mock-enabled: true
+    payment-service:
+      base-url: http://localhost:${wiremock.server.port:8089}
+    notification-service:
+      base-url: http://localhost:${wiremock.server.port:8089}
+
+  # 测试数据配置
+  data:
+    cleanup-enabled: true  # 是否自动清理测试数据
+    tenant-id: 999999     # 测试租户ID
+    user-id: 888888       # 测试用户ID
+
+# 安全配置（测试环境简化）
+security:
+  enabled: false
+
+# 事务配置
+spring.transaction:
+  default-timeout: 30
+  rollback-on-commit-failure: true
+
+# 异步配置
+spring.task:
+  execution:
+    pool:
+      core-size: 2
+      max-size: 4
+      queue-capacity: 25
+      keep-alive: 30s
+    thread-name-prefix: "test-async-"
+
+# 验证配置
+spring.validation:
+  enabled: true
+
+# Jackson配置
+spring.jackson:
+  default-property-inclusion: NON_NULL
+  serialization:
+    write-dates-as-timestamps: false
+    fail-on-empty-beans: false
+  deserialization:
+    fail-on-unknown-properties: false
+  time-zone: GMT+8
