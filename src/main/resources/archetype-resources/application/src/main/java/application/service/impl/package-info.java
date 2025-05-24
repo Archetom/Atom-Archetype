@@ -2,16 +2,16 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Application Service Implementation package.
+ * 应用服务实现包。
  * <p>
- * Implements the application service interfaces.
+ * 应用服务接口的具体实现，负责处理具体业务逻辑。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Implementations of application service interfaces.
+ * </p>
  * <pre>
  * public class UserServiceImpl implements UserService {
- *     public UserResponse getUserById(Long userId) {
- *         // Business logic here
- *     }
+ *     public UserVO getUserById(Long userId) { ... }
  * }
  * </pre>
  */

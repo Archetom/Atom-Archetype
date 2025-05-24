@@ -2,11 +2,13 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Domain Entity package.
+ * 领域实体包。
  * <p>
- * Contains core domain entities representing business models.
+ * 定义核心业务模型（实体）。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Core business entities.
+ * </p>
  * <pre>
  * public class User {
  *     private Long id;
@@ -14,4 +16,4 @@
  * }
  * </pre>
  */
-        package ${package}.domain.entity;
+package ${package}.domain.entity;

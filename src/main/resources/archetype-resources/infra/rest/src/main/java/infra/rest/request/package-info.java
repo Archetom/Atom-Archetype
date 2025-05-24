@@ -2,14 +2,16 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * REST Request package.
+ * REST 请求参数包。
  * <p>
- * Contains classes representing the structure of incoming REST API requests.
+ * 定义 REST API 的请求参数结构体。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Request classes for REST API input.
+ * </p>
  * <pre>
  * public class UserCreateRequest {
- *     private String name;
+ *     private String username;
  *     private String email;
  * }
  * </pre>

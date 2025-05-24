@@ -2,11 +2,13 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Application Service Interface package.
+ * 应用服务接口包。
  * <p>
- * Defines application service interfaces for handling business logic.
+ * 用于声明应用服务的接口，承载业务用例和流程。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Application service interfaces.
+ * </p>
  * <pre>
  * public interface UserService {
  *     UserVO getUserById(Long userId);

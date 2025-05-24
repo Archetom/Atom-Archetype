@@ -2,16 +2,16 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Domain Service Implementation package.
+ * 领域服务实现包。
  * <p>
- * Contains implementations of domain service interfaces.
+ * 领域服务接口的实现类。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Implementations of domain service interfaces.
+ * </p>
  * <pre>
  * public class UserDomainServiceImpl implements UserDomainService {
- *     public boolean isUserActive(Long userId) {
- *         // Domain logic here
- *     }
+ *     public boolean isUserActive(Long userId) { ... }
  * }
  * </pre>
  */

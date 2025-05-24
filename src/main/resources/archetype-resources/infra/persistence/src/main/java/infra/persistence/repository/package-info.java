@@ -2,16 +2,16 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Repository Implementations package.
+ * 基础设施仓储实现包。
  * <p>
- * Contains implementations of repositories for accessing and managing data storage.
+ * 实现对数据库等持久化存储的访问逻辑。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Repository implementations for persistence.
+ * </p>
  * <pre>
  * public class UserRepositoryImpl implements UserRepository {
- *     public User findById(Long id) {
- *         // Database query logic here
- *     }
+ *     public User findById(Long id) { ... }
  * }
  * </pre>
  */

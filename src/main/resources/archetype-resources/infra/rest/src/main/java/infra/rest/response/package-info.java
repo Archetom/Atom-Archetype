@@ -2,11 +2,13 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * REST Response package.
+ * REST 响应参数包。
  * <p>
- * Contains classes representing the structure of REST API responses.
+ * 定义 REST API 的响应参数结构体。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Response classes for REST API output.
+ * </p>
  * <pre>
  * public class UserResponse {
  *     private Long id;

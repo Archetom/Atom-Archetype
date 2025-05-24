@@ -2,14 +2,16 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Facade interfaces package.
+ * API 外观接口包。
  * <p>
- * Contains high-level interfaces for the API that define business operations exposed to clients.
+ * 用于定义业务对外暴露的高层接口。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * API Facade interfaces.
+ * </p>
  * <pre>
  * public interface UserFacade {
- *     UserResponse getUserDetails(Long userId);
+ *     UserResponse getUser(Long userId);
  * }
  * </pre>
  */

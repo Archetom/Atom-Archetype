@@ -2,11 +2,13 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Domain Context package.
+ * 领域上下文包。
  * <p>
- * Contains classes and utilities for managing domain-specific contexts and business logic boundaries.
+ * 用于定义领域模型操作时的上下文环境和边界。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Domain context for aggregating context data in business logic.
+ * </p>
  * <pre>
  * public class UserContext {
  *     private Long userId;

@@ -2,11 +2,13 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * API Enums package.
+ * 枚举类型包。
  * <p>
- * This package contains enumerations used for defining constant values in the API.
+ * 用于定义 API 层的枚举常量（如状态、类型等）。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Enums for API layer (status, types, etc).
+ * </p>
  * <pre>
  * public enum StatusEnum {
  *     ACTIVE, INACTIVE;

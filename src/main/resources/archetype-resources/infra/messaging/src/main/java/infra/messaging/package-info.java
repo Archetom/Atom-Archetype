@@ -2,16 +2,16 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Messaging package.
+ * 基础设施消息包。
  * <p>
- * Contains implementations for handling messaging systems such as Kafka or RabbitMQ.
+ * 负责对接消息队列等消息基础设施。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Messaging infrastructure integration (Kafka, RabbitMQ, etc).
+ * </p>
  * <pre>
  * public class UserEventProducer {
- *     public void sendEvent(UserEvent event) {
- *         // Messaging logic here
- *     }
+ *     public void sendEvent(UserEvent event) { ... }
  * }
  * </pre>
  */

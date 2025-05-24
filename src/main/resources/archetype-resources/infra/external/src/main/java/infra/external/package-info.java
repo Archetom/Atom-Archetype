@@ -2,17 +2,15 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Infrastructure External package.
+ * 基础设施外部依赖包。
  * <p>
- * Contains implementations for external integrations such as third-party APIs or libraries.
+ * 集成第三方 API 或外部库实现。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * External dependencies (3rd-party APIs, libraries).
+ * </p>
  * <pre>
- * public class PaymentGatewayImpl implements PaymentGateway {
- *     public boolean processPayment(Long userId, Double amount) {
- *         // Integration logic here
- *     }
- * }
+ * public class PaymentGatewayImpl { ... }
  * </pre>
  */
 package ${package}.infra.external;

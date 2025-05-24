@@ -2,11 +2,13 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Domain Service Interface package.
+ * 领域服务接口包。
  * <p>
- * Defines core business logic operations.
+ * 定义核心领域业务逻辑的接口。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Domain service interfaces.
+ * </p>
  * <pre>
  * public interface UserDomainService {
  *     boolean isUserActive(Long userId);

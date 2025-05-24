@@ -2,11 +2,13 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Domain Messaging package.
+ * 领域消息包。
  * <p>
- * Contains message classes for communication between systems or services.
+ * 存放领域事件、消息等。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Domain events and messaging definitions.
+ * </p>
  * <pre>
  * public class UserEvent {
  *     private Long userId;

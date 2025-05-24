@@ -2,18 +2,18 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * REST Controller package.
+ * REST 控制器包。
  * <p>
- * Contains REST controllers for exposing APIs to clients.
+ * 定义对外开放的 RESTful API 接口。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * REST controllers for exposing APIs.
+ * </p>
  * <pre>
  * @RestController
  * public class UserController {
  *     @GetMapping("/users/{id}")
- *     public UserResponse getUserById(@PathVariable Long id) {
- *         // API logic here
- *     }
+ *     public UserResponse getUserById(@PathVariable Long id) { ... }
  * }
  * </pre>
  */

@@ -2,15 +2,17 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * Application Assembler package.
+ * 装配器（Assembler）包。
  * <p>
- * Contains classes responsible for converting between domain models and DTOs.
+ * 负责在不同层（如 domain、dto、vo）间的数据对象转换。
  * </p>
- * <p>Example:</p>
+ * <p>
+ * Assemblers for mapping between domain, DTO, VO, etc.
+ * </p>
  * <pre>
  * public class UserAssembler {
- *     public static UserResponseDTO toDTO(User user) {
- *         // Mapping logic here
+ *     public static UserDTO toDTO(User user) {
+ *         // Mapping logic
  *     }
  * }
  * </pre>
