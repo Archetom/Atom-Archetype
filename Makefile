@@ -6,7 +6,7 @@ clean:
 	@mvn clean
 
 install:clean
-	@mvn install -U
+	@mvn install -U -Dgpg.skip=true
 
 deploy:clean
 	@mvn deploy
