@@ -1,4 +1,4 @@
-package ${package}.application.template;
+package ${package}.application.service.template;
 
 import ${package}.shared.exception.AppException;
 import ${package}.shared.exception.AppUnRetryException;

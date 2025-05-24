@@ -13,4 +13,4 @@
  * public class AbstractOperatorServiceTemplate implements ServiceTemplate { ... }
  * </pre>
  */
-package ${package}.application.template;
+package ${package}.application.service.template;
