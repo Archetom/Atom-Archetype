@@ -29,3 +29,12 @@ mybatis-plus:
       logic-delete-value: now()
       insert-strategy: default
       update-strategy: default
+
+# 线程池配置
+task:
+  executor:
+    core-pool-size: 5
+    max-pool-size: 10
+    queue-capacity: 100
+    keep-alive-seconds: 60
+    thread-name-prefix: ${artifactId}-task-
