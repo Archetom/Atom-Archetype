@@ -13,9 +13,14 @@ public class TemplateChain<T> {
         return this;
     }
 
-    public void execute(ServiceCallback<T> action) {
+    public T execute(ServiceCallback<T> action) {
+        T result = null;
         for (TemplateStep<T> step : steps) {
-            step.execute(action);
+            Object stepResult = step.execute(action);
+            if (stepResult != null) {
+                result = (T) stepResult;
+            }
         }
+        return result;
     }
 }

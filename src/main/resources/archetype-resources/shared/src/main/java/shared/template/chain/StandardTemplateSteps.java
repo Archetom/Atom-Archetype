@@ -11,6 +11,8 @@ public class StandardTemplateSteps {
             Profiler.enter("checkParam");
             action.checkParam();
             Profiler.release();
+
+            return null;
         };
     }
 
@@ -22,6 +24,8 @@ public class StandardTemplateSteps {
             Profiler.enter("buildContext");
             action.buildContext();
             Profiler.release();
+
+            return null;
         };
     }
 
@@ -33,6 +37,8 @@ public class StandardTemplateSteps {
             Profiler.enter("checkConcurrent");
             action.checkConcurrent();
             Profiler.release();
+
+            return null;
         };
     }
 
@@ -42,8 +48,10 @@ public class StandardTemplateSteps {
     public static <T> TemplateStep<T> process() {
         return action -> {
             Profiler.enter("process");
-            action.process();
+            T result = action.process();  // 获取处理结果
             Profiler.release();
+
+            return result;  // 返回处理结果
         };
     }
 
@@ -55,6 +63,8 @@ public class StandardTemplateSteps {
             Profiler.enter("persistence");
             action.persistence();
             Profiler.release();
+
+            return null;
         };
     }
 
@@ -66,6 +76,8 @@ public class StandardTemplateSteps {
             Profiler.enter("after");
             action.after();
             Profiler.release();
+
+            return null;
         };
     }
 }

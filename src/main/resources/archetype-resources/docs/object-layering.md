@@ -1,130 +1,375 @@
-# 分层对象规范（DTO/VO/PO/Request/Response 使用说明）
+# 对象分层规范
 
-## 1. 概念区分
+## 概述
 
-- **DTO（Data Transfer Object）数据传输对象**
-    - 用于服务、模块、微服务之间的数据传递。
-    - 不包含业务逻辑，专注数据结构。
+本项目采用严格的对象分层设计，确保各层职责清晰，数据流向明确。
 
-- **VO（View Object / Value Object）视图对象 / 值对象**
-    - 面向前端或其他接口展示，用于数据返回和渲染。
-    - 仅包含页面/接口需要的字段。
+## 对象类型定义
 
-- **PO（Persistent Object）持久化对象**
-    - 映射数据库表结构，仅做数据持久化，不能直接用于接口。
+### Request/Response - 接口层对象
 
-- **Request / Response（请求/响应对象）**
-    - rest 层专用对象，和 DTO/VO 一一对应。
-    - **Request** 专用于接收前端/外部请求参数（输入），可理解为“输入 DTO”。
-    - **Response** 专用于对外返回结果（输出），可理解为“输出 VO”。
-    - 命名规范：如 `UserRequest`、`UserResponse`。
-    - 通常每个接口的 Request/Response 成对出现，便于接口的参数与返回分离，代码更清晰。
-    - 通常位于 `api/dto/request/`、`api/dto/response/`、`infra/rest/request/`、`infra/rest/response/` 等目录。
+**用途**: REST API 的输入输出对象  
+**位置**: `api/dto/request/`、`api/dto/response/`  
+**特点**: 面向外部接口，包含验证注解
 
----
-
-## 2. 典型流转方向
-```text
-Controller/Facade
-↓
-Request（输入）
-↓
-DTO
-↓
-Service/Application
-↓
-Domain/PO（持久层）
-↓
-Repository/DAO
-↑
-VO / Response（输出）
-↑
-Controller/Facade
-```
-- rest 层只用 **Request/Response** 命名。
-- DTO/VO 更常用于 application/domain 层及跨服务场景。
-
----
-
-## 3. 默认目录
-
-- `api/dto/request/`  — 接口请求对象（Request）
-- `api/dto/response/` — 接口返回对象（Response）
-- `application/vo/`   — 业务返回对象（VO）
-- `infra/persistence/mysql/po/` — 持久化对象（PO）
-
----
-
-## 4. 使用规范
-
-1. **Request/Response 对象与 DTO/VO 区分使用，不混用**
-2. **同一接口建议 Request/Response 成对出现**
-3. **Request/Response 仅用于 rest/controller 层，不直接穿透到 domain/infra 层**
-4. **PO 只做数据库操作，不暴露到前端**
-
----
-
-## 5. 团队协作建议
-
-- 统一对象命名规范，Request/Response 明确表示接口输入输出。
-- 代码评审时检查是否使用了正确的对象类型。
-- Controller 层只接收 Request/返回 Response，禁止直接暴露 PO/DO。
-
----
-
-## 6. 示例结构
 ```java
-// 请求参数对象
-public class UserRequest {
+// UserCreateRequest.java
+@Data
+public class UserCreateRequest {
+    @NotBlank(message = "用户名不能为空")
+    @Size(min = 3, max = 20, message = "用户名长度必须在3-20之间")
     private String username;
-    private String password;
-    // ...
+    
+    @Email(message = "邮箱格式不正确")
+    private String email;
 }
-```
 
-```java
-// 持久化对象
-public class UserPO {
+// UserResponse.java
+@Data
+public class UserResponse {
     private Long id;
     private String username;
-    // ...
+    private String email;
+    private String status;
+    private LocalDateTime createdTime;
 }
 ```
+
+### DTO - 数据传输对象
+
+**用途**: 服务间、模块间数据传输  
+**位置**: `application/dto/`  
+**特点**: 纯数据载体，无业务逻辑
 
 ```java
-// 返回视图对象
-public class UserResponse {
-    private Long userId;
-    private String displayName;
-    // ...
+// UserDTO.java
+@Data
+public class UserDTO {
+    private Long id;
+    private String username;
+    private String email;
+    private Integer status;
+    private LocalDateTime createdTime;
 }
 ```
 
----
+### VO - 视图对象
 
-## 7. 常见误用举例
+**用途**: 应用层内部数据展示  
+**位置**: `application/vo/`  
+**特点**: 面向业务展示，可包含计算字段
 
-- ❌ Controller 方法直接接收/返回 PO/DO。
-- ❌ 一个对象在 Request、Response、VO、DTO 间混用。
-- ❌ 业务逻辑代码直接操作 Request/Response。
+```java
+// UserVO.java
+@Data
+public class UserVO {
+    private Long id;
+    private String username;
+    private String displayName;    // 计算字段
+    private String statusText;     // 状态文本
+    private String createdTimeText; // 格式化时间
+    
+    // 业务方法
+    public String getDisplayName() {
+        return StringUtils.isNotBlank(nickname) ? nickname : username;
+    }
+}
+```
 
----
+### Entity - 领域实体
 
-## 8. 总结
+**用途**: 领域层核心业务对象  
+**位置**: `domain/entity/`  
+**特点**: 包含业务逻辑和规则
 
-- **Request/Response 专属 rest 层，确保接口解耦**
-- **DTO/VO 适用于 service/application/domain 层**
-- **PO/DO 专注持久化，绝不直接暴露**
+```java
+// User.java
+@Data
+public class User {
+    private Long id;
+    private String username;
+    private String email;
+    private UserStatus status;
+    private LocalDateTime createdTime;
+    
+    // 业务方法
+    public void activate() {
+        if (this.status == UserStatus.DELETED) {
+            throw new AppException(ErrorCodeEnum.USER_DELETED, "已删除用户无法激活");
+        }
+        this.status = UserStatus.ACTIVE;
+    }
+    
+    public boolean isActive() {
+        return UserStatus.ACTIVE.equals(this.status);
+    }
+}
+```
 
----
+### PO - 持久化对象
 
-## 9. 文档链接索引
+**用途**: 数据库表映射对象  
+**位置**: `infra/persistence/mysql/po/`  
+**特点**: 纯数据映射，包含数据库注解
 
-- [架构设计说明](./architecture.md)
-- [开发指南](./usage-guide.md)
-- [配置说明](./configuration.md)
-- [测试指南](./test-guide.md)
+```java
+// UserPO.java
+@Data
+@EqualsAndHashCode(callSuper = true)
+@TableName("user")
+public class UserPO extends BasePO {
+    @TableId(type = IdType.AUTO)
+    private Long id;
+    
+    @TableField("username")
+    private String username;
+    
+    @TableField("email")
+    private String email;
+    
+    @TableField("status")
+    private Integer status;
+}
+```
 
----
+## 数据流转规范
 
-如有更多对象分层、包结构或开发规范建议，请补充至本文档并通知团队。
+### 典型流转路径
+
+```text
+Request → DTO → Entity → PO → Database
+   ↓                              ↑
+Response ← VO ← Entity ← PO ← Database
+```
+
+### 转换示例
+
+```java
+// UserAssembler.java - 负责对象转换
+public class UserAssembler {
+    
+    // Request → DTO
+    public static UserDTO toDTO(UserCreateRequest request) {
+        UserDTO dto = new UserDTO();
+        dto.setUsername(request.getUsername());
+        dto.setEmail(request.getEmail());
+        return dto;
+    }
+    
+    // Entity → VO
+    public static UserVO toVO(User user) {
+        UserVO vo = new UserVO();
+        vo.setId(user.getId());
+        vo.setUsername(user.getUsername());
+        vo.setDisplayName(user.getDisplayName());
+        vo.setStatusText(user.getStatus().getDescription());
+        return vo;
+    }
+    
+    // VO → Response
+    public static UserResponse toResponse(UserVO vo) {
+        UserResponse response = new UserResponse();
+        BeanUtils.copyProperties(vo, response);
+        return response;
+    }
+}
+
+// UserConverter.java - Entity ↔ PO 转换
+public class UserConverter {
+    
+    // Entity → PO
+    public static UserPO toPO(User user) {
+        UserPO po = new UserPO();
+        po.setId(user.getId());
+        po.setUsername(user.getUsername());
+        po.setEmail(user.getEmail());
+        po.setStatus(user.getStatus().getCode());
+        return po;
+    }
+    
+    // PO → Entity
+    public static User toEntity(UserPO po) {
+        User user = new User();
+        user.setId(po.getId());
+        user.setUsername(po.getUsername());
+        user.setEmail(po.getEmail());
+        user.setStatus(UserStatus.fromCode(po.getStatus()));
+        user.setCreatedTime(po.getCreatedTime());
+        return user;
+    }
+}
+```
+
+## 分层使用规范
+
+### ✅ 正确使用
+
+```java
+// Controller 层
+@RestController
+public class UserController {
+    
+    @PostMapping("/users")
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserCreateRequest request) {
+        // Request → Service
+        Result<UserVO> result = userService.createUser(request);
+        
+        // VO → Response
+        UserResponse response = UserAssembler.toResponse(result.getData());
+        return ResponseEntity.ok(response);
+    }
+}
+
+// Service 层
+@Service
+public class UserService {
+    
+    public Result<UserVO> createUser(UserCreateRequest request) {
+        return serviceTemplate.execute(EventEnum.USER_CREATE, new ServiceCallback<UserVO>() {
+            @Override
+            public UserVO process() {
+                // Request → Entity
+                User user = userDomainService.createUser(request.getUsername(), request.getEmail());
+                
+                // Entity → VO
+                return UserAssembler.toVO(user);
+            }
+        });
+    }
+}
+
+// Repository 层
+@Repository
+public class UserRepositoryImpl implements UserRepository {
+    
+    @Override
+    public User save(User user) {
+        // Entity → PO
+        UserPO po = UserConverter.toPO(user);
+        userDao.save(po);
+        
+        // PO → Entity
+        return UserConverter.toEntity(po);
+    }
+}
+```
+
+### ❌ 错误使用
+
+```java
+// ❌ 直接暴露 PO 到 Controller
+@GetMapping("/users/{id}")
+public UserPO getUser(@PathVariable Long id) {
+    return userDao.getById(id);  // 错误：暴露数据库对象
+}
+
+// ❌ 在 Domain 层使用 Request/Response
+public class UserDomainService {
+    public UserResponse createUser(UserCreateRequest request) {  // 错误：领域层不应依赖接口层对象
+        // ...
+    }
+}
+
+// ❌ 混用不同层的对象
+@Service
+public class UserService {
+    public UserPO createUser(UserCreateRequest request) {  // 错误：Service 不应返回 PO
+        // ...
+    }
+}
+```
+
+## 对象映射工具
+
+### MapStruct 配置
+
+```java
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+    
+    @Mapping(target = "statusText", source = "status", qualifiedByName = "statusToText")
+    UserVO toVO(User user);
+    
+    @Named("statusToText")
+    default String statusToText(UserStatus status) {
+        return status != null ? status.getDescription() : "";
+    }
+    
+    List<UserVO> toVOList(List<User> users);
+}
+```
+
+### 手动映射最佳实践
+
+```java
+public class UserAssembler {
+    
+    public static UserVO toVO(User user) {
+        if (user == null) {
+            return null;
+        }
+        
+        UserVO vo = new UserVO();
+        vo.setId(user.getId());
+        vo.setUsername(user.getUsername());
+        vo.setEmail(user.getEmail());
+        
+        // 处理枚举转换
+        if (user.getStatus() != null) {
+            vo.setStatusText(user.getStatus().getDescription());
+        }
+        
+        // 处理时间格式化
+        if (user.getCreatedTime() != null) {
+            vo.setCreatedTimeText(user.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
+        
+        return vo;
+    }
+    
+    public static List<UserVO> toVOList(List<User> users) {
+        return users.stream()
+                .map(UserAssembler::toVO)
+                .collect(Collectors.toList());
+    }
+}
+```
+
+## 常见问题
+
+### Q: 什么时候使用 DTO，什么时候使用 VO？
+
+A:
+- **DTO**: 跨服务、跨模块传输数据时使用
+- **VO**: 应用层内部业务处理和数据展示时使用
+
+### Q: 可以跨层使用对象吗？
+
+A: 不建议。每层应该使用自己的对象类型，通过转换器进行映射。
+
+### Q: 如何处理复杂的对象转换？
+
+A:
+1. 简单映射：使用 BeanUtils.copyProperties()
+2. 复杂映射：使用 MapStruct 或手写 Assembler
+3. 业务转换：在 Assembler 中添加业务逻辑
+
+### Q: 分页对象如何处理？
+
+A: 使用泛型分页对象，在不同层进行数据转换：
+
+```java
+// 查询 PO 分页
+Page<UserPO> poPage = userDao.selectPage(page, wrapper);
+
+// 转换为 Entity 分页
+Pager<User> entityPager = PageUtil.toPager(poPage);
+List<User> users = poPage.getRecords().stream()
+    .map(UserConverter::toEntity)
+    .collect(Collectors.toList());
+entityPager.setData(users);
+
+// 转换为 VO 分页
+Pager<UserVO> voPage = PageUtil.copy(entityPager);
+voPage.setData(UserAssembler.toVOList(users));
+```

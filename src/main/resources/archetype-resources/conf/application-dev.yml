@@ -1,16 +1,15 @@
-######################## 开发环境使用 ####################
 spring:
   application:
-    name: ${rootArtifactId}
+    name: atom-demo
   datasource:
     driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
     username: sa
     password:
-  jpa:
-    hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
 
 # 日志配置
 logging:
@@ -22,13 +21,18 @@ logging:
 
 # mybatis-plus
 mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
   global-config:
     db-config:
-      logic-delete-field: deleted_time
-      logic-not-delete-value: "null"
+      id-type: auto
+      logic-delete-field: deletedTime
       logic-delete-value: now()
-      insert-strategy: default
-      update-strategy: default
+      logic-not-delete-value: 'null'
+  mapper-locations: classpath*:mapper/**/*.xml
 
 # 线程池配置
 task:
@@ -37,4 +41,4 @@ task:
     max-pool-size: 10
     queue-capacity: 100
     keep-alive-seconds: 60
-    thread-name-prefix: ${artifactId}-task-
+    thread-name-prefix: atom-demo-task-

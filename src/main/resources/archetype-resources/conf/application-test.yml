@@ -108,9 +108,9 @@ test:
   external:
     mock-enabled: true
     payment-service:
-      base-url: http://localhost:${wiremock.server.port:8089}
+      base-url: http://localhost:8089
     notification-service:
-      base-url: http://localhost:${wiremock.server.port:8089}
+      base-url: http://localhost:8089
 
   # 测试数据配置
   data:

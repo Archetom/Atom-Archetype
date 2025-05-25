@@ -40,9 +40,10 @@ public class AbstractQueryServiceTemplate implements ServiceTemplate {
                     .addStep(StandardTemplateSteps.process())      // 核心逻辑处理
                     .addStep(StandardTemplateSteps.after());       // 后置处理
 
-            // 执行责任链
-            chain.execute(action);
+            // 执行责任链，获取处理结果
+            T data = chain.execute(action);
 
+            result.setData(data);
             result.setSuccess(true);
             return result;
         } catch (AppUnRetryException ex) {

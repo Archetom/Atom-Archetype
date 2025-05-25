@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: ${artifactId}-test
+  
+  # 测试数据源配置（由Testcontainers动态配置）
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # url, username, password 由 Testcontainers 动态配置
+    
+  # 测试Redis配置（由Testcontainers动态配置）
+  data:
+    redis:
+      # host, port 由 Testcontainers 动态配置
+      password: 
+      database: 0
+      timeout: 5000ms
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deletedTime
+      logic-delete-value: now()
+      logic-not-delete-value: 'null'
+  mapper-locations: classpath*:mapper/**/*.xml
+
+# 日志配置
+logging:
+  level:
+    ${package}: DEBUG
+    org.springframework.web: DEBUG
+    org.testcontainers: INFO
+    com.github.dockerjava: WARN
+
+# 线程池配置
+task:
+  executor:
+    core-pool-size: 2
+    max-pool-size: 4
+    queue-capacity: 50
+    keep-alive-seconds: 30
+    thread-name-prefix: test-task-

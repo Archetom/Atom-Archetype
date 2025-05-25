@@ -4,5 +4,5 @@ import ${package}.shared.template.ServiceCallback;
 
 @FunctionalInterface
 public interface TemplateStep<T> {
-    void execute(ServiceCallback<T> action);
+    Object execute(ServiceCallback<T> action);
 }

@@ -1,136 +1,137 @@
-# 系统架构说明
+# 架构设计
 
-## 1. 架构目标
+## 设计理念
 
-本脚手架旨在为**现代中大型 Java/SpringBoot 项目**提供清晰、分层、可扩展、便于协作与演进的工程基础。
+Atom 脚手架采用 **DDD（领域驱动设计）+ 分层架构**，旨在为中大型 Java 项目提供清晰、可扩展的工程基础。
 
-采用经典 DDD（领域驱动设计）+ 分层架构思想，明确各层边界，降低模块间耦合，提高可维护性与测试友好性。
+### 核心原则
 
----
+- **职责分离** - 每层专注自己的职责，降低耦合
+- **依赖倒置** - 高层模块不依赖低层模块
+- **开放封闭** - 对扩展开放，对修改封闭
 
-## 2. 项目分层结构
+## 分层架构
 
-```text
-${artifactId}
-├── api/                  # API接口声明层
-├── application/          # 应用层，编排业务逻辑、服务模板、DTO/VO等
-├── domain/               # 领域层，核心业务模型与规则
-├── infra/                # 基础设施层，第三方集成、数据存储、消息等
-│   ├── external/         # 外部服务集成
-│   ├── messaging/        # 消息系统集成
-│   ├── persistence/      # 持久化实现
-│   ├── rest/             # REST接口实现
-│   └── rpc/              # RPC接口实现
-├── shared/               # 通用基础组件、工具、异常体系等
-└── start/                # 启动模块（main入口）
-```
-
----
-
-## 3. 各层职责说明
-
-- **api**
-    - 声明对外暴露的DTO、请求/响应对象、接口定义（如 facade）
-    - 无任何业务逻辑实现，便于接口与实现解耦
-- **application**
-    - 负责业务编排和协调，处理参数校验、DTO/VO装配
-    - 封装 ServiceTemplate、责任链模板、服务入口等
-- **domain**
-    - 核心业务模型、实体、领域服务、业务规则
-    - 不依赖外部技术（MyBatis、Spring等），强调纯业务能力
-- **infra**
-    - 与外部系统对接的具体实现，如数据库、MQ、三方API等
-    - 基础设施适配、技术细节封装
-- **shared**
-    - 工具类、常量、异常、通用模板、基础通用组件
-- **start**
-    - 应用主入口，集中所有模块依赖，独立启动
-
----
-
-## 4. 技术选型与架构亮点
-
-- **Spring Boot**：主流微服务开发框架，约定优于配置
-- **MyBatis-Plus**：简化ORM开发，支持代码生成
-- **责任链+模板方法模式**：ServiceTemplate统一业务处理流程
-- **分层DTO/VO/PO/Entity对象映射**：推荐MapStruct或手工映射
-- **统一异常处理、错误码规范**：全局异常Advice，Result包装
-- **线程池/WebClient配置**：支持yml参数化，扩展灵活
-- **租户（tenant）与审计字段**：支持多租户与审计自动填充
-
----
-
-## 5. 典型调用流程
+### 整体架构图
 
 ```text
-1. Client/API
-   ↓
-2. api 层
-   ↓
-3. application 层（参数校验 → 业务编排 → 责任链/模板）
-   ↓
-4. domain 层（核心业务处理）
-   ↓
-5. infra 层（数据持久化、消息发送、外部系统调用）
-   ↓
-6. application 层（结果组装、DTO转换）
-   ↓
-7. api 层（响应组装、返回前端/客户端）
-   ```
-
----
-
-## 6. 依赖方向与耦合原则
-
-- api/application 只依赖 domain/shared，不直接依赖 infra
-- domain **不得**依赖 infra，做到领域独立
-- infra 依赖 domain（如持久化层 PO/DO ←→ 领域对象），但不反向依赖
-- shared 独立于所有层，可被任意层引用
-
----
-
-## 7. 扩展点说明
-
-- **新业务扩展**：优先在 application/domain 层实现，infra 仅做外部适配
-- **新对象映射**：统一使用 assembler/convertor 实现 DTO-VO-PO-Entity 映射
-- **ServiceTemplate**：建议业务调用全部用模板方式接入，便于标准化异常与日志
-- **持久化和三方系统**：推荐通过 Repository/Dao + 外部接口适配器解耦
-
----
-
-## 8. 推荐开发/协作流程
-
-1. **新建业务接口**：api 层声明 DTO/Facade，application 层编写 Service/Template，domain 层建模
-2. **补充/完善文档**：所有新增公共抽象需补文档说明
-3. **单元/集成测试**：domain/application/infra 层均需配套测试
-
----
-
-## 9. 架构图示意
-
-```
-[前端/客户端]
-      ↓
-   [API层]
-      ↓
-   [应用层]
-      ↓
-   [领域层]
-      ↓
-  [基础设施层]
-      ↓
-[DB/消息/外部系统]
+┌─────────────────┐
+│    Client/API   │
+└─────────┬───────┘
+          │
+┌─────────▼───────┐
+│     API Layer   │  ← 接口声明
+└─────────┬───────┘
+          │
+┌─────────▼───────┐
+│   Application   │  ← 业务编排
+└─────────┬───────┘
+          │
+┌─────────▼───────┐
+│      Domain     │  ← 核心业务
+└─────────┬───────┘
+          │
+┌─────────▼───────┐
+│  Infrastructure │  ← 基础设施
+└─────────────────┘
 ```
 
----
+### 各层职责
 
-## 10. 文档链接索引
+| 层级 | 职责 | 主要组件 |
+|------|------|----------|
+| **API** | 对外接口声明 | DTO、Facade 接口 |
+| **Application** | 业务编排协调 | Service、Assembler、VO |
+| **Domain** | 核心业务逻辑 | Entity、Repository、DomainService |
+| **Infrastructure** | 技术实现 | Mapper、外部接口、消息队列 |
+| **Shared** | 通用组件 | 工具类、异常、常量 |
 
-- [开发指南](./usage-guide.md)
-- [配置说明](./configuration.md)
-- [对象分层说明](./object-layering.md)
-- [测试指南](./test-guide.md)
+## 核心特性
 
----
+### 服务模板模式
 
-如有新模块/新规范，欢迎补充完善！
+所有业务操作通过 `ServiceTemplate` 统一处理：
+
+```java
+@Service
+public class UserService {
+    @Resource(name = "operatorServiceTemplate")
+    private ServiceTemplate serviceTemplate;
+    
+    public Result<UserVO> createUser(UserCreateRequest request) {
+        return serviceTemplate.execute(EventEnum.USER_CREATE, new ServiceCallback<UserVO>() {
+            @Override
+            public void checkParam() {
+                // 参数校验
+            }
+            
+            @Override
+            public UserVO process() {
+                // 核心业务逻辑
+                return userDomainService.createUser(request);
+            }
+        });
+    }
+}
+```
+
+### 责任链处理
+
+内置标准处理步骤：
+
+1. **参数校验** - 检查输入参数
+2. **上下文构建** - 准备执行环境
+3. **并发控制** - 幂等性检查
+4. **业务处理** - 核心逻辑执行
+5. **数据持久化** - 保存结果
+6. **后置处理** - 清理和通知
+
+### 统一异常处理
+
+```java
+// 业务异常
+throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户名不能为空");
+
+// 不可重试异常
+throw new AppUnRetryException(ErrorCodeEnum.USER_NOT_FOUND, "用户不存在");
+```
+
+## 依赖关系
+
+```text
+api ──────────┐
+              ▼
+application ──┼──► domain ──► shared
+              ▼
+infra ────────┘
+```
+
+**依赖规则**：
+- `domain` 不依赖任何其他业务层
+- `infra` 可以依赖 `domain`，但 `domain` 不能依赖 `infra`
+- `shared` 被所有层依赖，但不依赖任何业务层
+
+## 扩展指南
+
+### 新增业务功能
+
+1. **定义接口** - 在 `api` 层声明 DTO 和 Facade
+2. **实现服务** - 在 `application` 层编写 Service
+3. **领域建模** - 在 `domain` 层定义实体和业务规则
+4. **基础设施** - 在 `infra` 层实现数据访问
+
+### 集成外部系统
+
+1. 在 `domain` 层定义接口
+2. 在 `infra/external` 层实现适配器
+3. 通过依赖注入使用
+
+## 最佳实践
+
+- ✅ 使用 ServiceTemplate 处理所有业务操作
+- ✅ 通过 Assembler/Converter 进行对象转换
+- ✅ 在 domain 层编写核心业务逻辑
+- ✅ 使用统一的异常和错误码
+- ❌ 不要在 Controller 中写业务逻辑
+- ❌ 不要让 domain 层依赖 infra 层
+- ❌ 不要直接暴露 PO 对象到接口层

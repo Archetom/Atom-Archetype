@@ -1,112 +1,670 @@
-# Usage Guide
+# 开发指南
 
-本指引帮助开发者基于脚手架进行日常开发、扩展与维护，包含典型流程、示例和最佳实践。
+## 环境准备
 
----
+### 系统要求
 
-## 1. 快速开始
+- **JDK**: 17+
+- **Maven**: 3.9+
+- **数据库**: MySQL 8.0+
+- **缓存**: Redis 6.0+
+- **IDE**: IntelliJ IDEA（推荐）
 
-### 1.1 环境准备
-
-- JDK 17+
-- Maven 3.6+
-- MySQL / 其他必要中间件
-- 推荐 IDE: IntelliJ IDEA
-
-### 1.2 启动项目
+### 项目初始化
 
 ```bash
-# 初始化数据库等依赖
-# 修改配置文件 src/main/resources/application.yml
+# 1. 生成项目
+mvn archetype:generate \
+  -DarchetypeGroupId=io.github.archetom \
+  -DarchetypeArtifactId=atom-archetype \
+  -DarchetypeVersion=1.0.1 \
+  -DgroupId=com.example \
+  -DartifactId=my-project \
+  -Dpackage=com.example.myproject
+
+# 2. 进入项目目录
+cd my-project
+
+# 3. 修改配置文件
+vim start/src/main/resources/application.yml
+
+# 4. 启动项目
 mvn clean install
-cd start
-mvn spring-boot:run
+cd start && mvn spring-boot:run
 ```
 
----
+## 开发流程
 
-## 2. 目录与模块约定
+### 完整示例：用户管理功能
 
-- **api/** 定义所有对外数据结构（DTO、VO、请求、响应、接口声明）。
-- **application/** 负责业务编排、DTO组装、服务模板，面向用例。
-- **domain/** 核心领域模型、服务、业务规则。
-- **infra/** 外部依赖集成（如DB、MQ、三方API），实现仓储和适配。
-- **shared/** 通用工具、异常、常量、模板方法、Result封装等。
-- **start/** 项目入口，负责组合依赖并启动。
+#### 1. 定义 API 接口
 
----
+```java
+// api/dto/request/UserCreateRequest.java
+@Data
+public class UserCreateRequest {
+    @NotBlank(message = "用户名不能为空")
+    private String username;
+    
+    @Email(message = "邮箱格式不正确")
+    private String email;
+}
 
-## 3. 新增业务接口流程
+// api/dto/response/UserResponse.java
+@Data
+public class UserResponse {
+    private Long id;
+    private String username;
+    private String email;
+    private LocalDateTime createdTime;
+}
 
-1. 在 **api/** 层新增 DTO/请求/响应类，定义 facade 接口。
-2. 在 **application/** 层创建 Service、实现 ServiceTemplate 回调，编排业务逻辑。
-3. 在 **domain/** 层定义核心领域对象、聚合根及领域服务。
-4. 在 **infra/** 层实现 repository、DAO、mapper 等存储或三方系统适配。
-5. 在 **application/** 层组装出 VO/DTO 供返回。
-6. 在 **rest/rpc** 层暴露接口（如 REST Controller、RPC 实现等）。
+// api/facade/UserFacade.java
+public interface UserFacade {
+    Result<UserResponse> createUser(UserCreateRequest request);
+    Result<UserResponse> getUserById(Long userId);
+}
+```
 
----
+#### 2. 实现应用服务
 
-## 4. 对象转换规范
+```java
+// application/service/UserService.java
+@Service
+public class UserService {
+    
+    @Resource(name = "operatorServiceTemplate")
+    private ServiceTemplate serviceTemplate;
+    
+    @Autowired
+    private UserDomainService userDomainService;
+    
+    public Result<UserVO> createUser(UserCreateRequest request) {
+        return serviceTemplate.execute(EventEnum.USER_CREATE, new ServiceCallback<UserVO>() {
+            @Override
+            public void checkParam() {
+                if (StringUtils.isBlank(request.getUsername())) {
+                    throw new AppUnRetryException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户名不能为空");
+                }
+            }
+            
+            @Override
+            public UserVO process() {
+                User user = userDomainService.createUser(request.getUsername(), request.getEmail());
+                return UserAssembler.toVO(user);
+            }
+        });
+    }
+}
+```
 
-- DTO <-> VO <-> DO/PO <-> Entity 映射推荐统一在 application 层 assembler/convertor 目录下进行。
-- 推荐用 MapStruct，也支持手工转换。
-- 不同层数据结构分离，禁止 domain 直接依赖 infra/persistence 层对象。
+#### 3. 领域层实现
 
----
+```java
+// domain/entity/User.java
+@Data
+public class User {
+    private Long id;
+    private String username;
+    private String email;
+    private LocalDateTime createdTime;
+    
+    public void validateEmail() {
+        if (!email.contains("@")) {
+            throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "邮箱格式不正确");
+        }
+    }
+}
 
-## 5. 统一异常与返回规范
+// domain/service/UserDomainService.java
+public interface UserDomainService {
+    User createUser(String username, String email);
+    User findById(Long userId);
+}
 
-- 业务异常建议全部继承 `AppException` 或 `AppUnRetryException`，详细错误码在 `shared/enums/ErrorCodeEnum.java` 定义。
-- 所有接口返回统一包裹在 Result（io.github.archetom.common.result.Result）对象中。
-- 推荐 Controller 层只负责请求响应转换，业务错误和系统错误通过 RestExceptionAdvice 全局捕获。
+// domain/service/impl/UserDomainServiceImpl.java
+@Service
+public class UserDomainServiceImpl implements UserDomainService {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Override
+    public User createUser(String username, String email) {
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setCreatedTime(LocalDateTime.now());
+        
+        user.validateEmail();
+        
+        return userRepository.save(user);
+    }
+}
+```
 
----
+#### 4. 基础设施实现
 
-## 6. 责任链与模板方法模式应用
+```java
+// infra/persistence/repository/UserRepositoryImpl.java
+@Repository
+public class UserRepositoryImpl implements UserRepository {
+    
+    @Autowired
+    private UserDao userDao;
+    
+    @Override
+    public User save(User user) {
+        UserPO userPO = UserConverter.toPO(user);
+        userDao.save(userPO);
+        return UserConverter.toEntity(userPO);
+    }
+    
+    @Override
+    public User findById(Long id) {
+        UserPO userPO = userDao.getById(id);
+        return userPO != null ? UserConverter.toEntity(userPO) : null;
+    }
+}
 
-- 所有 Service 通过 `ServiceTemplate`（如 `AbstractOperatorServiceTemplate`、`AbstractQueryServiceTemplate`）调用，便于标准化日志、异常、审计。
-- 核心业务分解为 ServiceCallback 的 checkParam/buildContext/process/persistence/after 等方法，职责清晰。
+// infra/rest/controller/UserController.java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    @Autowired
+    private UserService userService;
+    
+    @PostMapping
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserCreateRequest request) {
+        Result<UserVO> result = userService.createUser(request);
+        return ResponseEntityUtil.assembleResponse(result);
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        Result<UserVO> result = userService.getUserById(id);
+        return ResponseEntityUtil.assembleResponse(result);
+    }
+}
+```
 
----
+## 开发规范
 
-## 7. 持久化开发规范
+### 对象转换
 
-- 继承 `BaseRepository`（领域）和 `BaseDao`（infra/persistence）进行仓储实现。
-- 领域层对象与数据库表字段解耦，持久化对象 PO/DO 不直接暴露给外部。
+使用 Assembler/Converter 进行对象转换：
 
----
+```java
+// application/assembler/UserAssembler.java
+public class UserAssembler {
+    public static UserVO toVO(User user) {
+        UserVO vo = new UserVO();
+        vo.setId(user.getId());
+        vo.setUsername(user.getUsername());
+        vo.setEmail(user.getEmail());
+        return vo;
+    }
+    
+    public static UserResponse toResponse(UserVO vo) {
+        UserResponse response = new UserResponse();
+        BeanUtils.copyProperties(vo, response);
+        return response;
+    }
+}
+```
 
-## 8. 配置与扩展建议
+### 异常处理
 
-- 线程池、WebClient等组件通过 application 层 config+properties 实现，支持 yml 配置及参数动态扩展。
-- 三方系统集成建议全部在 infra/external 下封装，便于后续 Mock/替换。
+```java
+// 业务异常（可重试）
+throw new AppException(ErrorCodeEnum.SYSTEM_ERROR, "系统繁忙，请稍后重试");
 
----
+// 业务异常（不可重试）
+throw new AppUnRetryException(ErrorCodeEnum.PARAM_CHECK_EXP, "参数校验失败");
 
-## 9. 单元测试与集成测试
+// 自定义错误码
+public enum ErrorCodeEnum {
+    USER_NOT_FOUND("404", "USER_NOT_FOUND", "用户不存在", "用户不存在", 
+                   ErrorLevelConst.WARN, ErrorTypeConst.BIZ);
+}
+```
 
-- domain/application 层均应有对应测试（见各模块 test/ 目录）。
-- 推荐使用 JUnit 5 + Mock 框架。
-- 重要功能建议配集成测试，确保各层解耦、功能完整。
+### 分页查询
 
----
+```java
+public Result<Pager<UserVO>> queryUsers(UserQueryRequest request) {
+    return serviceTemplate.execute(EventEnum.USER_QUERY, new ServiceCallback<Pager<UserVO>>() {
+        @Override
+        public Pager<UserVO> process() {
+            Page<UserPO> page = userDao.page(
+                new Page<>(request.getPage(), request.getSize()),
+                new QueryWrapper<UserPO>()
+                    .like(StringUtils.isNotBlank(request.getUsername()), "username", request.getUsername())
+            );
+            
+            Pager<UserVO> pager = PageUtil.toPager(page);
+            List<UserVO> voList = page.getRecords().stream()
+                .map(UserConverter::toEntity)
+                .map(UserAssembler::toVO)
+                .collect(Collectors.toList());
+            pager.setData(voList);
+            
+            return pager;
+        }
+    });
+}
+```
 
-## 10. 常见问题与解决
+## 常见问题
 
-- 启动报错请优先检查依赖、配置文件、数据库连接。
-- Mapper/DTO 字段不匹配建议使用 @TableField/@JsonProperty 显式指定。
-- 领域对象与数据库表结构不同步时，排查 convertor/assembler 是否漏写映射。
+### Q: 如何添加新的配置项？
 
----
+A: 在 `application/properties` 包下创建配置类：
 
-## 11. 文档链接索引
+```java
+@Data
+@ConfigurationProperties(prefix = "app.feature")
+public class FeatureProperties {
+    private boolean enabled = true;
+    private String apiUrl;
+}
+```
 
-- [架构设计说明](./architecture.md)
-- [对象分层说明](./object-layering.md)
-- [配置参考](./configuration.md)
-- [测试指南](./test-guide.md)
+### Q: 如何集成新的外部系统？
 
----
+A: 在 `infra/external` 包下创建适配器：
 
-如需进一步扩展或补充本指南，请遵循 docs/contributing.md 约定，持续完善文档与最佳实践。
+```java
+@Component
+public class PaymentServiceAdapter {
+    @Autowired
+    private WebClient webClient;
+    
+    public PaymentResult pay(PaymentRequest request) {
+        // 调用外部支付接口
+    }
+}
+```
+
+### Q: 如何添加缓存？
+
+A: 使用注入的 `CacheService`：
+
+```java
+@Service
+public class UserService {
+    @Autowired
+    private CacheService cacheService;
+    
+    public User getUserById(Long id) {
+        String key = "user:" + id;
+        User user = cacheService.get(key, User.class);
+        if (user == null) {
+            user = userRepository.findById(id);
+            cacheService.put(key, user, Duration.ofMinutes(30));
+        }
+        return user;
+    }
+}
+```
+
+## 代码生成
+
+使用 MyBatis-Plus 代码生成器：
+
+```bash
+# 1. 配置数据库连接
+vim infra/persistence/src/main/resources/mybatis-plus.yml
+
+# 2. 运行生成器
+cd infra/persistence
+mvn exec:java -Dexec.mainClass="com.example.infra.persistence.mysql.generator.MyBatisPlusGenerator"
+
+# 3. 按提示输入表名和类名
+```
+
+## 测试
+
+### 单元测试
+
+```java
+class UserServiceTest extends BaseUnitTest {
+    
+    @Mock
+    private UserDomainService userDomainService;
+    
+    @InjectMocks
+    private UserService userService;
+    
+    @Test
+    void should_create_user_successfully() {
+        // given
+        UserCreateRequest request = new UserCreateRequest();
+        request.setUsername("testuser");
+        request.setEmail("test@example.com");
+        
+        User mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
+        
+        when(userDomainService.createUser(anyString(), anyString())).thenReturn(mockUser);
+        
+        // when
+        Result<UserVO> result = userService.createUser(request);
+        
+        // then
+        Assertions.assertTrue(result.isSuccess());
+        Assertions.assertEquals("testuser", result.getData().getUsername());
+    }
+}
+```
+
+### 集成测试
+
+```java
+class UserControllerIntegrationTest extends BaseIntegrationTest {
+    
+    @Test
+    void should_create_user_via_api() throws Exception {
+        // given
+        UserCreateRequest request = new UserCreateRequest();
+        request.setUsername("testuser");
+        request.setEmail("test@example.com");
+        
+        // when & then
+        performPost("/api/users", request)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.username").value("testuser"));
+    }
+}
+```
+
+## 部署
+
+### 本地部署
+
+```bash
+mvn clean package
+java -jar start/target/start-1.0.0-SNAPSHOT.jar
+```
+
+### Docker 部署
+
+```dockerfile
+FROM openjdk:17-jre-slim
+COPY start/target/start-1.0.0-SNAPSHOT.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+```
+
+```bash
+docker build -t my-app .
+docker run -p 8080:8080 my-app
+```
+
+## 最佳实践
+
+### 代码组织
+
+```java
+// ✅ 推荐的包结构
+com.example.myproject
+├── api.dto.request          # API 请求对象
+├── api.dto.response         # API 响应对象
+├── application.service      # 应用服务
+├── application.assembler    # 对象转换器
+├── domain.entity            # 领域实体
+├── domain.service           # 领域服务
+├── infra.persistence        # 数据持久化
+└── shared.exception         # 共享异常
+```
+
+### 命名规范
+
+```java
+// 类命名
+UserCreateRequest          # 请求对象
+UserResponse               # 响应对象  
+UserService                # 应用服务
+UserDomainService          # 领域服务
+UserRepository             # 仓储接口
+UserRepositoryImpl         # 仓储实现
+UserPO                     # 持久化对象
+UserAssembler              # 对象装配器
+
+// 方法命名
+createUser()               # 创建操作
+getUserById()              # 查询操作
+updateUser()               # 更新操作
+deleteUser()               # 删除操作
+```
+
+### 错误处理最佳实践
+
+```java
+// 1. 统一错误码定义
+public enum ErrorCodeEnum {
+    USER_NOT_FOUND("001", "USER_NOT_FOUND", "用户不存在", "用户不存在",
+                   ErrorLevelConst.WARN, ErrorTypeConst.BIZ),
+    
+    INVALID_PARAM("002", "INVALID_PARAM", "参数无效", "参数无效", 
+                  ErrorLevelConst.WARN, ErrorTypeConst.BIZ);
+}
+
+// 2. 业务异常抛出
+@Override
+public User findById(Long id) {
+    if (id == null || id <= 0) {
+        throw new AppUnRetryException(ErrorCodeEnum.INVALID_PARAM, "用户ID不能为空或小于等于0");
+    }
+    
+    User user = userRepository.findById(id);
+    if (user == null) {
+        throw new AppUnRetryException(ErrorCodeEnum.USER_NOT_FOUND, "用户不存在: " + id);
+    }
+    
+    return user;
+}
+
+// 3. 全局异常处理
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(AppException.class)
+    public ResponseEntity<?> handleAppException(AppException e) {
+        return ResponseEntityUtil.assembleResponse(
+            ResultUtil.genErrorResult(new Result<>(), e, "0001", "myapp")
+        );
+    }
+}
+```
+
+### 缓存使用最佳实践
+
+```java
+@Service
+public class UserService {
+    
+    @Autowired
+    private CacheService cacheService;
+    
+    private static final String USER_CACHE_KEY = "user:";
+    private static final Duration CACHE_TTL = Duration.ofMinutes(30);
+    
+    public User getUserById(Long id) {
+        String cacheKey = USER_CACHE_KEY + id;
+        
+        // 先查缓存
+        User user = cacheService.get(cacheKey, User.class);
+        if (user != null) {
+            return user;
+        }
+        
+        // 缓存未命中，查数据库
+        user = userRepository.findById(id);
+        if (user != null) {
+            // 写入缓存
+            cacheService.put(cacheKey, user, CACHE_TTL);
+        }
+        
+        return user;
+    }
+    
+    public void updateUser(User user) {
+        userRepository.save(user);
+        
+        // 更新后清除缓存
+        String cacheKey = USER_CACHE_KEY + user.getId();
+        cacheService.evict(cacheKey);
+    }
+}
+```
+
+### 分页查询最佳实践
+
+```java
+@Service
+public class UserService {
+    
+    public Result<Pager<UserVO>> queryUsers(UserQueryRequest request) {
+        return serviceTemplate.execute(EventEnum.USER_QUERY, new ServiceCallback<Pager<UserVO>>() {
+            @Override
+            public void checkParam() {
+                // 参数校验
+                if (request.getPage() < 1) {
+                    throw new AppUnRetryException(ErrorCodeEnum.INVALID_PARAM, "页码不能小于1");
+                }
+                if (request.getSize() > 100) {
+                    throw new AppUnRetryException(ErrorCodeEnum.INVALID_PARAM, "每页大小不能超过100");
+                }
+            }
+            
+            @Override
+            public Pager<UserVO> process() {
+                // 构建查询条件
+                QueryWrapper<UserPO> wrapper = new QueryWrapper<>();
+                wrapper.like(StringUtils.isNotBlank(request.getUsername()), "username", request.getUsername())
+                       .eq(request.getStatus() != null, "status", request.getStatus())
+                       .orderByDesc("created_time");
+                
+                // 分页查询
+                Page<UserPO> page = new Page<>(request.getPage(), request.getSize());
+                Page<UserPO> result = userDao.selectPage(page, wrapper);
+                
+                // 转换结果
+                Pager<UserVO> pager = PageUtil.toPager(result);
+                List<UserVO> voList = result.getRecords().stream()
+                    .map(UserConverter::toEntity)
+                    .map(UserAssembler::toVO)
+                    .collect(Collectors.toList());
+                pager.setData(voList);
+                
+                return pager;
+            }
+        });
+    }
+}
+```
+
+### 事务处理最佳实践
+
+```java
+@Service
+@Transactional(rollbackFor = Exception.class)
+public class UserService {
+    
+    // 查询操作使用只读事务
+    @Transactional(readOnly = true)
+    public User getUserById(Long id) {
+        return userRepository.findById(id);
+    }
+    
+    // 写操作使用默认事务
+    public Result<UserVO> createUser(UserCreateRequest request) {
+        return serviceTemplate.execute(EventEnum.USER_CREATE, new ServiceCallback<UserVO>() {
+            @Override
+            public UserVO process() {
+                // 业务逻辑处理
+                User user = userDomainService.createUser(request.getUsername(), request.getEmail());
+                
+                // 发送通知（异步，不影响事务）
+                applicationEventPublisher.publishEvent(new UserCreatedEvent(user.getId()));
+                
+                return UserAssembler.toVO(user);
+            }
+        });
+    }
+    
+    // 需要新事务的操作
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logUserOperation(Long userId, String operation) {
+        // 记录用户操作日志，使用独立事务
+        userOperationLogService.log(userId, operation);
+    }
+}
+```
+
+### 性能优化建议
+
+```java
+// 1. 批量操作
+@Service
+public class UserService {
+    
+    public void batchCreateUsers(List<UserCreateRequest> requests) {
+        // 批量转换
+        List<User> users = requests.stream()
+            .map(request -> {
+                User user = new User();
+                user.setUsername(request.getUsername());
+                user.setEmail(request.getEmail());
+                return user;
+            })
+            .collect(Collectors.toList());
+        
+        // 批量保存
+        userRepository.saveBatch(users);
+    }
+}
+
+// 2. 异步处理
+@Service
+public class UserService {
+    
+    @Autowired
+    private TaskExecutor taskExecutor;
+    
+    public Result<UserVO> createUser(UserCreateRequest request) {
+        Result<UserVO> result = // ... 创建用户逻辑
+        
+        // 异步发送欢迎邮件
+        taskExecutor.execute(() -> {
+            try {
+                emailService.sendWelcomeEmail(result.getData().getEmail());
+            } catch (Exception e) {
+                log.error("发送欢迎邮件失败", e);
+            }
+        });
+        
+        return result;
+    }
+}
+
+// 3. 数据库查询优化
+@Repository
+public class UserRepositoryImpl implements UserRepository {
+    
+    // 使用索引字段查询
+    public List<User> findActiveUsers() {
+        QueryWrapper<UserPO> wrapper = new QueryWrapper<>();
+        wrapper.eq("status", UserStatus.ACTIVE.getCode())
+               .orderByDesc("created_time")
+               .last("LIMIT 1000"); // 限制查询数量
+        
+        return userDao.selectList(wrapper).stream()
+            .map(UserConverter::toEntity)
+            .collect(Collectors.toList());
+    }
+}
+```

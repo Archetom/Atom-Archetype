@@ -1,101 +1,274 @@
 # 配置说明
 
-本指南说明脚手架各模块关键配置项，及其作用与扩展方式。
+## 核心配置
 
----
+### 数据库配置
 
-## 1. 配置文件入口
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: your_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # JPA 配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+```
 
-- 全局配置文件位于：  
-  `src/main/resources/application.yml`
-- 各业务模块/组件可扩展自定义 `.yml`
+### Redis 配置
 
----
+```yaml
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: your_redis_password
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+```
 
-## 2. 线程池参数配置
-
-application.yml 示例：
+### 线程池配置
 
 ```yaml
 task:
-executor:
-corePoolSize: 5
-maxPoolSize: 10
-queueCapacity: 100
-keepAliveSeconds: 60
-threadNamePrefix: "task-executor-"
+  executor:
+    core-pool-size: 5          # 核心线程数
+    max-pool-size: 10          # 最大线程数
+    queue-capacity: 100        # 队列容量
+    keep-alive-seconds: 60     # 线程存活时间
+    thread-name-prefix: "task-executor-"
 ```
 
-对应 application 层  
-`TaskExecutorProperties.java`  
-`TaskConfig.java`
-
----
-
-## 3. WebClient 配置
+### HTTP 客户端配置
 
 ```yaml
 webclient:
-connect-timeout: 10000
-read-timeout: 10000
-write-timeout: 10000
+  connect-timeout: 10000      # 连接超时（毫秒）
+  read-timeout: 10000         # 读取超时（毫秒）
+  write-timeout: 10000        # 写入超时（毫秒）
 ```
 
-对应  
-`WebClientConfig.java`  
-支持通过 yml 修改超时时间等参数。
+## 环境配置
 
----
-
-## 4. MyBatis-Plus 相关配置
-
-数据库和代码生成相关配置在  
-`infra/src/main/resources/mybatis-plus.yml`
+### 开发环境 (application-dev.yml)
 
 ```yaml
+spring:
+  profiles:
+    active: dev
+    
+logging:
+  level:
+    com.example: DEBUG
+    org.springframework.web: DEBUG
+    
+server:
+  port: 8080
+```
+
+### 测试环境 (application-test.yml)
+
+```yaml
+spring:
+  profiles:
+    active: test
+    
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    
+logging:
+  level:
+    root: WARN
+    com.example: INFO
+```
+
+### 生产环境 (application-prod.yml)
+
+```yaml
+spring:
+  profiles:
+    active: prod
+    
+server:
+  port: 8080
+  
+logging:
+  level:
+    root: INFO
+  file:
+    name: /var/log/app/application.log
+```
+
+## MyBatis-Plus 配置
+
+### 代码生成配置
+
+```yaml
+# infra/persistence/src/main/resources/mybatis-plus.yml
 url: jdbc:mysql://localhost:3306/demo
 username: root
 password: root
-output-path: ./src/generated
-parent-package: com.example.project
-mapper-path: ./src/generated/mapper
+output-path: ./infra/persistence/src/main/java
+parent-package: com.example.infra.persistence.mysql
+mapper-path: ./infra/persistence/src/main/resources/mapper
 ```
 
----
+### 分页和审计配置
 
-## 5. 多环境切换
+```yaml
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+  global-config:
+    db-config:
+      logic-delete-field: deletedTime
+      logic-delete-value: now()
+      logic-not-delete-value: 'null'
+```
 
-- 建议采用 `application-{profile}.yml` 方案区分 dev、test、prod 配置。
-- 启动时通过 `--spring.profiles.active=dev` 指定环境。
+## 监控配置
 
----
+### Actuator 配置
 
-## 6. 扩展建议
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+```
 
-- 配置类请放置在 application/config 或 application/properties 目录。
-- 推荐使用 `@ConfigurationProperties` 自动注入配置参数。
-- 所有通用配置（如日志、错误码）建议在 shared/ 维护并文档化。
+### 日志配置
 
----
+```yaml
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/application.log
+    max-size: 100MB
+    max-history: 30
+```
 
-## 7. 常见配置项汇总
+## 自定义配置
 
-- `server.port` - 服务端口
-- `spring.datasource.*` - 数据源
-- `logging.level.*` - 日志级别
-- `task.executor.*` - 线程池参数
-- `webclient.*` - WebClient 参数
-- `mybatis-plus.*` - 持久化参数
+### 业务配置示例
 
----
+```java
+@Data
+@ConfigurationProperties(prefix = "app.business")
+public class BusinessProperties {
+    private String apiBaseUrl = "https://api.example.com";
+    private int maxRetryTimes = 3;
+    private Duration timeout = Duration.ofSeconds(30);
+    private boolean enableCache = true;
+}
+```
 
-## 8. 文档链接索引
+```yaml
+app:
+  business:
+    api-base-url: https://api.example.com
+    max-retry-times: 3
+    timeout: 30s
+    enable-cache: true
+```
 
-- [架构设计说明](./architecture.md)
-- [开发指南](./usage-guide.md)
-- [对象分层说明](./object-layering.md)
-- [测试指南](./test-guide.md)
+## 配置最佳实践
 
----
+### 敏感信息处理
 
-如需添加新的配置项，请补充在本文件并在代码中做好注释。
+```yaml
+# 使用环境变量
+spring:
+  datasource:
+    password: ${DB_PASSWORD:default_password}
+    
+# 使用配置文件加密
+jasypt:
+  encryptor:
+    password: ${JASYPT_PASSWORD}
+```
+
+### 配置验证
+
+```java
+@ConfigurationProperties(prefix = "app.feature")
+@Validated
+public class FeatureProperties {
+    @NotBlank
+    private String apiUrl;
+    
+    @Min(1)
+    @Max(100)
+    private int maxConnections = 10;
+}
+```
+
+### 条件配置
+
+```java
+@Configuration
+@ConditionalOnProperty(name = "app.feature.enabled", havingValue = "true")
+public class FeatureConfig {
+    // 配置内容
+}
+```
+
+## 常见配置问题
+
+### Q: 如何在不同环境使用不同配置？
+
+A: 使用 Spring Profile：
+
+```bash
+# 启动时指定环境
+java -jar app.jar --spring.profiles.active=prod
+
+# 或设置环境变量
+export SPRING_PROFILES_ACTIVE=prod
+```
+
+### Q: 如何动态刷新配置？
+
+A: 使用 `@RefreshScope` 注解：
+
+```java
+@Component
+@RefreshScope
+@ConfigurationProperties(prefix = "app.dynamic")
+public class DynamicConfig {
+    private String value;
+}
+```
+
+### Q: 如何验证配置是否正确？
+
+A: 添加配置验证：
+
+```java
+@PostConstruct
+public void validateConfig() {
+    if (StringUtils.isBlank(apiUrl)) {
+        throw new IllegalStateException("API URL must be configured");
+    }
+}
+```

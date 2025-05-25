@@ -17,6 +17,7 @@
                 <include>__gitignore__</include>
                 <include>lombok.config</include>
                 <include>Makefile</include>
+                <include>clean.sh</include>
                 <include>conf/*</include>
             </includes>
         </fileSet>

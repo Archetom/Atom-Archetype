@@ -22,13 +22,18 @@ logging:
 
 # mybatis-plus
 mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
   global-config:
     db-config:
-      logic-delete-field: deleted_time
-      logic-not-delete-value: "null"
+      id-type: auto
+      logic-delete-field: deletedTime
       logic-delete-value: now()
-      insert-strategy: default
-      update-strategy: default
+      logic-not-delete-value: 'null'
+  mapper-locations: classpath*:mapper/**/*.xml
 
 # 线程池配置
 task:

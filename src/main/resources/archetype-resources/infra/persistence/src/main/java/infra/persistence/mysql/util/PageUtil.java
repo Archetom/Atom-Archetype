@@ -1,6 +1,6 @@
 package ${package}.infra.persistence.mysql.util;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.archetom.common.result.Pager;
 
 /**
@@ -12,7 +12,7 @@ public class PageUtil {
      *
      * @param page Page<T>
      */
-    public static <T, S> Pager<S> toPager(Page<T> page) {
+    public static <T, S> Pager<S> toPager(IPage<T> page) {
         Pager<S> pager = new Pager<>();
 
         pager.setPageNum(page.getCurrent());
