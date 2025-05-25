@@ -15,14 +15,15 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface UserMapper extends BaseMapper<UserPO> {
-    
+
     /**
-     * 分页查询用户
+     * 分页查询用户（支持租户隔离）
      */
     IPage<UserPO> selectUserPage(
-        Page<UserPO> page,
-        @Param("username") String username,
-        @Param("email") String email,
-        @Param("status") String status
+            Page<UserPO> page,
+            @Param("username") String username,
+            @Param("email") String email,
+            @Param("status") String status,
+            @Param("tenantId") Long tenantId
     );
 }

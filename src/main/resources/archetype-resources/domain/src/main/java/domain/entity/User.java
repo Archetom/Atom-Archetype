@@ -6,6 +6,8 @@ package ${package}.domain.entity;
 import ${package}.api.enums.UserStatus;
 import ${package}.shared.exception.AppException;
 import ${package}.shared.enums.ErrorCodeEnum;
+import ${package}.shared.types.Email;
+import ${package}.shared.types.PhoneNumber;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
@@ -19,65 +21,86 @@ import java.time.LocalDateTime;
 @Data
 @Accessors(chain = true)
 public class User {
-    
+
     /**
      * 用户ID
      */
     private Long id;
-    
+
     /**
      * 用户名
      */
     private String username;
-    
+
     /**
-     * 邮箱
+     * 邮箱（值对象）
      */
-    private String email;
-    
+    private Email email;
+
+    /**
+     * 手机号（值对象）
+     */
+    private PhoneNumber phoneNumber;
+
     /**
      * 密码（加密后）
      */
     private String password;
-    
+
     /**
      * 真实姓名
      */
     private String realName;
-    
+
     /**
      * 状态
      */
     private UserStatus status;
-    
+
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
+
     /**
      * 创建时间
      */
     private LocalDateTime createdTime;
-    
+
     /**
      * 更新时间
      */
     private LocalDateTime updatedTime;
-    
+
     /**
      * 创建用户
      */
     public static User create(String username, String email, String password, String realName) {
         validateCreateParams(username, email, password);
-        
+
         User user = new User();
         user.setUsername(username);
-        user.setEmail(email);
+        user.setEmail(new Email(email));
         user.setPassword(password); // 实际应用中需要加密
         user.setRealName(realName);
         user.setStatus(UserStatus.ACTIVE);
         user.setCreatedTime(LocalDateTime.now());
         user.setUpdatedTime(LocalDateTime.now());
-        
+
         return user;
     }
-    
+
+    /**
+     * 创建用户（带手机号）
+     */
+    public static User create(String username, String email, String phoneNumber, String password, String realName) {
+        User user = create(username, email, password, realName);
+        if (StringUtils.isNotBlank(phoneNumber)) {
+            user.setPhoneNumber(new PhoneNumber(phoneNumber));
+        }
+        return user;
+    }
+
     /**
      * 更新状态
      */
@@ -85,15 +108,31 @@ public class User {
         if (newStatus == null) {
             throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户状态不能为空");
         }
-        
+
         if (this.status == UserStatus.DELETED) {
             throw new AppException(ErrorCodeEnum.NOT_SUPPORT_OPERATE_EXP, "已删除的用户不能修改状态");
         }
-        
+
         this.status = newStatus;
         this.updatedTime = LocalDateTime.now();
     }
-    
+
+    /**
+     * 更新邮箱
+     */
+    public void updateEmail(String newEmail) {
+        this.email = new Email(newEmail);
+        this.updatedTime = LocalDateTime.now();
+    }
+
+    /**
+     * 更新手机号
+     */
+    public void updatePhoneNumber(String newPhoneNumber) {
+        this.phoneNumber = new PhoneNumber(newPhoneNumber);
+        this.updatedTime = LocalDateTime.now();
+    }
+
     /**
      * 删除用户（软删除）
      */
@@ -101,18 +140,39 @@ public class User {
         if (this.status == UserStatus.DELETED) {
             throw new AppException(ErrorCodeEnum.NOT_SUPPORT_OPERATE_EXP, "用户已被删除");
         }
-        
+
         this.status = UserStatus.DELETED;
         this.updatedTime = LocalDateTime.now();
     }
-    
+
     /**
      * 检查用户是否激活
      */
     public boolean isActive() {
         return UserStatus.ACTIVE.equals(this.status);
     }
-    
+
+    /**
+     * 获取邮箱字符串
+     */
+    public String getEmailValue() {
+        return email != null ? email.getValue() : null;
+    }
+
+    /**
+     * 获取手机号字符串
+     */
+    public String getPhoneNumberValue() {
+        return phoneNumber != null ? phoneNumber.getValue() : null;
+    }
+
+    /**
+     * 获取脱敏手机号
+     */
+    public String getMaskedPhoneNumber() {
+        return phoneNumber != null ? phoneNumber.getMasked() : null;
+    }
+
     /**
      * 验证创建参数
      */

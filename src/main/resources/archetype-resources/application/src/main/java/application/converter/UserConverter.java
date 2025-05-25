@@ -7,6 +7,8 @@ import ${package}.api.dto.response.UserResponse;
 import ${package}.api.enums.UserStatus;
 import ${package}.application.vo.UserVO;
 import ${package}.domain.entity.User;
+import ${package}.shared.types.Email;
+import ${package}.shared.types.PhoneNumber;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -29,6 +31,9 @@ public interface UserConverter {
     @Mapping(target = "status", source = "status", qualifiedByName = "statusToCode")
     @Mapping(target = "statusName", source = "status", qualifiedByName = "statusToName")
     @Mapping(target = "active", source = "status", qualifiedByName = "statusToActive")
+    @Mapping(target = "email", source = "email", qualifiedByName = "emailToString")
+    @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "phoneNumberToString")
+    @Mapping(target = "maskedPhoneNumber", source = "phoneNumber", qualifiedByName = "phoneNumberToMasked")
     UserVO toVO(User user);
 
     /**
@@ -68,5 +73,29 @@ public interface UserConverter {
     @Named("statusToActive")
     default Boolean statusToActive(UserStatus status) {
         return status == UserStatus.ACTIVE;
+    }
+
+    /**
+     * Email值对象转字符串
+     */
+    @Named("emailToString")
+    default String emailToString(Email email) {
+        return email != null ? email.getValue() : null;
+    }
+
+    /**
+     * PhoneNumber值对象转字符串
+     */
+    @Named("phoneNumberToString")
+    default String phoneNumberToString(PhoneNumber phoneNumber) {
+        return phoneNumber != null ? phoneNumber.getValue() : null;
+    }
+
+    /**
+     * PhoneNumber值对象转脱敏字符串
+     */
+    @Named("phoneNumberToMasked")
+    default String phoneNumberToMasked(PhoneNumber phoneNumber) {
+        return phoneNumber != null ? phoneNumber.getMasked() : null;
     }
 }

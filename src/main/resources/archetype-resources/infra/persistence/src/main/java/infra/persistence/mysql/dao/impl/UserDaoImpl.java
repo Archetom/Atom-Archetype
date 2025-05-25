@@ -17,37 +17,37 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class UserDaoImpl extends BaseDaoImpl<UserMapper, UserPO> implements UserDao {
-    
+
     @Override
     public UserPO findByUsername(String username) {
         LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserPO::getUsername, username);
         return getOne(wrapper);
     }
-    
+
     @Override
     public UserPO findByEmail(String email) {
         LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserPO::getEmail, email);
         return getOne(wrapper);
     }
-    
+
     @Override
     public boolean existsByUsername(String username) {
         LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserPO::getUsername, username);
         return count(wrapper) > 0;
     }
-    
+
     @Override
     public boolean existsByEmail(String email) {
         LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserPO::getEmail, email);
         return count(wrapper) > 0;
     }
-    
+
     @Override
-    public IPage<UserPO> findUserPage(Page<UserPO> page, String username, String email, String status) {
-        return baseMapper.selectUserPage(page, username, email, status);
+    public IPage<UserPO> findUserPage(Page<UserPO> page, String username, String email, String status, Long tenantId) {
+        return baseMapper.selectUserPage(page, username, email, status, tenantId);
     }
 }

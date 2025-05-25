@@ -21,11 +21,14 @@
         id, username, email, password, real_name, status, tenant_id, created_time, updated_time, deleted_time
     </sql>
 
-    <!-- 分页查询用户 -->
+    <!-- 分页查询用户（支持租户隔离） -->
     <select id="selectUserPage" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List" />
         FROM t_user
         WHERE deleted_time IS NULL
+        <if test="tenantId != null">
+            AND tenant_id = #{tenantId}
+        </if>
         <if test="username != null and username != ''">
             AND username LIKE CONCAT('%', #{username}, '%')
         </if>
