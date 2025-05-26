@@ -18,7 +18,6 @@ ${artifactId}/
 ├── shared/               # 共享组件
 └── start/                # 启动模块
 ```
-
 ## 🚀 快速开始
 
 ### 环境要求
@@ -142,4 +141,3 @@ public class UserService {
 ## 📄 许可证
 
 本项目基于 MIT 许可证开源 - 查看 [LICENSE](LICENSE) 文件了解详情
-```

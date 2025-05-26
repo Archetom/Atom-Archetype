@@ -32,7 +32,12 @@ mvn archetype:generate \
 ```
 
 ### 启动项目
+#### 1. 启动 MySQL 和 Redis
+```bash
+docker-compose up -d
+```
 
+#### 2. 安装并启动项目
 ```bash
 mvn clean install
 cd start
@@ -93,4 +98,4 @@ curl -X POST http://localhost:8080/api/users \
 ## 📄 许可证
 
 [MIT License](LICENSE)
-```
+

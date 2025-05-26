@@ -1,7 +1,7 @@
-# MyBatis Plus 代码生成器配置
-url: jdbc:mysql://localhost:3306/${artifactId}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-username: root
-password: 123456
+# MyBatis-Plus 代码生成器配置
+url: jdbc:mysql://localhost:3306/atom_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+username: atom_user
+password: atom_pass
 output-path: ./infra/persistence/src/main/java
 parent-package: ${package}.infra.persistence.mysql
 mapper-path: ./infra/persistence/src/main/resources/mapper

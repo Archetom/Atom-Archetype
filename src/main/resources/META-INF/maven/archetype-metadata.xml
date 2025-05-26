@@ -18,7 +18,21 @@
                 <include>lombok.config</include>
                 <include>Makefile</include>
                 <include>clean.sh</include>
+                <include>*.yml</include>
                 <include>conf/*</include>
+            </includes>
+        </fileSet>
+        <!-- 添加 docs 目录 -->
+        <fileSet filtered="false" encoding="UTF-8">
+            <directory>docs</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="false" encoding="UTF-8">
+            <directory>docker</directory>
+            <includes>
+                <include>**/*</include>
             </includes>
         </fileSet>
     </fileSets>
