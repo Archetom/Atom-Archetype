@@ -42,8 +42,8 @@ public class UserFactory {
         // 加密密码
         String encryptedPassword = userDomainService.encryptPassword(password);
 
-        // 创建用户
-        User user = User.createWithValueObjects(usernameVO, emailVO, encryptedPassword, realName);
+        // 使用内部工厂方法创建用户（跳过密码校验）
+        User user = User.createWithValidatedParams(usernameVO, emailVO, encryptedPassword, realName);
 
         return user;
     }
@@ -53,12 +53,25 @@ public class UserFactory {
      */
     public User createUserWithPhone(String username, String email, String phoneNumber,
                                     String password, String realName) {
-        User user = createStandardUser(username, email, password, realName);
+        // 创建值对象
+        Username usernameVO = new Username(username);
+        Email emailVO = new Email(email);
+        PhoneNumber phoneVO = new PhoneNumber(phoneNumber);
 
-        if (phoneNumber != null) {
-            PhoneNumber phoneVO = new PhoneNumber(phoneNumber);
-            user.setPhoneNumber(phoneVO);
-        }
+        // 验证创建策略
+        userCreationPolicy.validateCreation(usernameVO, emailVO);
+
+        // 验证业务规则
+        userDomainService.validateUserCreation(username, email);
+
+        // 验证密码策略
+        passwordPolicy.validate(password);
+
+        // 加密密码
+        String encryptedPassword = userDomainService.encryptPassword(password);
+
+        // 使用内部工厂方法创建用户（跳过密码校验）
+        User user = User.createWithValidatedParams(usernameVO, emailVO, phoneVO, encryptedPassword, realName);
 
         return user;
     }

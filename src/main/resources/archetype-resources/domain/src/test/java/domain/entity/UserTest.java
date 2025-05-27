@@ -24,17 +24,17 @@ class UserTest {
 
         // Then
         assertNotNull(user);
-        assertEquals("testuser", user.getUsernameValue()); // 修改：使用 getUsernameValue()
-        assertEquals("test@example.com", user.getEmailValue()); // 修改：使用 getEmailValue()
+        assertEquals("testuser", user.getUsernameValue());
+        assertEquals("test@example.com", user.getEmailValue());
         assertEquals("Test User", user.getRealName());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
         assertTrue(user.isActive());
 
         // 验证值对象
-        assertNotNull(user.getUsername()); // 验证值对象不为空
-        assertNotNull(user.getEmail()); // 验证值对象不为空
-        assertEquals("testuser", user.getUsername().getValue()); // 验证值对象的值
-        assertEquals("test@example.com", user.getEmail().getValue()); // 验证值对象的值
+        assertNotNull(user.getUsername());
+        assertNotNull(user.getEmail());
+        assertEquals("testuser", user.getUsername().getValue());
+        assertEquals("test@example.com", user.getEmail().getValue());
 
         // 验证领域事件
         assertEquals(1, user.getDomainEvents().size());
@@ -97,7 +97,7 @@ class UserTest {
         assertEquals("testuser", user.getUsernameValue());
         assertEquals("test@example.com", user.getEmailValue());
         assertEquals("13800138000", user.getPhoneNumberValue());
-        assertEquals("138****8000", user.getMaskedPhoneNumber()); // 验证脱敏手机号
+        assertEquals("138****8000", user.getMaskedPhoneNumber());
         assertEquals("Test User", user.getRealName());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
     }
@@ -255,14 +255,14 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("值对象创建用户")
-    void createUserWithValueObjects_Success() {
+    @DisplayName("使用值对象创建用户")
+    void createUserWithValidatedParams_Success() {
         // Given
         var username = new ${package}.domain.valueobject.Username("testuser");
         var email = new ${package}.domain.valueobject.Email("test@example.com");
 
-        // When
-        User user = User.createWithValueObjects(username, email, "password123", "Test User");
+        // When - 使用 createWithValidatedParams 方法
+        User user = User.createWithValidatedParams(username, email, "encrypted_password_hash", "Test User");
 
         // Then
         assertNotNull(user);
@@ -270,6 +270,31 @@ class UserTest {
         assertEquals(email, user.getEmail());
         assertEquals("testuser", user.getUsernameValue());
         assertEquals("test@example.com", user.getEmailValue());
+        assertEquals("Test User", user.getRealName());
+        assertEquals(UserStatus.ACTIVE, user.getStatus());
+        assertEquals("encrypted_password_hash", user.getPassword()); // 这里是加密后的密码
+    }
+
+    @Test
+    @DisplayName("使用值对象创建用户 - 带手机号")
+    void createUserWithValidatedParams_WithPhone_Success() {
+        // Given
+        var username = new ${package}.domain.valueobject.Username("testuser");
+        var email = new ${package}.domain.valueobject.Email("test@example.com");
+        var phoneNumber = new ${package}.domain.valueobject.PhoneNumber("13800138000");
+
+        // When
+        User user = User.createWithValidatedParams(username, email, phoneNumber, "encrypted_password_hash", "Test User");
+
+        // Then
+        assertNotNull(user);
+        assertEquals(username, user.getUsername());
+        assertEquals(email, user.getEmail());
+        assertEquals(phoneNumber, user.getPhoneNumber());
+        assertEquals("testuser", user.getUsernameValue());
+        assertEquals("test@example.com", user.getEmailValue());
+        assertEquals("13800138000", user.getPhoneNumberValue());
+        assertEquals("138****8000", user.getMaskedPhoneNumber());
         assertEquals("Test User", user.getRealName());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
     }

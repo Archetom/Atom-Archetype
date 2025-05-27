@@ -105,37 +105,10 @@ public class User extends AggregateRoot<UserId> {
         return phoneNumber != null ? phoneNumber.getMasked() : null;
     }
 
-    // ========== 工厂方法 ==========
+    // ========== 工厂方法（简单场景使用） ==========
 
     /**
-     * 使用值对象创建用户（工厂方法）
-     */
-    public static User createWithValueObjects(Username username, Email email, String password, String realName) {
-        validateCreateParams(username, email, password);
-
-        User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(password);
-        user.setRealName(realName);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setExternalUser(false);
-        user.setAdmin(false);
-        user.setCreatedTime(LocalDateTime.now());
-        user.setUpdatedTime(LocalDateTime.now());
-
-        // 添加领域事件
-        user.addDomainEvent(new UserCreatedEvent(
-                user.getId() != null ? user.getId().getValue() : null,
-                username.getValue(),
-                email.getValue()
-        ));
-
-        return user;
-    }
-
-    /**
-     * 创建用户（工厂方法）
+     * 创建用户（简单工厂方法，用于测试或简单场景）
      */
     public static User create(String username, String email, String password, String realName) {
         validateCreateParams(username, email, password);
@@ -158,13 +131,48 @@ public class User extends AggregateRoot<UserId> {
     }
 
     /**
-     * 创建用户（带手机号）
+     * 创建用户（带手机号，简单场景）
      */
     public static User create(String username, String email, String phoneNumber, String password, String realName) {
         User user = create(username, email, password, realName);
         if (StringUtils.isNotBlank(phoneNumber)) {
             user.setPhoneNumber(new PhoneNumber(phoneNumber));
         }
+        return user;
+    }
+
+    /**
+     * 内部工厂方法 - 用于已经校验过的参数（供 UserFactory 使用）
+     */
+    public static User createWithValidatedParams(Username username, Email email, String encryptedPassword, String realName) {
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(encryptedPassword); // 已加密的密码
+        user.setRealName(realName);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setExternalUser(false);
+        user.setAdmin(false);
+        user.setCreatedTime(LocalDateTime.now());
+        user.setUpdatedTime(LocalDateTime.now());
+
+        // 添加领域事件
+        user.addDomainEvent(new UserCreatedEvent(
+                user.getId() != null ? user.getId().getValue() : null,
+                username.getValue(),
+                email.getValue()
+        ));
+
+        return user;
+    }
+
+    /**
+     * 内部工厂方法 - 带手机号版本
+     */
+    public static User createWithValidatedParams(Username username, Email email, PhoneNumber phoneNumber,
+                                          String encryptedPassword, String realName) {
+        User user = createWithValidatedParams(username, email, encryptedPassword, realName);
+        user.setPhoneNumber(phoneNumber);
         return user;
     }
 
@@ -320,10 +328,10 @@ public class User extends AggregateRoot<UserId> {
         return this.externalUser;
     }
 
-    // ========== 验证方法 ==========
+    // ========== 验证方法（仅用于简单工厂方法） ==========
 
     /**
-     * 验证创建参数
+     * 验证创建参数（仅用于简单工厂方法）
      */
     private static void validateCreateParams(String username, String email, String password) {
         if (StringUtils.isBlank(username)) {
@@ -337,24 +345,6 @@ public class User extends AggregateRoot<UserId> {
         }
         if (username.length() < 3 || username.length() > 50) {
             throw new UserDomainException("用户名长度必须在3-50个字符之间");
-        }
-        if (password.length() < 6 || password.length() > 20) {
-            throw new UserDomainException("密码长度必须在6-20个字符之间");
-        }
-    }
-
-    /**
-     * 验证创建参数（值对象版本）
-     */
-    private static void validateCreateParams(Username username, Email email, String password) {
-        if (username == null) {
-            throw new UserDomainException("用户名不能为空");
-        }
-        if (email == null) {
-            throw new UserDomainException("邮箱不能为空");
-        }
-        if (StringUtils.isBlank(password)) {
-            throw new UserDomainException("密码不能为空");
         }
         if (password.length() < 6 || password.length() > 20) {
             throw new UserDomainException("密码长度必须在6-20个字符之间");

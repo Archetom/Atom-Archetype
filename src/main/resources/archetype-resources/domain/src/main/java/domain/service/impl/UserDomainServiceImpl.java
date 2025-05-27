@@ -54,6 +54,12 @@ public class UserDomainServiceImpl implements UserDomainService {
 
     @Override
     public String encryptPassword(String plainPassword) {
+        // 注意：这里不再进行密码校验，因为在 UserFactory 中已经通过 PasswordPolicy 校验过了
+        // 如果需要双重保险，可以保留基本的空值检查
+        if (plainPassword == null || plainPassword.trim().isEmpty()) {
+            throw new UserDomainException("密码不能为空");
+        }
+
         try {
             // 生成盐值
             byte[] salt = new byte[16];

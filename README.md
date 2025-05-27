@@ -76,10 +76,10 @@ demo/
 curl -X POST http://localhost:8080/api/users \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "testuser",
-    "email": "test@example.com",
+    "username": "user007",
+    "email": "user007@example.com",
     "password": "password123",
-    "realName": "Test User"
+    "realName": "User007"
   }'
 ```
 
