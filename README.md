@@ -2,7 +2,7 @@
 
 ![Requirement](https://img.shields.io/badge/JDK-21+-green.svg)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.0-brightgreen.svg)
-![atom version](https://img.shields.io/badge/Atom_Archetype-1.0.1-blue)
+![atom version](https://img.shields.io/badge/Atom_Archetype-1.1.0-blue)
 
 > 基于 DDD 设计理念的 Java 项目脚手架，专为构建高可维护性、高扩展性的现代化应用而生。
 
@@ -23,7 +23,7 @@
 mvn archetype:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=1.0.1 \
+  -DarchetypeVersion=1.1.0 \
   -DgroupId=com.foo.bar \
   -DartifactId=demo \
   -Dpackage=com.foo.bar \

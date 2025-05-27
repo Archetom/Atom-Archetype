@@ -17,7 +17,7 @@
 mvn archetype:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=1.0.1 \
+  -DarchetypeVersion=1.1.0 \
   -DgroupId=com.example \
   -DartifactId=my-project \
   -Dpackage=com.example.myproject
