@@ -1,8 +1,7 @@
-// src/main/resources/archetype-resources/shared/types/src/main/java/shared/types/Email.java
 #set( $symbol_pound = '#' )
-        #set( $symbol_dollar = '$' )
-        #set( $symbol_escape = '\' )
-        package ${package}.shared.types;
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+package ${package}.domain.valueobject;
 
 import lombok.Value;
 

@@ -1,6 +1,6 @@
 # Atom Archetype
 
-![Requirement](https://img.shields.io/badge/JDK-17+-green.svg)
+![Requirement](https://img.shields.io/badge/JDK-21+-green.svg)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.0-brightgreen.svg)
 ![atom version](https://img.shields.io/badge/Atom_Archetype-1.0.1-blue)
 
@@ -9,7 +9,7 @@
 ## ✨ 特性
 
 - 🏗️ **DDD 分层架构** - 清晰的领域驱动设计分层，职责明确
-- 🚀 **开箱即用** - 集成 Spring Boot 3.5 + JDK 17，现代化技术栈
+- 🚀 **开箱即用** - 集成 Spring Boot 3.5 + JDK 21，现代化技术栈
 - 🔧 **服务模板** - 内置责任链模式，统一业务处理流程
 - 📦 **多模块设计** - api/application/domain/infra/shared 清晰分离
 - 🧪 **测试友好** - 集成 Testcontainers，支持容器化测试

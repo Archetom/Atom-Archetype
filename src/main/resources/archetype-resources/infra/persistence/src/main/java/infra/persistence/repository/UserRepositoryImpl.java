@@ -1,11 +1,10 @@
-#set( $symbol_pound = '#' )
-#set( $symbol_dollar = '$' )
-#set( $symbol_escape = '\' )
 package ${package}.infra.persistence.repository;
 
 import ${package}.api.enums.UserStatus;
 import ${package}.domain.entity.User;
 import ${package}.domain.repository.UserRepository;
+import ${package}.domain.specification.Specification;
+import ${package}.domain.valueobject.UserId;
 import ${package}.infra.persistence.converter.UserPOConverter;
 import ${package}.infra.persistence.mysql.dao.UserDao;
 import ${package}.infra.persistence.mysql.po.UserPO;
@@ -19,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,45 +53,93 @@ public class UserRepositoryImpl implements UserRepository {
                     userPO.getId(), userPO.getUsername(), userPO.getTenantId());
         }
 
-        return userPOConverter.toDomain(userPO);
+        // 转换回领域对象
+        User savedUser = userPOConverter.toDomain(userPO);
+        return savedUser;
+    }
+
+    @Override
+    public List<User> saveAll(List<User> users) {
+        List<UserPO> userPOs = userPOConverter.toPOList(users);
+        userDao.saveBatch(userPOs);
+        return userPOConverter.toDomainList(userPOs);
     }
 
     @Override
     public void delete(User user) {
         if (user != null && user.getId() != null) {
-            // 检查租户权限
-            checkTenantAccess(user.getId());
-            userDao.removeById(user.getId());
-            log.info("删除用户成功: id={}", user.getId());
+            deleteById(user.getId());
         }
     }
 
     @Override
-    public void delete(Long id) {
+    public void deleteById(UserId id) {
         if (id != null) {
-            checkTenantAccess(id);
-            userDao.removeById(id);
-            log.info("删除用户成功: id={}", id);
+            checkTenantAccess(id.getValue());
+            userDao.removeById(id.getValue());
+            log.info("删除用户成功: id={}", id.getValue());
         }
     }
 
     @Override
-    public User findById(Long id) {
+    public Optional<User> findById(UserId id) {
         if (id == null) {
-            return null;
+            return Optional.empty();
         }
 
-        UserPO userPO = userDao.getById(id);
+        UserPO userPO = userDao.getById(id.getValue());
         if (userPO != null) {
             // 检查租户权限
             if (!canAccessTenant(userPO.getTenantId())) {
                 log.warn("无权访问其他租户用户: userId={}, userTenantId={}, currentTenantId={}",
-                        id, userPO.getTenantId(), UserContextHolder.getCurrentTenantId());
-                return null;
+                        id.getValue(), userPO.getTenantId(), UserContextHolder.getCurrentTenantId());
+                return Optional.empty();
             }
+
+            User user = userPOConverter.toDomain(userPO);
+            return Optional.of(user);
         }
 
-        return userPOConverter.toDomain(userPO);
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean existsById(UserId id) {
+        if (id == null) {
+            return false;
+        }
+
+        LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserPO::getId, id.getValue());
+        addTenantFilter(wrapper);
+
+        return userDao.count(wrapper) > 0;
+    }
+
+    @Override
+    public List<User> findBySpecification(Specification<User> specification) {
+        // 简化实现：获取所有用户然后过滤
+        // 实际项目中可以将 Specification 转换为数据库查询条件
+        LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
+        addTenantFilter(wrapper);
+
+        List<UserPO> userPOs = userDao.list(wrapper);
+        List<User> users = userPOConverter.toDomainList(userPOs);
+
+        return users.stream()
+                .filter(specification::isSatisfiedBy)
+                .toList();
+    }
+
+    @Override
+    public Optional<User> findOneBySpecification(Specification<User> specification) {
+        List<User> users = findBySpecification(specification);
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
+    }
+
+    @Override
+    public long countBySpecification(Specification<User> specification) {
+        return findBySpecification(specification).size();
     }
 
     @Override
@@ -143,6 +191,25 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public List<User> findByTenantId(Long tenantId) {
+        LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserPO::getTenantId, tenantId);
+
+        List<UserPO> userPOs = userDao.list(wrapper);
+        return userPOConverter.toDomainList(userPOs);
+    }
+
+    @Override
+    public List<User> findByCreatedTimeBetween(LocalDateTime start, LocalDateTime end) {
+        LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.between(UserPO::getCreatedTime, start, end);
+        addTenantFilter(wrapper);
+
+        List<UserPO> userPOs = userDao.list(wrapper);
+        return userPOConverter.toDomainList(userPOs);
+    }
+
+    @Override
     public Pager<User> findUsers(String username, String email, UserStatus status, int page, int size) {
         Page<UserPO> poPage = new Page<>(page, size);
         String statusCode = status != null ? status.getCode() : null;
@@ -161,6 +228,36 @@ public class UserRepositoryImpl implements UserRepository {
         finalPager.setObjectList(users);
 
         return finalPager;
+    }
+
+    @Override
+    public List<User> findUsersNeedingActivation(int days) {
+        LocalDateTime cutoffTime = LocalDateTime.now().minusDays(days);
+
+        LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserPO::getStatus, UserStatus.INACTIVE.getCode())
+                .lt(UserPO::getCreatedTime, cutoffTime);
+        addTenantFilter(wrapper);
+
+        List<UserPO> userPOs = userDao.list(wrapper);
+        return userPOConverter.toDomainList(userPOs);
+    }
+
+    @Override
+    public List<User> findInactiveUsers(int days) {
+        // 这里需要根据实际业务逻辑实现
+        // 比如根据最后登录时间查找长时间未登录的用户
+        // 由于当前 UserPO 没有 lastLoginTime 字段，这里提供一个简化实现
+
+        LocalDateTime cutoffTime = LocalDateTime.now().minusDays(days);
+
+        LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserPO::getStatus, UserStatus.ACTIVE.getCode())
+                .lt(UserPO::getUpdatedTime, cutoffTime); // 使用更新时间作为活跃度指标
+        addTenantFilter(wrapper);
+
+        List<UserPO> userPOs = userDao.list(wrapper);
+        return userPOConverter.toDomainList(userPOs);
     }
 
     /**

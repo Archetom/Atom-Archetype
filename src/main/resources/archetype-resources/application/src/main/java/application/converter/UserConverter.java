@@ -1,17 +1,15 @@
-#set( $symbol_pound = '#' )
-#set( $symbol_dollar = '$' )
-#set( $symbol_escape = '\' )
 package ${package}.application.converter;
 
 import ${package}.api.dto.response.UserResponse;
 import ${package}.api.enums.UserStatus;
 import ${package}.application.vo.UserVO;
 import ${package}.domain.entity.User;
-import ${package}.shared.types.Email;
-import ${package}.shared.types.PhoneNumber;
+import ${package}.domain.valueobject.Email;
+import ${package}.domain.valueobject.PhoneNumber;
+import ${package}.domain.valueobject.UserId;
+import ${package}.domain.valueobject.Username;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -28,12 +26,14 @@ public interface UserConverter {
     /**
      * Domain User -> UserVO
      */
-    @Mapping(target = "status", source = "status", qualifiedByName = "statusToCode")
-    @Mapping(target = "statusName", source = "status", qualifiedByName = "statusToName")
-    @Mapping(target = "active", source = "status", qualifiedByName = "statusToActive")
-    @Mapping(target = "email", source = "email", qualifiedByName = "emailToString")
-    @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "phoneNumberToString")
-    @Mapping(target = "maskedPhoneNumber", source = "phoneNumber", qualifiedByName = "phoneNumberToMasked")
+    @Mapping(target = "id", expression = "java(userIdToLong(user.getId()))")
+    @Mapping(target = "username", expression = "java(usernameToString(user.getUsername()))")
+    @Mapping(target = "email", expression = "java(emailToString(user.getEmail()))")
+    @Mapping(target = "phoneNumber", expression = "java(phoneNumberToString(user.getPhoneNumber()))")
+    @Mapping(target = "maskedPhoneNumber", expression = "java(phoneNumberToMasked(user.getPhoneNumber()))")
+    @Mapping(target = "status", expression = "java(statusToCode(user.getStatus()))")
+    @Mapping(target = "statusName", expression = "java(statusToName(user.getStatus()))")
+    @Mapping(target = "active", expression = "java(statusToActive(user.getStatus()))")
     UserVO toVO(User user);
 
     /**
@@ -51,10 +51,46 @@ public interface UserConverter {
      */
     List<UserResponse> toResponseList(List<UserVO> userVOs);
 
+    // ========== 转换方法 ==========
+
+    /**
+     * UserId -> Long
+     */
+    default Long userIdToLong(UserId userId) {
+        return userId != null ? userId.getValue() : null;
+    }
+
+    /**
+     * Username -> String
+     */
+    default String usernameToString(Username username) {
+        return username != null ? username.getValue() : null;
+    }
+
+    /**
+     * Email -> String
+     */
+    default String emailToString(Email email) {
+        return email != null ? email.getValue() : null;
+    }
+
+    /**
+     * PhoneNumber -> String
+     */
+    default String phoneNumberToString(PhoneNumber phoneNumber) {
+        return phoneNumber != null ? phoneNumber.getValue() : null;
+    }
+
+    /**
+     * PhoneNumber -> 脱敏字符串
+     */
+    default String phoneNumberToMasked(PhoneNumber phoneNumber) {
+        return phoneNumber != null ? phoneNumber.getMasked() : null;
+    }
+
     /**
      * 状态枚举转换为代码
      */
-    @Named("statusToCode")
     default String statusToCode(UserStatus status) {
         return status != null ? status.getCode() : null;
     }
@@ -62,7 +98,6 @@ public interface UserConverter {
     /**
      * 状态枚举转换为描述
      */
-    @Named("statusToName")
     default String statusToName(UserStatus status) {
         return status != null ? status.getName() : null;
     }
@@ -70,32 +105,7 @@ public interface UserConverter {
     /**
      * 状态枚举转换为是否激活
      */
-    @Named("statusToActive")
     default Boolean statusToActive(UserStatus status) {
         return status == UserStatus.ACTIVE;
-    }
-
-    /**
-     * Email值对象转字符串
-     */
-    @Named("emailToString")
-    default String emailToString(Email email) {
-        return email != null ? email.getValue() : null;
-    }
-
-    /**
-     * PhoneNumber值对象转字符串
-     */
-    @Named("phoneNumberToString")
-    default String phoneNumberToString(PhoneNumber phoneNumber) {
-        return phoneNumber != null ? phoneNumber.getValue() : null;
-    }
-
-    /**
-     * PhoneNumber值对象转脱敏字符串
-     */
-    @Named("phoneNumberToMasked")
-    default String phoneNumberToMasked(PhoneNumber phoneNumber) {
-        return phoneNumber != null ? phoneNumber.getMasked() : null;
     }
 }

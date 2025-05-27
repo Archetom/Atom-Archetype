@@ -1,17 +1,15 @@
-#set( $symbol_pound = '#' )
-#set( $symbol_dollar = '$' )
-#set( $symbol_escape = '\' )
 package ${package}.infra.persistence.converter;
 
 import ${package}.api.enums.UserStatus;
 import ${package}.domain.entity.User;
+import ${package}.domain.valueobject.Email;
+import ${package}.domain.valueobject.PhoneNumber;
+import ${package}.domain.valueobject.UserId;
+import ${package}.domain.valueobject.Username;
 import ${package}.infra.persistence.mysql.po.UserPO;
-import ${package}.shared.types.Email;
-import ${package}.shared.types.PhoneNumber;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
 import java.util.List;
 
@@ -25,17 +23,38 @@ public interface UserPOConverter {
     /**
      * UserPO -> User
      */
-    @Mapping(target = "status", source = "status", qualifiedByName = "codeToStatus")
-    @Mapping(target = "email", source = "email", qualifiedByName = "stringToEmail")
-    @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "stringToPhoneNumber")
+    @Mapping(target = "id", expression = "java(longToUserId(userPO.getId()))")
+    @Mapping(target = "username", expression = "java(stringToUsername(userPO.getUsername()))")
+    @Mapping(target = "email", expression = "java(stringToEmail(userPO.getEmail()))")
+    @Mapping(target = "phoneNumber", expression = "java(stringToPhoneNumber(userPO.getPhoneNumber()))")
+    @Mapping(target = "status", expression = "java(codeToStatus(userPO.getStatus()))")
+    @Mapping(target = "externalUser", source = "externalUser")
+    @Mapping(target = "admin", source = "admin")
+    @Mapping(target = "externalId", source = "externalId")
+    @Mapping(target = "password", source = "password")
+    @Mapping(target = "realName", source = "realName")
+    @Mapping(target = "tenantId", source = "tenantId")
+    @Mapping(target = "createdTime", source = "createdTime")
+    @Mapping(target = "updatedTime", source = "updatedTime")
     User toDomain(UserPO userPO);
 
     /**
      * User -> UserPO
      */
-    @Mapping(target = "status", source = "status", qualifiedByName = "statusToCode")
-    @Mapping(target = "email", source = "email", qualifiedByName = "emailToString")
-    @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "phoneNumberToString")
+    @Mapping(target = "id", expression = "java(userIdToLong(user.getId()))")
+    @Mapping(target = "username", expression = "java(usernameToString(user.getUsername()))")
+    @Mapping(target = "email", expression = "java(emailToString(user.getEmail()))")
+    @Mapping(target = "phoneNumber", expression = "java(phoneNumberToString(user.getPhoneNumber()))")
+    @Mapping(target = "status", expression = "java(statusToCode(user.getStatus()))")
+    @Mapping(target = "externalUser", source = "externalUser")
+    @Mapping(target = "admin", source = "admin")
+    @Mapping(target = "externalId", source = "externalId")
+    @Mapping(target = "password", source = "password")
+    @Mapping(target = "realName", source = "realName")
+    @Mapping(target = "tenantId", source = "tenantId")
+    @Mapping(target = "createdTime", source = "createdTime")
+    @Mapping(target = "updatedTime", source = "updatedTime")
+    @Mapping(target = "deletedTime", ignore = true)
     UserPO toPO(User user);
 
     /**
@@ -48,51 +67,75 @@ public interface UserPOConverter {
      */
     List<UserPO> toPOList(List<User> users);
 
+    // ========== 转换方法 ==========
+
     /**
-     * 代码转换为状态枚举
+     * Long -> UserId
      */
-    @Named("codeToStatus")
-    default UserStatus codeToStatus(String code) {
-        return code != null ? UserStatus.fromCode(code) : null;
+    default UserId longToUserId(Long id) {
+        return id != null ? new UserId(id) : null;
     }
 
     /**
-     * 状态枚举转换为代码
+     * UserId -> Long
      */
-    @Named("statusToCode")
-    default String statusToCode(UserStatus status) {
-        return status != null ? status.getCode() : null;
+    default Long userIdToLong(UserId userId) {
+        return userId != null ? userId.getValue() : null;
     }
 
     /**
-     * 字符串转Email值对象
+     * String -> Username
      */
-    @Named("stringToEmail")
+    default Username stringToUsername(String username) {
+        return StringUtils.isNotBlank(username) ? new Username(username) : null;
+    }
+
+    /**
+     * Username -> String
+     */
+    default String usernameToString(Username username) {
+        return username != null ? username.getValue() : null;
+    }
+
+    /**
+     * String -> Email
+     */
     default Email stringToEmail(String email) {
         return StringUtils.isNotBlank(email) ? new Email(email) : null;
     }
 
     /**
-     * Email值对象转字符串
+     * Email -> String
      */
-    @Named("emailToString")
     default String emailToString(Email email) {
         return email != null ? email.getValue() : null;
     }
 
     /**
-     * 字符串转PhoneNumber值对象
+     * String -> PhoneNumber
      */
-    @Named("stringToPhoneNumber")
     default PhoneNumber stringToPhoneNumber(String phoneNumber) {
         return StringUtils.isNotBlank(phoneNumber) ? new PhoneNumber(phoneNumber) : null;
     }
 
     /**
-     * PhoneNumber值对象转字符串
+     * PhoneNumber -> String
      */
-    @Named("phoneNumberToString")
     default String phoneNumberToString(PhoneNumber phoneNumber) {
         return phoneNumber != null ? phoneNumber.getValue() : null;
+    }
+
+    /**
+     * String -> UserStatus
+     */
+    default UserStatus codeToStatus(String code) {
+        return code != null ? UserStatus.fromCode(code) : null;
+    }
+
+    /**
+     * UserStatus -> String
+     */
+    default String statusToCode(UserStatus status) {
+        return status != null ? status.getCode() : null;
     }
 }

@@ -1,7 +1,7 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-package ${package}.shared.types;
+package ${package}.domain.valueobject;
 
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;

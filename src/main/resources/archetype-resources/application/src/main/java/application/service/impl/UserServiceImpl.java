@@ -1,6 +1,3 @@
-#set( $symbol_pound = '#' )
-#set( $symbol_dollar = '$' )
-#set( $symbol_escape = '\' )
 package ${package}.application.service.impl;
 
 import ${package}.api.dto.request.UserCreateRequest;
@@ -12,12 +9,14 @@ import ${package}.application.service.template.AbstractOperatorServiceTemplate;
 import ${package}.application.service.template.AbstractQueryServiceTemplate;
 import ${package}.application.vo.UserVO;
 import ${package}.domain.entity.User;
-import ${package}.domain.messaging.UserCreatedEvent;
+import ${package}.domain.event.DomainEventPublisher;
+import ${package}.domain.exception.UserNotFoundException;
+import ${package}.domain.factory.UserFactory;
 import ${package}.domain.repository.UserRepository;
 import ${package}.domain.service.UserDomainService;
+import ${package}.domain.valueobject.UserId;
 import ${package}.shared.enums.ErrorCodeEnum;
 import ${package}.shared.enums.EventEnum;
-import ${package}.shared.event.EventPublisherHelper;
 import ${package}.shared.exception.AppException;
 import ${package}.shared.lock.DistributedLock;
 import ${package}.shared.template.ServiceCallback;
@@ -40,20 +39,29 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserDomainService userDomainService;
-    private final EventPublisherHelper eventPublisher;
+    private final DomainEventPublisher domainEventPublisher;
     private final AbstractOperatorServiceTemplate operatorTemplate;
     private final AbstractQueryServiceTemplate queryTemplate;
     private final UserCacheService userCacheService;
     private final DistributedLock distributedLock;
+    private final UserFactory userFactory;
 
-    public UserServiceImpl(UserRepository userRepository, UserDomainService userDomainService, EventPublisherHelper eventPublisher, AbstractOperatorServiceTemplate operatorTemplate, AbstractQueryServiceTemplate queryTemplate, UserCacheService userCacheService, @Qualifier("redisDistributedLock") DistributedLock distributedLock) {
+    public UserServiceImpl(UserRepository userRepository,
+                           UserDomainService userDomainService,
+                           DomainEventPublisher domainEventPublisher,
+                           AbstractOperatorServiceTemplate operatorTemplate,
+                           AbstractQueryServiceTemplate queryTemplate,
+                           UserCacheService userCacheService,
+                           @Qualifier("redisDistributedLock") DistributedLock distributedLock,
+                           UserFactory userFactory) {
         this.userRepository = userRepository;
         this.userDomainService = userDomainService;
-        this.eventPublisher = eventPublisher;
+        this.domainEventPublisher = domainEventPublisher;
         this.operatorTemplate = operatorTemplate;
         this.queryTemplate = queryTemplate;
         this.userCacheService = userCacheService;
         this.distributedLock = distributedLock;
+        this.userFactory = userFactory;
     }
 
     @Override
@@ -80,12 +88,9 @@ public class UserServiceImpl implements UserService {
                 }
 
                 try {
-                    // 验证用户创建规则
-                    userDomainService.validateUserCreation(request.getUsername(), request.getEmail());
-
-                    // 创建用户实体（带手机号）
+                    // 使用工厂创建用户实体
                     if (request.getPhoneNumber() != null) {
-                        user = User.create(
+                        user = userFactory.createUserWithPhone(
                                 request.getUsername(),
                                 request.getEmail(),
                                 request.getPhoneNumber(),
@@ -93,17 +98,13 @@ public class UserServiceImpl implements UserService {
                                 request.getRealName()
                         );
                     } else {
-                        user = User.create(
+                        user = userFactory.createStandardUser(
                                 request.getUsername(),
                                 request.getEmail(),
                                 request.getPassword(),
                                 request.getRealName()
                         );
                     }
-
-                    // 加密密码
-                    String encryptedPassword = userDomainService.encryptPassword(request.getPassword());
-                    user.setPassword(encryptedPassword);
                 } catch (Exception e) {
                     distributedLock.unlock(lockKey);
                     throw e;
@@ -129,15 +130,19 @@ public class UserServiceImpl implements UserService {
             public void after() {
                 // 缓存用户信息
                 userCacheService.cacheUser(userVO);
-                userCacheService.cacheUsernameMapping(user.getUsername(), user.getId());
+                if (user.getId() != null) {
+                    userCacheService.cacheUsernameMapping(user.getUsernameValue(), user.getId().getValue());
+                }
 
-                // 发布用户创建事件
-                UserCreatedEvent event = new UserCreatedEvent(
-                        this, user.getId(), user.getUsername(), user.getEmailValue()
-                );
-                eventPublisher.publish(event);
+                // 发布领域事件
+                if (user.hasDomainEvents()) {
+                    domainEventPublisher.publishAll(user.getDomainEvents());
+                    user.clearDomainEvents();
+                }
 
-                log.info("用户创建成功，用户ID: {}, 用户名: {}", user.getId(), user.getUsername());
+                log.info("用户创建成功，用户ID: {}, 用户名: {}",
+                        user.getId() != null ? user.getId().getValue() : null,
+                        user.getUsernameValue());
             }
         });
     }
@@ -161,10 +166,8 @@ public class UserServiceImpl implements UserService {
                 }
 
                 // 缓存未命中，从数据库获取
-                User user = userRepository.findById(userId);
-                if (user == null) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户不存在");
-                }
+                User user = userRepository.findById(new UserId(userId))
+                        .orElseThrow(() -> new UserNotFoundException(userId));
 
                 UserVO userVO = UserAssembler.toVO(user);
 
@@ -238,10 +241,8 @@ public class UserServiceImpl implements UserService {
                 }
 
                 try {
-                    user = userRepository.findById(userId);
-                    if (user == null) {
-                        throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户不存在");
-                    }
+                    user = userRepository.findById(new UserId(userId))
+                            .orElseThrow(() -> new UserNotFoundException(userId));
                 } catch (Exception e) {
                     distributedLock.unlock(lockKey);
                     throw e;
@@ -252,7 +253,7 @@ public class UserServiceImpl implements UserService {
             public Void process() {
                 try {
                     UserStatus newStatus = UserStatus.fromCode(status);
-                    user.updateStatus(newStatus);
+                    user.changeStatus(newStatus, "管理员操作");
                     userRepository.save(user);
                     return null;
                 } finally {
@@ -264,6 +265,13 @@ public class UserServiceImpl implements UserService {
             public void after() {
                 // 清除缓存
                 userCacheService.evictUser(userId);
+
+                // 发布领域事件
+                if (user.hasDomainEvents()) {
+                    domainEventPublisher.publishAll(user.getDomainEvents());
+                    user.clearDomainEvents();
+                }
+
                 log.info("用户状态更新成功，用户ID: {}, 新状态: {}", userId, status);
             }
         });
@@ -292,10 +300,8 @@ public class UserServiceImpl implements UserService {
                 }
 
                 try {
-                    user = userRepository.findById(userId);
-                    if (user == null) {
-                        throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户不存在");
-                    }
+                    user = userRepository.findById(new UserId(userId))
+                            .orElseThrow(() -> new UserNotFoundException(userId));
                 } catch (Exception e) {
                     distributedLock.unlock(lockKey);
                     throw e;
@@ -305,6 +311,11 @@ public class UserServiceImpl implements UserService {
             @Override
             public Void process() {
                 try {
+                    // 检查是否可以删除
+                    if (!userDomainService.canDeleteUser(user)) {
+                        throw new AppException(ErrorCodeEnum.NOT_SUPPORT_OPERATE_EXP, "该用户不能被删除");
+                    }
+
                     user.delete();
                     userRepository.save(user);
                     return null;
@@ -317,6 +328,13 @@ public class UserServiceImpl implements UserService {
             public void after() {
                 // 清除缓存
                 userCacheService.evictUser(userId);
+
+                // 发布领域事件
+                if (user.hasDomainEvents()) {
+                    domainEventPublisher.publishAll(user.getDomainEvents());
+                    user.clearDomainEvents();
+                }
+
                 log.info("用户删除成功，用户ID: {}", userId);
             }
         });

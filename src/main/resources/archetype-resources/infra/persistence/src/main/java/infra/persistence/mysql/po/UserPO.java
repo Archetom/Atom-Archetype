@@ -1,6 +1,3 @@
-#set( $symbol_pound = '#' )
-#set( $symbol_dollar = '$' )
-#set( $symbol_escape = '\' )
 package ${package}.infra.persistence.mysql.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -62,4 +59,22 @@ public class UserPO extends BasePO {
      */
     @TableField("status")
     private String status;
+
+    /**
+     * 外部系统ID
+     */
+    @TableField("external_id")
+    private String externalId;
+
+    /**
+     * 是否外部用户
+     */
+    @TableField("is_external_user")
+    private Boolean externalUser;
+
+    /**
+     * 是否管理员
+     */
+    @TableField("is_admin")
+    private Boolean admin;
 }
