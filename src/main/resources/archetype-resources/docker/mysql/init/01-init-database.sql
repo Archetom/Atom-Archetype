@@ -1,3 +1,6 @@
+-- 设置客户端连接字符集为 utf8mb4
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- 创建数据库
 CREATE DATABASE IF NOT EXISTS atom_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -12,7 +15,7 @@ CREATE TABLE IF NOT EXISTS t_user
     email        VARCHAR(100) NOT NULL,
     phone_number VARCHAR(20)  NULL,
     password     VARCHAR(255) NOT NULL,
-    real_name    VARCHAR(100),
+    real_name    VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     status       VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
     tenant_id    BIGINT       NOT NULL DEFAULT 1,
     created_time TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,

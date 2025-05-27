@@ -20,7 +20,7 @@ demo:install
 	  -DarchetypeArtifactId=atom-archetype  \
 	  -DarchetypeVersion=$(VERSION)         \
 	  -DgroupId=com.foo.bar                 \
-	  -DartifactId=atom-demo      \
+	  -DartifactId=atom-demo      			\
 	  -Dpackage=com.foo.bar                 \
 	  -Dversion=1.0.0-SNAPSHOT              \
 	  -B

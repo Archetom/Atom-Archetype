@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
@@ -28,6 +26,20 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
+    networks:
+      - atom-network
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: atom-zipkin
+    restart: unless-stopped
+    ports:
+      - "9411:9411"
+    environment:
+      # 使用内存存储
+      - STORAGE_TYPE=mem
+      # JVM 内存设置
+      - JAVA_OPTS=-Xms256m -Xmx512m
     networks:
       - atom-network
 
