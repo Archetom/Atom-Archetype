@@ -4,9 +4,8 @@
 package ${package}.shared.lock.impl;
 
 import ${package}.shared.lock.DistributedLock;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
@@ -23,8 +22,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 @Slf4j
 @Component("redisDistributedLock")
-@RequiredArgsConstructor
-@ConditionalOnBean(StringRedisTemplate.class)
+@ConditionalOnProperty(name = "spring.data.redis.host")
 public class RedisDistributedLock implements DistributedLock {
 
     private final StringRedisTemplate redisTemplate;
@@ -35,6 +33,10 @@ public class RedisDistributedLock implements DistributedLock {
             "if redis.call('get', KEYS[1]) == ARGV[1] then " +
                     "return redis.call('del', KEYS[1]) " +
                     "else return 0 end";
+
+    public RedisDistributedLock(StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     public boolean tryLock(String key, Duration timeout) {
@@ -82,9 +84,11 @@ public class RedisDistributedLock implements DistributedLock {
                 log.debug("释放Redis分布式锁成功: {}", key);
             } else {
                 log.warn("释放Redis分布式锁失败，锁可能已过期: {}", key);
+                lockValues.remove(key); // 清理本地记录
             }
         } catch (Exception e) {
             log.error("释放Redis分布式锁异常: {}", key, e);
+            lockValues.remove(key); // 清理本地记录
         }
     }
 }

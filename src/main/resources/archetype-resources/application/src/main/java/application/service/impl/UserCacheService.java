@@ -24,7 +24,7 @@ public class UserCacheService {
     private static final String USER_CACHE_PREFIX = "user:";
     private static final Duration USER_CACHE_TTL = Duration.ofMinutes(30);
 
-    public UserCacheService(@Qualifier("localMemoryCacheService") CacheService cacheService) {
+    public UserCacheService(@Qualifier("redisCacheService") CacheService cacheService) {
         this.cacheService = cacheService;
     }
 

@@ -44,11 +44,9 @@ public class UserServiceImpl implements UserService {
     private final AbstractOperatorServiceTemplate operatorTemplate;
     private final AbstractQueryServiceTemplate queryTemplate;
     private final UserCacheService userCacheService;
-
-    @Qualifier("localMemoryDistributedLock")
     private final DistributedLock distributedLock;
 
-    public UserServiceImpl(UserRepository userRepository, UserDomainService userDomainService, EventPublisherHelper eventPublisher, AbstractOperatorServiceTemplate operatorTemplate, AbstractQueryServiceTemplate queryTemplate, UserCacheService userCacheService, DistributedLock distributedLock) {
+    public UserServiceImpl(UserRepository userRepository, UserDomainService userDomainService, EventPublisherHelper eventPublisher, AbstractOperatorServiceTemplate operatorTemplate, AbstractQueryServiceTemplate queryTemplate, UserCacheService userCacheService, @Qualifier("redisDistributedLock") DistributedLock distributedLock) {
         this.userRepository = userRepository;
         this.userDomainService = userDomainService;
         this.eventPublisher = eventPublisher;
