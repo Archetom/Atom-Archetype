@@ -17,9 +17,14 @@
                 <include>__gitignore__</include>
                 <include>lombok.config</include>
                 <include>Makefile</include>
-                <include>clean.sh</include>
                 <include>*.yml</include>
                 <include>conf/*</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="false" encoding="UTF-8">
+            <directory/>
+            <includes>
+                <include>clean.sh</include>
             </includes>
         </fileSet>
         <!-- 添加 docs 目录 -->
