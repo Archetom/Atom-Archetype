@@ -3,7 +3,7 @@
 #set( $symbol_escape = '\' )
 package ${package}.infra.messaging;
 
-import ${package}.domain.messaging.UserCreatedEvent;
+import ${package}.domain.event.UserCreatedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

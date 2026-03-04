@@ -12,7 +12,7 @@
 
     <artifactId>${artifactId}</artifactId>
     <name>${artifactId}</name>
-    <description>Infrastructure RPC</description>
+    <description>Infrastructure Facade</description>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>

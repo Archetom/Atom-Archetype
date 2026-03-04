@@ -247,7 +247,7 @@ class UserTest {
 
         // When - 标记为外部用户
         user.markAsExternalUser();
-        user.setExternalId("EXT_001");
+        user.changeExternalId("EXT_001");
 
         // Then
         assertTrue(user.isExternalUser());

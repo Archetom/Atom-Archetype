@@ -12,31 +12,39 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 用户PO转换器
  * @author hanfeng
  */
 @Mapper(componentModel = "spring")
-public interface UserPOConverter {
+public abstract class UserPOConverter {
 
     /**
-     * UserPO -> User
+     * UserPO -> User（使用 reconstitute 方法重建领域对象）
      */
-    @Mapping(target = "id", expression = "java(longToUserId(userPO.getId()))")
-    @Mapping(target = "username", expression = "java(stringToUsername(userPO.getUsername()))")
-    @Mapping(target = "email", expression = "java(stringToEmail(userPO.getEmail()))")
-    @Mapping(target = "phoneNumber", expression = "java(stringToPhoneNumber(userPO.getPhoneNumber()))")
-    @Mapping(target = "status", expression = "java(codeToStatus(userPO.getStatus()))")
-    @Mapping(target = "externalUser", source = "externalUser")
-    @Mapping(target = "admin", source = "admin")
-    @Mapping(target = "externalId", source = "externalId")
-    @Mapping(target = "password", source = "password")
-    @Mapping(target = "realName", source = "realName")
-    @Mapping(target = "tenantId", source = "tenantId")
-    @Mapping(target = "createdTime", source = "createdTime")
-    @Mapping(target = "updatedTime", source = "updatedTime")
-    User toDomain(UserPO userPO);
+    public User toDomain(UserPO userPO) {
+        if (userPO == null) {
+            return null;
+        }
+
+        return User.reconstitute(
+                longToUserId(userPO.getId()),
+                stringToUsername(userPO.getUsername()),
+                stringToEmail(userPO.getEmail()),
+                stringToPhoneNumber(userPO.getPhoneNumber()),
+                userPO.getPassword(),
+                userPO.getRealName(),
+                codeToStatus(userPO.getStatus()),
+                userPO.getTenantId(),
+                userPO.getExternalId(),
+                Boolean.TRUE.equals(userPO.getExternalUser()),
+                Boolean.TRUE.equals(userPO.getAdmin()),
+                userPO.getCreatedTime(),
+                userPO.getUpdatedTime()
+        );
+    }
 
     /**
      * User -> UserPO
@@ -55,87 +63,92 @@ public interface UserPOConverter {
     @Mapping(target = "createdTime", source = "createdTime")
     @Mapping(target = "updatedTime", source = "updatedTime")
     @Mapping(target = "deletedTime", ignore = true)
-    UserPO toPO(User user);
+    public abstract UserPO toPO(User user);
 
     /**
      * UserPO List -> User List
      */
-    List<User> toDomainList(List<UserPO> userPOs);
+    public List<User> toDomainList(List<UserPO> userPOs) {
+        if (userPOs == null) {
+            return null;
+        }
+        return userPOs.stream().map(this::toDomain).collect(Collectors.toList());
+    }
 
     /**
      * User List -> UserPO List
      */
-    List<UserPO> toPOList(List<User> users);
+    public abstract List<UserPO> toPOList(List<User> users);
 
     // ========== 转换方法 ==========
 
     /**
      * Long -> UserId
      */
-    default UserId longToUserId(Long id) {
+    protected UserId longToUserId(Long id) {
         return id != null ? new UserId(id) : null;
     }
 
     /**
      * UserId -> Long
      */
-    default Long userIdToLong(UserId userId) {
+    protected Long userIdToLong(UserId userId) {
         return userId != null ? userId.getValue() : null;
     }
 
     /**
      * String -> Username
      */
-    default Username stringToUsername(String username) {
+    protected Username stringToUsername(String username) {
         return StringUtils.isNotBlank(username) ? new Username(username) : null;
     }
 
     /**
      * Username -> String
      */
-    default String usernameToString(Username username) {
+    protected String usernameToString(Username username) {
         return username != null ? username.getValue() : null;
     }
 
     /**
      * String -> Email
      */
-    default Email stringToEmail(String email) {
+    protected Email stringToEmail(String email) {
         return StringUtils.isNotBlank(email) ? new Email(email) : null;
     }
 
     /**
      * Email -> String
      */
-    default String emailToString(Email email) {
+    protected String emailToString(Email email) {
         return email != null ? email.getValue() : null;
     }
 
     /**
      * String -> PhoneNumber
      */
-    default PhoneNumber stringToPhoneNumber(String phoneNumber) {
+    protected PhoneNumber stringToPhoneNumber(String phoneNumber) {
         return StringUtils.isNotBlank(phoneNumber) ? new PhoneNumber(phoneNumber) : null;
     }
 
     /**
      * PhoneNumber -> String
      */
-    default String phoneNumberToString(PhoneNumber phoneNumber) {
+    protected String phoneNumberToString(PhoneNumber phoneNumber) {
         return phoneNumber != null ? phoneNumber.getValue() : null;
     }
 
     /**
      * String -> UserStatus
      */
-    default UserStatus codeToStatus(String code) {
+    protected UserStatus codeToStatus(String code) {
         return code != null ? UserStatus.fromCode(code) : null;
     }
 
     /**
      * UserStatus -> String
      */
-    default String statusToCode(UserStatus status) {
+    protected String statusToCode(UserStatus status) {
         return status != null ? status.getCode() : null;
     }
 }

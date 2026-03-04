@@ -22,7 +22,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(userContextInterceptor)
-                .addPathPatterns("/api/**")
+                .addPathPatterns("/api/v1/**")
                 .excludePathPatterns("/api/health", "/api/actuator/**");
     }
 }

@@ -160,8 +160,8 @@
                 </fileSet>
             </fileSets>
         </module>
-        <!-- infra-rpc -->
-        <module id="${rootArtifactId}-infra-rpc" dir="infra/rpc" name="${rootArtifactId}-infra-rpc">
+        <!-- infra-facade -->
+        <module id="${rootArtifactId}-infra-facade" dir="infra/facade" name="${rootArtifactId}-infra-facade">
             <fileSets>
                 <fileSet filtered="true" packaged="true" encoding="UTF-8">
                     <directory>src/main/java</directory>

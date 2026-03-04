@@ -30,13 +30,7 @@ public class SmsServiceImpl implements SmsService {
     }
 
     private void simulateSmsSending(String type, String phoneNumber, String content) {
-        try {
-            // 模拟短信发送延迟
-            Thread.sleep(50);
-            log.info("短信发送成功 - 类型: {}, 手机号: {}, 内容: {}", type, phoneNumber, content);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("短信发送被中断", e);
-        }
+        // TODO: 替换为真实的短信发送逻辑
+        log.info("短信发送成功 - 类型: {}, 手机号: {}, 内容: {}", type, phoneNumber, content);
     }
 }

@@ -1,7 +1,7 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-package ${package}.shared.context;
+package ${package}.domain.context;
 
 import ${package}.domain.context.UserContext;
 

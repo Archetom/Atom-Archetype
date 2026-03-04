@@ -9,12 +9,10 @@ import ${package}.domain.valueobject.Email;
 import ${package}.domain.valueobject.Username;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Base64;
 
 /**
  * 用户领域服务实现
@@ -26,6 +24,7 @@ import java.util.Base64;
 public class UserDomainServiceImpl implements UserDomainService {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
@@ -54,54 +53,17 @@ public class UserDomainServiceImpl implements UserDomainService {
 
     @Override
     public String encryptPassword(String plainPassword) {
-        // 注意：这里不再进行密码校验，因为在 UserFactory 中已经通过 PasswordPolicy 校验过了
-        // 如果需要双重保险，可以保留基本的空值检查
         if (plainPassword == null || plainPassword.trim().isEmpty()) {
             throw new UserDomainException("密码不能为空");
         }
 
-        try {
-            // 生成盐值
-            byte[] salt = new byte[16];
-            secureRandom.nextBytes(salt);
-
-            // 使用 SHA-256 + 盐值加密
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(salt);
-            byte[] hash = md.digest(plainPassword.getBytes());
-
-            // 将盐值和哈希值组合
-            byte[] combined = new byte[salt.length + hash.length];
-            System.arraycopy(salt, 0, combined, 0, salt.length);
-            System.arraycopy(hash, 0, combined, salt.length, hash.length);
-
-            return Base64.getEncoder().encodeToString(combined);
-        } catch (NoSuchAlgorithmException e) {
-            log.error("密码加密失败", e);
-            throw new UserDomainException("密码加密失败");
-        }
+        return passwordEncoder.encode(plainPassword);
     }
 
     @Override
     public boolean validatePassword(String plainPassword, String encryptedPassword) {
         try {
-            byte[] combined = Base64.getDecoder().decode(encryptedPassword);
-
-            // 提取盐值
-            byte[] salt = new byte[16];
-            System.arraycopy(combined, 0, salt, 0, 16);
-
-            // 提取哈希值
-            byte[] hash = new byte[combined.length - 16];
-            System.arraycopy(combined, 16, hash, 0, hash.length);
-
-            // 使用相同的盐值加密输入密码
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(salt);
-            byte[] inputHash = md.digest(plainPassword.getBytes());
-
-            // 比较哈希值
-            return MessageDigest.isEqual(hash, inputHash);
+            return passwordEncoder.matches(plainPassword, encryptedPassword);
         } catch (Exception e) {
             log.error("密码验证失败", e);
             return false;

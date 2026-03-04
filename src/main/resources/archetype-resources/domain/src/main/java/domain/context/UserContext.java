@@ -52,6 +52,11 @@ public class UserContext {
     private String requestId;
 
     /**
+     * 是否为管理员
+     */
+    private boolean admin;
+
+    /**
      * 创建用户上下文
      */
     public static UserContext create(Long currentUserId, Long tenantId) {
@@ -78,6 +83,13 @@ public class UserContext {
     }
 
     /**
+     * 设置管理员标识
+     */
+    public UserContext withAdmin(boolean admin) {
+        return this.setAdmin(admin);
+    }
+
+    /**
      * 检查是否有权限操作指定租户的数据
      */
     public boolean canAccessTenant(Long targetTenantId) {
@@ -88,6 +100,6 @@ public class UserContext {
      * 检查是否为系统管理员
      */
     public boolean isSystemAdmin() {
-        return this.currentUserId != null && this.currentUserId.equals(1L);
+        return this.admin;
     }
 }

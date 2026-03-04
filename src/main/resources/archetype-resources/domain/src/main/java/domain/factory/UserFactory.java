@@ -86,7 +86,7 @@ public class UserFactory {
         User user = createStandardUser(username, email, tempPassword, realName);
 
         // 设置外部系统标识
-        user.setExternalId(externalId);
+        user.changeExternalId(externalId);
         user.markAsExternalUser();
 
         return user;

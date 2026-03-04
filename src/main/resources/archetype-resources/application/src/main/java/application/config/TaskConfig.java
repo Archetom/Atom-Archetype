@@ -23,6 +23,7 @@ public class TaskConfig {
         executor.setQueueCapacity(props.getQueueCapacity());
         executor.setKeepAliveSeconds(props.getKeepAliveSeconds());
         executor.setThreadNamePrefix(props.getThreadNamePrefix());
+        executor.setTaskDecorator(new ContextCopyTaskDecorator());
         executor.initialize();
         return executor;
     }

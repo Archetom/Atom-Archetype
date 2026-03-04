@@ -9,7 +9,7 @@ import ${package}.infra.persistence.converter.UserPOConverter;
 import ${package}.infra.persistence.mysql.dao.UserDao;
 import ${package}.infra.persistence.mysql.po.UserPO;
 import ${package}.infra.persistence.mysql.util.PageUtil;
-import ${package}.shared.context.UserContextHolder;
+import ${package}.domain.context.UserContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;

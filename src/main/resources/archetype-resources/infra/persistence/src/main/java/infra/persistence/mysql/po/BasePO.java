@@ -3,6 +3,7 @@ package ${package}.infra.persistence.mysql.po;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Data;
 
 import java.io.Serial;
@@ -41,4 +42,10 @@ public class BasePO implements Serializable {
     @TableLogic
     @TableField("deleted_time")
     private LocalDateTime deletedTime;
+
+    /**
+     * 版本号，乐观锁
+     */
+    @Version
+    private Long version;
 }

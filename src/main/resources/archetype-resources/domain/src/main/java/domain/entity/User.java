@@ -9,9 +9,8 @@ import ${package}.domain.valueobject.Email;
 import ${package}.domain.valueobject.PhoneNumber;
 import ${package}.domain.valueobject.UserId;
 import ${package}.domain.valueobject.Username;
-import lombok.Data;
+import lombok.Getter;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
@@ -20,9 +19,8 @@ import java.time.LocalDateTime;
  * 用户聚合根
  * @author hanfeng
  */
-@Data
+@Getter
 @EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
 public class User extends AggregateRoot<UserId> {
 
     private UserId id;
@@ -114,15 +112,15 @@ public class User extends AggregateRoot<UserId> {
         validateCreateParams(username, email, password);
 
         User user = new User();
-        user.setUsername(new Username(username));
-        user.setEmail(new Email(email));
-        user.setPassword(password);
-        user.setRealName(realName);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setExternalUser(false);
-        user.setAdmin(false);
-        user.setCreatedTime(LocalDateTime.now());
-        user.setUpdatedTime(LocalDateTime.now());
+        user.username = new Username(username);
+        user.email = new Email(email);
+        user.password = password;
+        user.realName = realName;
+        user.status = UserStatus.ACTIVE;
+        user.externalUser = false;
+        user.admin = false;
+        user.createdTime = LocalDateTime.now();
+        user.updatedTime = LocalDateTime.now();
 
         // 添加领域事件
         user.addDomainEvent(new UserCreatedEvent(user.getId() != null ? user.getId().getValue() : null, username, email));
@@ -136,7 +134,7 @@ public class User extends AggregateRoot<UserId> {
     public static User create(String username, String email, String phoneNumber, String password, String realName) {
         User user = create(username, email, password, realName);
         if (StringUtils.isNotBlank(phoneNumber)) {
-            user.setPhoneNumber(new PhoneNumber(phoneNumber));
+            user.phoneNumber = new PhoneNumber(phoneNumber);
         }
         return user;
     }
@@ -146,15 +144,15 @@ public class User extends AggregateRoot<UserId> {
      */
     public static User createWithValidatedParams(Username username, Email email, String encryptedPassword, String realName) {
         User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(encryptedPassword); // 已加密的密码
-        user.setRealName(realName);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setExternalUser(false);
-        user.setAdmin(false);
-        user.setCreatedTime(LocalDateTime.now());
-        user.setUpdatedTime(LocalDateTime.now());
+        user.username = username;
+        user.email = email;
+        user.password = encryptedPassword;
+        user.realName = realName;
+        user.status = UserStatus.ACTIVE;
+        user.externalUser = false;
+        user.admin = false;
+        user.createdTime = LocalDateTime.now();
+        user.updatedTime = LocalDateTime.now();
 
         // 添加领域事件
         user.addDomainEvent(new UserCreatedEvent(
@@ -172,7 +170,31 @@ public class User extends AggregateRoot<UserId> {
     public static User createWithValidatedParams(Username username, Email email, PhoneNumber phoneNumber,
                                           String encryptedPassword, String realName) {
         User user = createWithValidatedParams(username, email, encryptedPassword, realName);
-        user.setPhoneNumber(phoneNumber);
+        user.phoneNumber = phoneNumber;
+        return user;
+    }
+
+    /**
+     * 重建方法 - 从持久层重建领域对象（不触发领域事件）
+     */
+    public static User reconstitute(UserId id, Username username, Email email, PhoneNumber phoneNumber,
+                                     String password, String realName, UserStatus status,
+                                     Long tenantId, String externalId, boolean externalUser,
+                                     boolean admin, LocalDateTime createdTime, LocalDateTime updatedTime) {
+        User user = new User();
+        user.id = id;
+        user.username = username;
+        user.email = email;
+        user.phoneNumber = phoneNumber;
+        user.password = password;
+        user.realName = realName;
+        user.status = status;
+        user.tenantId = tenantId;
+        user.externalId = externalId;
+        user.externalUser = externalUser;
+        user.admin = admin;
+        user.createdTime = createdTime;
+        user.updatedTime = updatedTime;
         return user;
     }
 
@@ -241,8 +263,11 @@ public class User extends AggregateRoot<UserId> {
      * 更改邮箱（字符串版本）
      */
     public void changeEmail(String newEmail) {
-        this.email = new Email(newEmail);
-        this.updatedTime = LocalDateTime.now();
+        Email newEmailVO = new Email(newEmail);
+        if (!newEmailVO.sameValueAs(this.email)) {
+            this.email = newEmailVO;
+            this.updatedTime = LocalDateTime.now();
+        }
     }
 
     /**
@@ -266,8 +291,15 @@ public class User extends AggregateRoot<UserId> {
     /**
      * 设置外部系统ID
      */
-    public void setExternalId(String externalId) {
+    public void changeExternalId(String externalId) {
         this.externalId = externalId;
+    }
+
+    /**
+     * 设置租户ID
+     */
+    public void changeTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     /**

@@ -4,7 +4,7 @@
 package ${package}.infra.rest.interceptor;
 
 import ${package}.domain.context.UserContext;
-import ${package}.shared.context.UserContextHolder;
+import ${package}.domain.context.UserContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +26,7 @@ public class UserContextInterceptor implements HandlerInterceptor {
         // 从请求头中获取用户信息（实际项目中可能从JWT token中解析）
         String userIdHeader = request.getHeader("X-User-Id");
         String tenantIdHeader = request.getHeader("X-Tenant-Id");
+        String adminHeader = request.getHeader("X-Admin");
         String requestId = request.getHeader("X-Request-Id");
 
         if (requestId == null) {
@@ -34,13 +35,14 @@ public class UserContextInterceptor implements HandlerInterceptor {
 
         // 创建用户上下文
         UserContext context = UserContext.create(
-                userIdHeader != null ? Long.parseLong(userIdHeader) : 1L, // 默认用户ID为1
-                tenantIdHeader != null ? Long.parseLong(tenantIdHeader) : 1L // 默认租户ID为1
+                userIdHeader != null ? Long.parseLong(userIdHeader) : null,
+                tenantIdHeader != null ? Long.parseLong(tenantIdHeader) : null
         ).withOperation(
                 request.getMethod() + " " + request.getRequestURI(),
                 getClientIpAddress(request),
                 request.getHeader("User-Agent")
-        ).withRequestId(requestId);
+        ).withRequestId(requestId)
+         .withAdmin("true".equalsIgnoreCase(adminHeader));
 
         // 设置到ThreadLocal
         UserContextHolder.setContext(context);

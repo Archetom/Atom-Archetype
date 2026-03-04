@@ -16,6 +16,9 @@ public abstract class AggregateRoot<ID> {
     @Getter
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
+    @Getter
+    private Long version = 0L;
+
     /**
      * 获取聚合根ID
      */
@@ -56,5 +59,12 @@ public abstract class AggregateRoot<ID> {
      */
     public boolean hasDomainEvents() {
         return !domainEvents.isEmpty();
+    }
+
+    /**
+     * 递增版本号（用于乐观锁）
+     */
+    public void incrementVersion() {
+        this.version++;
     }
 }

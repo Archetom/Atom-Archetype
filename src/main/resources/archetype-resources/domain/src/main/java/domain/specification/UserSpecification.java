@@ -9,6 +9,8 @@ import ${package}.domain.entity.User;
  */
 public class UserSpecification {
 
+    private static final String TEMP_PASSWORD_PREFIX = "temp_";
+
     /**
      * 用户是否可以登录
      */
@@ -84,7 +86,7 @@ public class UserSpecification {
                 return user != null &&
                         user.isExternalUser() &&
                         user.getPassword() != null &&
-                        user.getPassword().startsWith("temp_");
+                        user.getPassword().startsWith(TEMP_PASSWORD_PREFIX);
             }
         };
     }

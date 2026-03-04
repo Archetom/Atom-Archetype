@@ -24,7 +24,7 @@
         <module>infra/messaging</module>
         <module>infra/persistence</module>
         <module>infra/rest</module>
-        <module>infra/rpc</module>
+        <module>infra/facade</module>
         <module>api</module>
         <module>shared</module>
     </modules>
@@ -184,7 +184,7 @@
             </dependency>
             <dependency>
                 <groupId>${groupId}</groupId>
-                <artifactId>${rootArtifactId}-infra-rpc</artifactId>
+                <artifactId>${rootArtifactId}-infra-facade</artifactId>
                 <version>${version}</version>
             </dependency>
             <!-- 第五层 共享层 -->

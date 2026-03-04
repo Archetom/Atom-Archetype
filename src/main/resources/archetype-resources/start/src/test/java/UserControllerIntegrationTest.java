@@ -39,7 +39,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setRealName("New User");
         
         // When
-        ResultActions result = performPost("/api/users", request);
+        ResultActions result = performPost("/api/v1/users", request);
         
         // Then
         result.andExpect(status().isOk())
@@ -59,7 +59,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setPassword("123"); // 密码太短
         
         // When
-        ResultActions result = performPost("/api/users", request);
+        ResultActions result = performPost("/api/v1/users", request);
         
         // Then
         assertValidationError(result);
@@ -74,7 +74,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setEmail("first@example.com")
             .setPassword("password123")
             .setRealName("First User");
-        performPost("/api/users", firstRequest);
+        performPost("/api/v1/users", firstRequest);
         
         // 再次创建相同用户名的用户
         UserCreateRequest secondRequest = new UserCreateRequest()
@@ -84,7 +84,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setRealName("Second User");
         
         // When
-        ResultActions result = performPost("/api/users", secondRequest);
+        ResultActions result = performPost("/api/v1/users", secondRequest);
         
         // Then
         result.andExpect(status().isUnprocessableEntity())
@@ -101,12 +101,12 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setPassword("password123")
             .setRealName("Test User");
         
-        ResultActions createResult = performPost("/api/users", createRequest);
+        ResultActions createResult = performPost("/api/v1/users", createRequest);
         String responseJson = createResult.andReturn().getResponse().getContentAsString();
         UserResponse createdUser = fromJson(responseJson, UserResponse.class);
         
         // When
-        ResultActions result = performGet("/api/users/{userId}", createdUser.getId());
+        ResultActions result = performGet("/api/v1/users/{userId}", createdUser.getId());
         
         // Then
         result.andExpect(status().isOk())
@@ -119,7 +119,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("根据ID获取用户 - 用户不存在")
     void getUserById_UserNotFound() throws Exception {
         // When
-        ResultActions result = performGet("/api/users/{userId}", 99999L);
+        ResultActions result = performGet("/api/v1/users/{userId}", 99999L);
         
         // Then
         result.andExpect(status().isUnprocessableEntity())
@@ -136,7 +136,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
                 .setEmail("user" + i + "@example.com")
                 .setPassword("password123")
                 .setRealName("User " + i);
-            performPost("/api/users", request);
+            performPost("/api/v1/users", request);
         }
         
         // When
@@ -144,7 +144,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         params.put("page", "1");
         params.put("size", "10");
         
-        ResultActions result = performGetWithParams("/api/users", params);
+        ResultActions result = performGetWithParams("/api/v1/users", params);
         
         // Then
         result.andExpect(status().isOk())
@@ -161,7 +161,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setEmail("filter@example.com")
             .setPassword("password123")
             .setRealName("Filter User");
-        performPost("/api/users", request);
+        performPost("/api/v1/users", request);
         
         // When
         Map<String, String> params = new HashMap<>();
@@ -169,7 +169,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         params.put("page", "1");
         params.put("size", "10");
         
-        ResultActions result = performGetWithParams("/api/users", params);
+        ResultActions result = performGetWithParams("/api/v1/users", params);
         
         // Then
         result.andExpect(status().isOk());
@@ -192,13 +192,13 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setPassword("password123")
             .setRealName("Status User");
         
-        ResultActions createResult = performPost("/api/users", createRequest);
+        ResultActions createResult = performPost("/api/v1/users", createRequest);
         String responseJson = createResult.andReturn().getResponse().getContentAsString();
         UserResponse createdUser = fromJson(responseJson, UserResponse.class);
         
         // When
         ResultActions result = mockMvc.perform(
-            put("/api/users/{userId}/status", createdUser.getId())
+            put("/api/v1/users/{userId}/status", createdUser.getId())
                 .param("status", "INACTIVE")
         );
         
@@ -206,7 +206,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         result.andExpect(status().isOk());
         
         // 验证状态已更新
-        ResultActions getResult = performGet("/api/users/{userId}", createdUser.getId());
+        ResultActions getResult = performGet("/api/v1/users/{userId}", createdUser.getId());
         getResult.andExpect(status().isOk())
                  .andExpect(jsonPath("$.status").value("INACTIVE"));
     }
@@ -221,13 +221,13 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setPassword("password123")
             .setRealName("Invalid Status User");
         
-        ResultActions createResult = performPost("/api/users", createRequest);
+        ResultActions createResult = performPost("/api/v1/users", createRequest);
         String responseJson = createResult.andReturn().getResponse().getContentAsString();
         UserResponse createdUser = fromJson(responseJson, UserResponse.class);
         
         // When
         ResultActions result = mockMvc.perform(
-            put("/api/users/{userId}/status", createdUser.getId())
+            put("/api/v1/users/{userId}/status", createdUser.getId())
                 .param("status", "INVALID_STATUS")
         );
         
@@ -245,18 +245,18 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setPassword("password123")
             .setRealName("Delete User");
         
-        ResultActions createResult = performPost("/api/users", createRequest);
+        ResultActions createResult = performPost("/api/v1/users", createRequest);
         String responseJson = createResult.andReturn().getResponse().getContentAsString();
         UserResponse createdUser = fromJson(responseJson, UserResponse.class);
         
         // When
-        ResultActions result = performDelete("/api/users/{userId}", createdUser.getId());
+        ResultActions result = performDelete("/api/v1/users/{userId}", createdUser.getId());
         
         // Then
         result.andExpect(status().isOk());
         
         // 验证用户状态已变为DELETED
-        ResultActions getResult = performGet("/api/users/{userId}", createdUser.getId());
+        ResultActions getResult = performGet("/api/v1/users/{userId}", createdUser.getId());
         getResult.andExpect(status().isOk())
                  .andExpect(jsonPath("$.status").value("DELETED"));
     }
@@ -265,7 +265,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("删除用户 - 用户不存在")
     void deleteUser_UserNotFound() throws Exception {
         // When
-        ResultActions result = performDelete("/api/users/{userId}", 99999L);
+        ResultActions result = performDelete("/api/v1/users/{userId}", 99999L);
         
         // Then
         result.andExpect(status().isUnprocessableEntity())

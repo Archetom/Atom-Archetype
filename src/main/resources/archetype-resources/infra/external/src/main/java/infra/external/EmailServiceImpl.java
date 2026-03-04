@@ -37,13 +37,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private void simulateEmailSending(String type, String email, String content) {
-        try {
-            // 模拟邮件发送延迟
-            Thread.sleep(100);
-            log.info("邮件发送成功 - 类型: {}, 收件人: {}, 内容: {}", type, email, content);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("邮件发送被中断", e);
-        }
+        // TODO: 替换为真实的邮件发送逻辑
+        log.info("邮件发送成功 - 类型: {}, 收件人: {}, 内容: {}", type, email, content);
     }
 }

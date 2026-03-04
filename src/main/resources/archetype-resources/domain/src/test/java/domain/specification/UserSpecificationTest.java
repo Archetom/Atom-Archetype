@@ -45,7 +45,7 @@ class UserSpecificationTest {
     void compositeSpecification_CanLoginAndBelongsToTenant() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
-        user.setTenantId(1L);
+        user.changeTenantId(1L);
 
         Specification<User> spec = UserSpecification.canLogin()
                 .and(UserSpecification.belongsToTenant(1L));

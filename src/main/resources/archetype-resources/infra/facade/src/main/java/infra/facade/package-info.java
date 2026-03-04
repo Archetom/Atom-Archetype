@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * RPC package.
+ * Facade package.
  * <p>
- * Contains implementations for Remote Procedure Call (RPC) interfaces and integrations.
+ * Contains implementations for Facade interfaces and integrations.
  * </p>
  * <p>Example:</p>
  * <pre>
@@ -13,4 +13,4 @@
  * }
  * </pre>
  */
-package ${package}.infra.rpc;
+package ${package}.infra.facade;

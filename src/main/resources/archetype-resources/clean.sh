@@ -37,7 +37,6 @@ rm -f domain/src/main/java/${PACKAGE_PATH}/domain/entity/User.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/repository/UserRepository.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/service/UserDomainService.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/service/impl/UserDomainServiceImpl.java
-rm -f domain/src/main/java/${PACKAGE_PATH}/domain/messaging/UserCreatedEvent.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/event/UserCreatedEvent.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/event/UserStatusChangedEvent.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/exception/UserAlreadyExistsException.java
@@ -86,8 +85,8 @@ rm -f infra/persistence/src/main/resources/mapper/UserMapper.xml
 # Rest
 rm -f infra/rest/src/main/java/${PACKAGE_PATH}/infra/rest/controller/UserController.java
 
-# RPC
-rm -f infra/rpc/src/main/java/${PACKAGE_PATH}/infra/rpc/UserFacadeImpl.java
+# Facade
+rm -f infra/facade/src/main/java/${PACKAGE_PATH}/infra/facade/UserFacadeImpl.java
 
 # External
 rm -f infra/external/src/main/java/${PACKAGE_PATH}/infra/external/EmailServiceImpl.java
@@ -144,7 +143,7 @@ KEEP_DIRS=(
     "infra/persistence/src/main/java/${PACKAGE_PATH}/infra/persistence/repository"
     "infra/persistence/src/main/resources/mapper"
     "infra/rest/src/main/java/${PACKAGE_PATH}/infra/rest/controller"
-    "infra/rpc/src/main/java/${PACKAGE_PATH}/infra/rpc"
+    "infra/facade/src/main/java/${PACKAGE_PATH}/infra/facade"
     "infra/external/src/main/java/${PACKAGE_PATH}/infra/external"
     "infra/messaging/src/main/java/${PACKAGE_PATH}/infra/messaging"
 )

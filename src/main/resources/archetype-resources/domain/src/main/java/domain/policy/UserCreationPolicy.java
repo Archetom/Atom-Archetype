@@ -46,12 +46,12 @@ public class UserCreationPolicy {
     }
 
     private void validateBusinessRules(Username username, Email email) {
-        // 其他业务规则验证
+        // TODO: 添加其他业务规则验证
     }
 
     private boolean containsSensitiveWords(String username) {
-        // 敏感词检查逻辑
-        String[] sensitiveWords = {"admin", "root", "system", "test"};
+        // TODO: 根据业务需要配置敏感词列表（建议从配置中心或数据库加载）
+        String[] sensitiveWords = {};
         String lowerUsername = username.toLowerCase();
 
         for (String word : sensitiveWords) {
@@ -63,8 +63,8 @@ public class UserCreationPolicy {
     }
 
     private boolean isReservedUsername(String username) {
-        // 保留用户名检查
-        String[] reserved = {"administrator", "support", "service", "api"};
+        // TODO: 根据业务需要配置保留用户名列表
+        String[] reserved = {};
         String lowerUsername = username.toLowerCase();
 
         for (String word : reserved) {
@@ -76,13 +76,13 @@ public class UserCreationPolicy {
     }
 
     private boolean requiresCorporateEmail() {
-        // 根据配置或业务规则决定是否需要企业邮箱
+        // TODO: 根据配置或业务规则决定是否需要企业邮箱
         return false;
     }
 
     private boolean isCorporateEmail(String email) {
-        // 企业邮箱检查逻辑
-        String[] personalDomains = {"gmail.com", "yahoo.com", "hotmail.com", "163.com", "qq.com"};
+        // TODO: 根据业务需要配置个人邮箱域名列表
+        String[] personalDomains = {};
         String domain = email.substring(email.indexOf("@") + 1).toLowerCase();
 
         for (String personalDomain : personalDomains) {
