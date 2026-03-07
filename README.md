@@ -1,8 +1,8 @@
 # Atom Archetype
 
 ![Requirement](https://img.shields.io/badge/JDK-21+-green.svg)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.0-brightgreen.svg)
-![atom version](https://img.shields.io/badge/Atom_Archetype-1.1.0-blue)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.4-brightgreen.svg)
+![atom version](https://img.shields.io/badge/Atom_Archetype-1.1.1-blue)
 
 > 基于 DDD 设计理念的 Java 项目脚手架，专为构建高可维护性、高扩展性的现代化应用而生。
 
@@ -12,8 +12,9 @@
 - 🚀 **开箱即用** - 集成 Spring Boot 3.5 + JDK 21，现代化技术栈
 - 🔧 **服务模板** - 内置责任链模式，统一业务处理流程
 - 📦 **多模块设计** - api/application/domain/infra/shared 清晰分离
+- 🔒 **安全设计** - BCrypt 密码加密，乐观锁版本控制，API 版本管理
 - 🧪 **测试友好** - 集成 Testcontainers，支持容器化测试
-- ⚡  **性能优化** - 内置缓存、分布式锁、线程池等基础设施
+- ⚡  **性能优化** - 内置缓存、分布式锁、线程池（含上下文传播）等基础设施
 
 ## 🚀 快速开始
 
@@ -23,7 +24,7 @@
 mvn archetype:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=1.1.0 \
+  -DarchetypeVersion=1.1.1 \
   -DgroupId=com.foo.bar \
   -DartifactId=demo \
   -Dpackage=com.foo.bar \
@@ -48,32 +49,36 @@ mvn spring-boot:run
 
 ```
 demo/
-├── api/                  # 对外服务声明层
+├── api/                  # 对外服务声明层（DTO、Facade、Request/Response）
 ├── application/          # 应用层，业务编排
-├── domain/               # 领域层，核心业务
+├── domain/               # 领域层，核心业务（实体、值对象、领域服务）
 ├── infra/                # 基础设施层
-│   ├── external/         # 外部服务集成
-│   ├── messaging/        # 消息队列
-│   ├── persistence/      # 数据持久化
-│   ├── rest/             # REST 接口
-│   └── rpc/              # RPC 接口
-├── shared/               # 共享组件
-└── start/                # 启动模块
+│   ├── external/         # 外部服务集成（邮件、短信）
+│   ├── facade/           # Facade 门面实现
+│   ├── messaging/        # 消息队列与事件发布
+│   ├── persistence/      # 数据持久化（MyBatis-Plus、Redis 分布式锁）
+│   └── rest/             # REST 控制器
+├── shared/               # 共享组件（工具类、异常、ServiceTemplate）
+├── start/                # 启动模块
+├── conf/                 # 多环境配置（dev/test/prod）
+├── docs/                 # 项目文档
+└── docker/               # Docker Compose 及初始化脚本
 ```
 
 ## 🛠️ 技术栈
 
-- **框架**: Spring Boot 3.5.0
-- **数据库**: MyBatis-Plus + MySQL
-- **缓存**: Redis
+- **框架**: Spring Boot 3.5.4
+- **数据库**: MyBatis-Plus 3.5.12 + MySQL 9.4.0 + Druid 连接池
+- **缓存**: Redis（Lettuce 客户端）
+- **文档**: SpringDoc OpenAPI 2.8.9
 - **测试**: JUnit 5 + Testcontainers
-- **构建**: Maven
+- **构建**: Maven + Kotlin 2.2.0（可选）
 
 ## API 示例
 
 ### 创建用户
 ```bash
-curl -X POST http://localhost:8080/api/users \
+curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
   -d '{
     "username": "user007",
@@ -98,4 +103,3 @@ curl -X POST http://localhost:8080/api/users \
 ## 📄 许可证
 
 [MIT License](LICENSE)
-
