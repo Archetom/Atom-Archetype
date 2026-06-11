@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 领域服务接口包。
+ * domain service interface package.
  * <p>
- * 定义核心领域业务逻辑的接口。
+ * define domain business logic of interface.
  * </p>
  * <p>
  * Domain service interfaces.

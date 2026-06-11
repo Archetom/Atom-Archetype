@@ -1,9 +1,9 @@
-# 测试环境配置
+# test environment configuration
 spring:
   application:
     name: ${artifactId}-test
 
-  # 数据源配置（Testcontainers 会动态覆盖）
+  # data source configuration (Testcontainers overridden dynamically)
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
@@ -16,12 +16,12 @@ spring:
       idle-timeout: 300000
       max-lifetime: 900000
 
-  # Redis 配置（Testcontainers 会动态覆盖）
+  # Redis configuration (Testcontainers overridden dynamically)
   data:
     redis:
       host: localhost
       port: 6379
-      database: 1  # 使用独立的测试数据库
+      database: 1 # use an isolated test database
       timeout: 2000ms
       lettuce:
         pool:
@@ -29,17 +29,17 @@ spring:
           max-idle: 3
           min-idle: 1
 
-  # 缓存配置
+  # cache configuration
   cache:
     type: redis
     redis:
-      time-to-live: 300000  # 5分钟
+      time-to-live: 300000 # 5 minutes
       cache-null-values: false
 
-# MyBatis-Plus 配置
+# MyBatis-Plus configuration
 mybatis-plus:
   configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 测试时输出SQL
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # output during tests SQL
     map-underscore-to-camel-case: true
   global-config:
     db-config:
@@ -47,11 +47,11 @@ mybatis-plus:
       logic-delete-value: 'NOW()'
       logic-not-delete-value: 'NULL'
       id-type: auto
-    banner: false  # 关闭banner
+    banner: false # disable banner
   mapper-locations: classpath*:mapper/**/*.xml
   type-aliases-package: ${package}.infra.persistence.mysql.po
 
-# 线程池配置
+# thread pool configuration
 task:
   executor:
     core-pool-size: 2
@@ -60,13 +60,13 @@ task:
     keep-alive-seconds: 30
     thread-name-prefix: "test-task-"
 
-# WebClient 配置
+# WebClient configuration
 webclient:
   connect-timeout: 5000
   read-timeout: 5000
   write-timeout: 5000
 
-# 日志配置
+# logging configuration
 logging:
   level:
     root: INFO
@@ -82,11 +82,11 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}:%line] - %msg%n"
 
-# 服务器配置
+# server configuration
 server:
-  port: 0  # 随机端口，避免测试冲突
+  port: 0 # random port, avoid test conflicts
 
-# 管理端点配置
+# management endpoint configuration
 management:
   endpoints:
     web:
@@ -96,15 +96,15 @@ management:
     health:
       show-details: always
 
-# 测试专用配置
+# test-specific configuration
 test:
-  # 数据库初始化
+  # database initialization
   database:
     init-mode: always
     schema-locations: classpath:sql/schema-test.sql
     data-locations: classpath:sql/data-test.sql
 
-  # 外部服务Mock配置
+  # external service Mock configuration
   external:
     mock-enabled: true
     payment-service:
@@ -112,22 +112,22 @@ test:
     notification-service:
       base-url: http://localhost:8089
 
-  # 测试数据配置
+  # test data configuration
   data:
-    cleanup-enabled: true  # 是否自动清理测试数据
-    tenant-id: 999999     # 测试租户ID
-    user-id: 888888       # 测试用户ID
+    cleanup-enabled: true # whether clean test data
+    tenant-id: 999999 # test tenant ID
+    user-id: 888888 # Test UserID
 
-# 安全配置（测试环境简化）
+# security configuration (test environment)
 security:
   enabled: false
 
-# 事务配置
+# transaction configuration
 spring.transaction:
   default-timeout: 30
   rollback-on-commit-failure: true
 
-# 异步配置
+# async configuration
 spring.task:
   execution:
     pool:
@@ -137,11 +137,11 @@ spring.task:
       keep-alive: 30s
     thread-name-prefix: "test-async-"
 
-# 验证配置
+# validation configuration
 spring.validation:
   enabled: true
 
-# Jackson配置
+# Jackson configuration
 spring.jackson:
   default-property-inclusion: NON_NULL
   serialization:

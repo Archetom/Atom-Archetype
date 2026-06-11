@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * VO（Value Object）包。
+ * VO (Value Object) package.
  * <p>
- * 用于封装前端页面展示或组合展示的数据对象。
+ * used for encapsulate frontend or of data object.
  * </p>
  * <p>
  * Value Objects for view or composite data.

@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 
 /**
- * 用户视图对象
+ * user view object
  * @author hanfeng
  */
 @Data
@@ -17,62 +17,62 @@ import java.time.LocalDateTime;
 public class UserVO {
 
     /**
-     * 用户ID
+     * user ID
      */
     private Long id;
 
     /**
-     * 用户名
+     * username
      */
     private String username;
 
     /**
-     * 邮箱
+     * email
      */
     private String email;
 
     /**
-     * 手机号
+     * phone number
      */
     private String phoneNumber;
 
     /**
-     * 脱敏手机号
+     * masked phone number
      */
     private String maskedPhoneNumber;
 
     /**
-     * 真实姓名
+     * real name
      */
     private String realName;
 
     /**
-     * 状态
+     * status
      */
     private String status;
 
     /**
-     * 状态名称
+     * status
      */
     private String statusName;
 
     /**
-     * 是否激活
+     * whether active
      */
     private Boolean active;
 
     /**
-     * 租户ID
+     * tenant ID
      */
     private Long tenantId;
 
     /**
-     * 创建时间
+     * created time
      */
     private LocalDateTime createdTime;
 
     /**
-     * 更新时间
+     * updated time
      */
     private LocalDateTime updatedTime;
 }

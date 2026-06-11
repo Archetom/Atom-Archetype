@@ -1,28 +1,28 @@
 #!/bin/bash
 
-# 清除生成项目中的示例代码
-echo "正在清除项目示例代码..."
+# Remove sample code from the generated project
+echo "Cleaning project sample code..."
 
-# 检查是否在正确的项目目录中
+# check whether in of directory in
 if [ ! -f "pom.xml" ]; then
-    echo "错误：请在项目根目录中运行此脚本"
+    echo " error: Please run this script from the project root directory"
     exit 1
 fi
 
-# 获取项目的包路径
+# get of package path
 PACKAGE_PATH=$(find . -name "Bootstrap.java" | head -1 | sed 's|/Bootstrap.java||' | sed 's|./start/src/main/java/||')
 
 if [ -z "$PACKAGE_PATH" ]; then
-    echo "错误：无法找到项目包路径"
+    echo " error: Unable to find the project package path"
     exit 1
 fi
 
-echo "检测到包路径: $PACKAGE_PATH"
+echo "Detected package path: $PACKAGE_PATH"
 
 # =============================================================================
-# API 层示例代码
+# API layer sample code
 # =============================================================================
-echo "清理 API 层示例代码..."
+echo " clean API layer sample code..."
 rm -f api/src/main/java/${PACKAGE_PATH}/api/dto/request/UserQueryRequest.java
 rm -f api/src/main/java/${PACKAGE_PATH}/api/dto/request/UserCreateRequest.java
 rm -f api/src/main/java/${PACKAGE_PATH}/api/dto/response/UserResponse.java
@@ -30,9 +30,9 @@ rm -f api/src/main/java/${PACKAGE_PATH}/api/enums/UserStatus.java
 rm -f api/src/main/java/${PACKAGE_PATH}/api/facade/UserFacade.java
 
 # =============================================================================
-# Domain 层示例代码
+# Domain layer sample code
 # =============================================================================
-echo "清理 Domain 层示例代码..."
+echo " clean Domain layer sample code..."
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/entity/User.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/repository/UserRepository.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/service/UserDomainService.java
@@ -56,9 +56,9 @@ rm -f domain/src/main/java/${PACKAGE_PATH}/domain/valueobject/UserId.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/valueobject/Username.java
 
 # =============================================================================
-# Application 层示例代码
+# Application layer sample code
 # =============================================================================
-echo "清理 Application 层示例代码..."
+echo " clean Application layer sample code..."
 rm -f application/src/main/java/${PACKAGE_PATH}/application/service/UserService.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/service/impl/UserServiceImpl.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/service/impl/UserCacheService.java
@@ -69,9 +69,9 @@ rm -f application/src/main/java/${PACKAGE_PATH}/application/event/DomainEventPub
 rm -f application/src/main/java/${PACKAGE_PATH}/application/event/listener/UserEventListener.java
 
 # =============================================================================
-# Infrastructure 层示例代码
+# Infrastructure layer sample code
 # =============================================================================
-echo "清理 Infrastructure 层示例代码..."
+echo " clean Infrastructure layer sample code..."
 
 # Persistence
 rm -f infra/persistence/src/main/java/${PACKAGE_PATH}/infra/persistence/converter/UserPOConverter.java
@@ -96,27 +96,27 @@ rm -f infra/external/src/main/java/${PACKAGE_PATH}/infra/external/SmsServiceImpl
 rm -f infra/messaging/src/main/java/${PACKAGE_PATH}/infra/messaging/UserEventPublisher.java
 
 # =============================================================================
-# 数据库脚本和配置文件（保留基础配置，删除示例数据）
+# database and configuration file (retain base configuration, delete sample data)
 # =============================================================================
-echo "清理数据库脚本和示例配置..."
+echo " clean database and sample configuration..."
 rm -f infra/persistence/src/main/resources/sql/schema.sql
 rm -f docker/mysql/init/01-init-database.sql
 
 # =============================================================================
-# 测试代码
+# test code
 # =============================================================================
-echo "清理测试代码..."
+echo " clean test code..."
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/entity/UserTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/specification/UserSpecificationTest.java
 rm -f start/src/test/java/${PACKAGE_PATH}/UserControllerIntegrationTest.java
 rm -f start/src/test/resources/sql/init-test-data.sql
 
 # =============================================================================
-# 清理空目录（但保留重要的目录结构）
+# clean directory (but retain important of directory structure)
 # =============================================================================
-echo "清理空目录..."
+echo " clean directory..."
 
-# 定义需要保留的重要目录
+# define need retain of important directory
 KEEP_DIRS=(
     "api/src/main/java/${PACKAGE_PATH}/api/dto/request"
     "api/src/main/java/${PACKAGE_PATH}/api/dto/response"
@@ -148,75 +148,75 @@ KEEP_DIRS=(
     "infra/messaging/src/main/java/${PACKAGE_PATH}/infra/messaging"
 )
 
-# 重新创建重要目录
+# new create important directory
 for dir in "${KEEP_DIRS[@]}"; do
     mkdir -p "$dir"
 done
 
-# 在重要目录中创建 .gitkeep 文件
+# in important directory in create.gitkeep file
 for dir in "${KEEP_DIRS[@]}"; do
     if [ -d "$dir" ] && [ -z "$(ls -A "$dir")" ]; then
         touch "$dir/.gitkeep"
     fi
 done
 
-# 清理其他空目录
+# clean directory
 find . -type d -empty -not -path "./.git/*" -delete 2>/dev/null || true
 
 # =============================================================================
-# 创建基础示例文件（可选）
+# create base sample file (optional)
 # =============================================================================
-echo "创建基础示例文件..."
+echo " create base sample file..."
 
-# 创建基础的 package-info.java 文件
+# create base of package-info.java file
 cat > "api/src/main/java/${PACKAGE_PATH}/api/dto/request/package-info.java" << EOF
 /**
- * 请求 DTO 包
+ * request DTO package
  */
 package ${PACKAGE_PATH//\//.}.api.dto.request;
 EOF
 
 cat > "api/src/main/java/${PACKAGE_PATH}/api/dto/response/package-info.java" << EOF
 /**
- * 响应 DTO 包
+ * response DTO package
  */
 package ${PACKAGE_PATH//\//.}.api.dto.response;
 EOF
 
 cat > "domain/src/main/java/${PACKAGE_PATH}/domain/entity/package-info.java" << EOF
 /**
- * 领域实体包
+ * domain entity package
  */
 package ${PACKAGE_PATH//\//.}.domain.entity;
 EOF
 
 cat > "application/src/main/java/${PACKAGE_PATH}/application/service/package-info.java" << EOF
 /**
- * 应用服务包
+ * application service package
  */
 package ${PACKAGE_PATH//\//.}.application.service;
 EOF
 
 cat > "infra/rest/src/main/java/${PACKAGE_PATH}/infra/rest/controller/package-info.java" << EOF
 /**
- * REST 控制器包
+ * REST controller package
  */
 package ${PACKAGE_PATH//\//.}.infra.rest.controller;
 EOF
 
 echo ""
-echo "项目示例代码清除完成！"
+echo "Project sample code cleanup complete!"
 echo ""
-echo "已清除的内容："
-echo "1. 用户管理系统相关的所有示例代码"
-echo "2. 用户相关的测试文件"
-echo "3. 示例数据库脚本"
-echo "4. 用户相关的配置文件"
+echo " already clear of content: "
+echo "1. all sample code related to the user management system "
+echo "2. user-related test files "
+echo "3. sample database "
+echo "4. user-related configuration files "
 echo ""
-echo "保留的内容："
-echo "1. 基础框架代码和工具类"
-echo "2. 配置文件模板（application.yml 等）"
-echo "3. 基础设施配置（MyBatis、Redis 等）"
-echo "4. 目录结构和 package-info.java"
+echo " retain of content: "
+echo "1. base framework code and utilities "
+echo "2. configuration templates (application.yml etc.)"
+echo "3. infrastructure configuration (MyBatis, Redis etc.)"
+echo "4. directory structure and package-info.java"
 echo ""
-echo "项目已恢复到干净状态，可以开始开发新功能。"
+echo "The project has been restored to a clean state and is ready for new development."

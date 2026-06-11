@@ -15,7 +15,7 @@ import org.mapstruct.factory.Mappers;
 import java.util.List;
 
 /**
- * 用户转换器
+ * user convert
  * @author hanfeng
  */
 @Mapper
@@ -51,7 +51,7 @@ public interface UserConverter {
      */
     List<UserResponse> toResponseList(List<UserVO> userVOs);
 
-    // ========== 转换方法 ==========
+    // ========== convert method ==========
 
     /**
      * UserId -> Long
@@ -82,28 +82,28 @@ public interface UserConverter {
     }
 
     /**
-     * PhoneNumber -> 脱敏字符串
+     * PhoneNumber -> masked string
      */
     default String phoneNumberToMasked(PhoneNumber phoneNumber) {
         return phoneNumber != null ? phoneNumber.getMasked() : null;
     }
 
     /**
-     * 状态枚举转换为代码
+     * status convert as code
      */
     default String statusToCode(UserStatus status) {
         return status != null ? status.getCode() : null;
     }
 
     /**
-     * 状态枚举转换为描述
+     * status convert as
      */
     default String statusToName(UserStatus status) {
         return status != null ? status.getName() : null;
     }
 
     /**
-     * 状态枚举转换为是否激活
+     * status convert as whether active
      */
     default Boolean statusToActive(UserStatus status) {
         return status == UserStatus.ACTIVE;

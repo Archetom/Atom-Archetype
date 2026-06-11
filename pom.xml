@@ -104,7 +104,7 @@
                 </executions>
             </plugin>
 
-            <!-- GPG 签名 -->
+            <!-- GPG signing -->
             <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -128,7 +128,7 @@
                 </executions>
             </plugin>
 
-            <!-- 发布到 Maven Central -->
+            <!-- Publish to Maven Central -->
             <!-- https://mvnrepository.com/artifact/org.sonatype.central/central-publishing-maven-plugin -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>

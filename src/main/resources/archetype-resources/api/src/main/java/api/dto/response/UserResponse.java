@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 
 /**
- * 用户响应
+ * user response
  * @author hanfeng
  */
 @Data
@@ -17,52 +17,52 @@ import java.time.LocalDateTime;
 public class UserResponse {
 
     /**
-     * 用户ID
+     * user ID
      */
     private Long id;
 
     /**
-     * 用户名
+     * username
      */
     private String username;
 
     /**
-     * 邮箱
+     * email
      */
     private String email;
 
     /**
-     * 手机号（脱敏）
+     * phone number (masked)
      */
     private String maskedPhoneNumber;
 
     /**
-     * 真实姓名
+     * real name
      */
     private String realName;
 
     /**
-     * 状态
+     * status
      */
     private String status;
 
     /**
-     * 状态名称
+     * status
      */
     private String statusName;
 
     /**
-     * 是否激活
+     * whether active
      */
     private Boolean active;
 
     /**
-     * 创建时间
+     * created time
      */
     private LocalDateTime createdTime;
 
     /**
-     * 更新时间
+     * updated time
      */
     private LocalDateTime updatedTime;
 }

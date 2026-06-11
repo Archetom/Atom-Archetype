@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * MyBatisPlus 类型处理器包。
+ * MyBatisPlus class process package.
  * <p>
- * 自定义 MyBatisPlus TypeHandler 实现。
+ * define MyBatisPlus TypeHandler implementation.
  * </p>
  * <p>
  * TypeHandlers for MyBatisPlus.

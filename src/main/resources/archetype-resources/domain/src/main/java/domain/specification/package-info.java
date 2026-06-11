@@ -1,15 +1,15 @@
 /**
- * 规约模式包。
+ * specification pattern package.
  * <p>
- * 实现规约模式，用于封装复杂的业务规则和查询条件。
+ * implementation specification, used for encapsulate complex of business rule and query.
  * </p>
  * <p>
- * 规约模式的优势：
+ * specification of:
  * <ul>
- *   <li>将业务规则封装为可重用的对象</li>
- *   <li>支持规约的组合（AND、OR、NOT）</li>
- *   <li>提高代码的可读性和可维护性</li>
- *   <li>便于单元测试</li>
+ * <li> copy business rule encapsulate as can of object </li>
+ * <li> support specification of (AND, OR, NOT)</li>
+ * <li> improve code of can and can maintain </li>
+ * <li> in unit test </li>
  * </ul>
  * </p>
  *

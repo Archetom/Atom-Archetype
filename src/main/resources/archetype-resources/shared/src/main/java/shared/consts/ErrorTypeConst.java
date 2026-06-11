@@ -1,23 +1,23 @@
 package ${package}.shared.consts;
 
 /**
- * 错误类型常量池
- * <>对应标准错误码第5位</>
+ * error type
+ * <> for standard error code No. 5 position </>
  */
 public class ErrorTypeConst {
 
     /**
-     * 系统错误
+     * system error
      */
     public static final String SYSTEM = "0";
 
     /**
-     * 业务错误
+     * business error
      */
     public static final String BIZ = "1";
 
     /**
-     * 第三方错误
+     * No. error
      */
     public static final String THIRD_PARTY = "2";
 }

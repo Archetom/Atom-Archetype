@@ -14,14 +14,14 @@ public class RestErrorResult implements Serializable {
     private static final long serialVersionUID = 2356702836088252228L;
 
     /**
-     * 错误码
-     * ErrorEnum中的code
+     * error code
+     * ErrorEnum in of code
      */
     private String errCode;
 
     /**
-     * 错误信息
-     * 可以自定义message以覆盖ErrorEnum中的message
+     * error message
+     * can define message override ErrorEnum in of message
      */
     private String errMsg;
 }

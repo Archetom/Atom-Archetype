@@ -10,14 +10,14 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 用户Mapper
+ * user Mapper
  * @author hanfeng
  */
 @Mapper
 public interface UserMapper extends BaseMapper<UserPO> {
 
     /**
-     * 分页查询用户（支持租户隔离）
+     * paged query user (support tenant)
      */
     IPage<UserPO> selectUserPage(
             Page<UserPO> page,

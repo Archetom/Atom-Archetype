@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * MyBatisPlus 代码生成器包。
+ * MyBatisPlus code generate package.
  * <p>
- * 用于自动生成数据访问层相关代码。
+ * used for generate data layer related code.
  * </p>
  * <p>
  * Code generators for MyBatisPlus.

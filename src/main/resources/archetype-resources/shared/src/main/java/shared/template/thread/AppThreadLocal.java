@@ -1,17 +1,17 @@
 package ${package}.shared.template.thread;
 
 /**
- * 业务线程
+ * business
  */
 public class AppThreadLocal {
 
     /**
-     * 线程上下文
+     * context
      */
     private static final ThreadLocal<AppContext> LOCAL_CONTEXT = new ThreadLocal<>();
 
     /**
-     * 初始化线程上下文
+     * initialize context
      */
     public static AppContext init() {
         AppContext context = AppContext.getInstance();
@@ -20,14 +20,14 @@ public class AppThreadLocal {
     }
 
     /**
-     * 拿到线程上下文
+     * to context
      */
     public static AppContext get() {
         return LOCAL_CONTEXT.get();
     }
 
     /**
-     * 拿到线程上下文 ，如果没有则设置，注意一定要在结束处理的时候进行清空 且设置LogKey
+     * to context, if then set, in process of and set LogKey
      */
     public static void set(AppContext context) {
         if (context == null) {
@@ -37,7 +37,7 @@ public class AppThreadLocal {
     }
 
     /**
-     * 清掉线程上下文 且清除LogKey
+     * context and clear LogKey
      */
     public static void clear() {
         LOCAL_CONTEXT.remove();

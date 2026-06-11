@@ -5,14 +5,14 @@ import ${package}.domain.valueobject.Username;
 import org.springframework.stereotype.Component;
 
 /**
- * 用户创建策略
+ * user create policy
  * @author hanfeng
  */
 @Component
 public class UserCreationPolicy {
 
     /**
-     * 验证用户创建规则
+     * validate user create rule
      */
     public void validateCreation(Username username, Email email) {
         validateUsername(username);
@@ -21,36 +21,36 @@ public class UserCreationPolicy {
     }
 
     private void validateUsername(Username username) {
-        // 用户名业务规则验证
+        // username business rule validate
         String value = username.getValue();
 
-        // 检查是否包含敏感词
+        // check whether package sensitive word
         if (containsSensitiveWords(value)) {
-            throw new IllegalArgumentException("用户名包含敏感词汇");
+            throw new IllegalArgumentException(" username package sensitive word ");
         }
 
-        // 检查是否为保留用户名
+        // check whether as reserved username
         if (isReservedUsername(value)) {
-            throw new IllegalArgumentException("该用户名为系统保留用户名");
+            throw new IllegalArgumentException(" username as system reserved username ");
         }
     }
 
     private void validateEmail(Email email) {
-        // 邮箱业务规则验证
+        // email business rule validate
         String value = email.getValue();
 
-        // 检查是否为企业邮箱（如果有要求）
+        // check whether as corporate email (if)
         if (requiresCorporateEmail() && !isCorporateEmail(value)) {
-            throw new IllegalArgumentException("必须使用企业邮箱注册");
+            throw new IllegalArgumentException(" corporate email ");
         }
     }
 
     private void validateBusinessRules(Username username, Email email) {
-        // TODO: 添加其他业务规则验证
+        // TODO: add business rule validate
     }
 
     private boolean containsSensitiveWords(String username) {
-        // TODO: 根据业务需要配置敏感词列表（建议从配置中心或数据库加载）
+        // TODO: based on business need configuration sensitive word column table (from configuration in or database)
         String[] sensitiveWords = {};
         String lowerUsername = username.toLowerCase();
 
@@ -63,7 +63,7 @@ public class UserCreationPolicy {
     }
 
     private boolean isReservedUsername(String username) {
-        // TODO: 根据业务需要配置保留用户名列表
+        // TODO: based on business need configuration reserved username column table
         String[] reserved = {};
         String lowerUsername = username.toLowerCase();
 
@@ -76,12 +76,12 @@ public class UserCreationPolicy {
     }
 
     private boolean requiresCorporateEmail() {
-        // TODO: 根据配置或业务规则决定是否需要企业邮箱
+        // TODO: based on configuration or business rule whether need corporate email
         return false;
     }
 
     private boolean isCorporateEmail(String email) {
-        // TODO: 根据业务需要配置个人邮箱域名列表
+        // TODO: based on business need configuration email column table
         String[] personalDomains = {};
         String domain = email.substring(email.indexOf("@") + 1).toLowerCase();
 

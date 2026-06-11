@@ -1,4 +1,4 @@
-# MyBatis-Plus 代码生成器配置
+# MyBatis-Plus code generate configuration
 url: jdbc:mysql://localhost:3306/atom_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
 username: atom_user
 password: atom_pass

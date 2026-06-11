@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 应用层 DTO 包。
+ * application layer DTO package.
  * <p>
- * 用于应用层内部各类数据对象传输。
+ * used for application layer internal class data object.
  * </p>
  * <p>
  * DTOs for internal use in the application layer.

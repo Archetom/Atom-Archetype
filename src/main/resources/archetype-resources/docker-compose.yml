@@ -36,9 +36,9 @@ services:
     ports:
       - "9411:9411"
     environment:
-      # 使用内存存储
+      # use in-memory storage
       - STORAGE_TYPE=mem
-      # JVM 内存设置
+      # JVM memory settings
       - JAVA_OPTS=-Xms256m -Xmx512m
     networks:
       - atom-network

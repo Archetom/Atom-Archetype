@@ -6,28 +6,28 @@ package ${package}.application.converter;
 import java.util.List;
 
 /**
- * 基础转换器接口
+ * base convert interface
  * @author hanfeng
  */
 public interface BaseConverter<S, T> {
 
     /**
-     * 单个对象转换
+     * single object convert
      */
     T convert(S source);
 
     /**
-     * 列表转换
+     * column table convert
      */
     List<T> convertList(List<S> sourceList);
 
     /**
-     * 反向转换
+     * convert
      */
     S reverse(T target);
 
     /**
-     * 反向列表转换
+     * column table convert
      */
     List<S> reverseList(List<T> targetList);
 }

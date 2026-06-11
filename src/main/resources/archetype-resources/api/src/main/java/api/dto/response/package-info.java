@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 响应 DTO（Data Transfer Object）包。
+ * response DTO (Data Transfer Object) package.
  * <p>
- * 用于定义 API 层的响应参数数据结构，负责返回给前端或客户端的数据。
+ * used for define API layer of response parameter data structure, responsible for return frontend or client of data.
  * </p>
  * <p>
  * Response DTOs for sending API results.

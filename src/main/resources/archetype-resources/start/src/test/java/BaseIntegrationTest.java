@@ -36,16 +36,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * 集成测试基类（脚手架专用，支持 MySQL + Redis Testcontainers，开箱即用）
+ * integration test class (scaffold, support MySQL + Redis Testcontainers,)
  *
  * <ul>
- *     <li>Testcontainers 启动 MySQL + Redis</li>
- *     <li>自动注册到 Spring Boot 测试配置</li>
- *     <li>MockMvc & RestTemplate 测试 HTTP</li>
- *     <li>数据库/Redis 操作便捷封装</li>
- *     <li>全自动事务回滚&数据清理</li>
- *     <li>支持复杂类型 JSON 反序列化</li>
- *     <li>可自定义容器，支持扩展</li>
+ * <li>Testcontainers MySQL + Redis</li>
+ * <li> to Spring Boot test configuration </li>
+ * <li>MockMvc & RestTemplate test HTTP</li>
+ * <li> database /Redis convenience encapsulate </li>
+ * <li> full transaction & data clean </li>
+ * <li> support complex class JSON column </li>
+ * <li> can define container, support </li>
  * </ul>
  */
 @SpringBootTest(
@@ -58,14 +58,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public abstract class BaseIntegrationTest {
 
-    // ======= Testcontainers 容器配置（可在子类重载自定义） =======
+    // ======= Testcontainers container configuration (can in class define) =======
 
     @Container
     protected static MySQLContainer<?> mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
             .withDatabaseName("test_db")
             .withUsername("test_user")
             .withPassword("test_password")
-            .withInitScript("sql/init-test-data.sql") // 可选，脚手架可移除
+            .withInitScript("sql/init-test-data.sql") // optional, scaffold can remove
             .withStartupTimeout(Duration.ofMinutes(2));
 
     @Container
@@ -73,29 +73,29 @@ public abstract class BaseIntegrationTest {
             .withExposedPorts(6379)
             .withStartupTimeout(Duration.ofMinutes(1));
 
-    /** 获取 MySQL 测试容器，可用于自定义/扩展 */
+    /** get MySQL test container, can used for define / */
     protected static MySQLContainer<?> mysqlContainer() { return mysql; }
 
-    /** 获取 Redis 测试容器，可用于自定义/扩展 */
+    /** get Redis test container, can used for define / */
     protected static GenericContainer<?> redisContainer() { return redis; }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        // MySQL 配置
+        // MySQL configuration
         registry.add("spring.datasource.url", mysql::getJdbcUrl);
         registry.add("spring.datasource.username", mysql::getUsername);
         registry.add("spring.datasource.password", mysql::getPassword);
         registry.add("spring.datasource.driver-class-name", mysql::getDriverClassName);
-        // Redis 配置
+        // Redis configuration
         registry.add("spring.data.redis.host", redis::getHost);
         registry.add("spring.data.redis.port", redis::getFirstMappedPort);
-        // 其他常用测试配置
+        // test configuration
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
         registry.add("logging.level.org.springframework.web", () -> "DEBUG");
         registry.add("logging.level.${package}", () -> "DEBUG");
     }
 
-    // ======= 注入组件 =======
+    // ======= =======
     @Autowired(required = false)
     protected MockMvc mockMvc;
 
@@ -114,7 +114,7 @@ public abstract class BaseIntegrationTest {
     @LocalServerPort
     protected int port;
 
-    // ======= 生命周期管理 =======
+    // ======= =======
     @BeforeEach
     void setUpIntegration() {
         clearRedisData();
@@ -127,7 +127,7 @@ public abstract class BaseIntegrationTest {
         clearRedisData();
     }
 
-    // ======= HTTP 请求工具 =======
+    // ======= HTTP request utility =======
     protected ResultActions performGet(String url, Object... params) throws Exception {
         return mockMvc.perform(get(url, params).contentType(MediaType.APPLICATION_JSON)).andDo(print());
     }
@@ -161,7 +161,7 @@ public abstract class BaseIntegrationTest {
                 .content(toJson(requestBody))).andDo(print());
     }
 
-    // ======= 响应断言工具 =======
+    // ======= response utility =======
     protected ResultActions assertSuccess(ResultActions resultActions) throws Exception {
         return resultActions.andExpect(status().isOk());
     }
@@ -180,7 +180,7 @@ public abstract class BaseIntegrationTest {
         return resultActions.andExpect(jsonPath(jsonPath).value(expectedValue));
     }
 
-    // ======= 数据库操作工具 =======
+    // ======= database utility =======
     protected void executeSql(String sql) {
         if (dataSource == null) return;
         try (Connection connection = dataSource.getConnection();
@@ -208,7 +208,7 @@ public abstract class BaseIntegrationTest {
         executeSql(sql.toString());
     }
 
-    // ======= Redis 操作工具 =======
+    // ======= Redis utility =======
     protected void setRedisValue(String key, String value) {
         if (redisTemplate != null) redisTemplate.opsForValue().set(key, value);
     }
@@ -221,7 +221,7 @@ public abstract class BaseIntegrationTest {
         return redisTemplate != null ? redisTemplate.opsForValue().get(key) : null;
     }
 
-    /** 安全清空 Redis 数据，兼容无 Redis 时跳过 */
+    /** security Redis data, without Redis skip */
     protected void clearRedisData() {
         try {
             if (redisTemplate != null && redisTemplate.getConnectionFactory() != null) {
@@ -230,8 +230,8 @@ public abstract class BaseIntegrationTest {
         } catch (Exception ignored) {}
     }
 
-    // ======= JSON 工具 =======
-    /** 对象转 JSON 字符串 */
+    // ======= JSON utility =======
+    /** object JSON string */
     protected String toJson(Object object) {
         try {
             return objectMapper != null ? objectMapper.writeValueAsString(object) : "";
@@ -240,7 +240,7 @@ public abstract class BaseIntegrationTest {
         }
     }
 
-    /** JSON 字符串转对象（普通类） */
+    /** JSON string object (class) */
     protected <T> T fromJson(String json, Class<T> clazz) {
         try {
             return objectMapper != null ? objectMapper.readValue(json, clazz) : null;
@@ -249,7 +249,7 @@ public abstract class BaseIntegrationTest {
         }
     }
 
-    /** JSON 字符串转对象（复杂泛型，如 List/Map） */
+    /** JSON string object (complex, such as List/Map) */
     protected <T> T fromJson(String json, TypeReference<T> typeRef) {
         try {
             return objectMapper != null ? objectMapper.readValue(json, typeRef) : null;
@@ -258,17 +258,17 @@ public abstract class BaseIntegrationTest {
         }
     }
 
-    // ======= 测试数据管理（可重写） =======
+    // ======= test data (can override) =======
     protected void initTestData() {
-        // 子类可重写
+        // class can override
     }
 
     protected void clearTestData() {
-        // 子类可重写
+        // class can override
     }
 
-    // ======= 便捷工具方法 =======
-    /** 等待异步操作完成 */
+    // ======= convenience utility method =======
+    /** etc. async */
     protected void waitForAsyncOperation(Duration timeout) {
         try {
             Thread.sleep(timeout.toMillis());
@@ -278,13 +278,13 @@ public abstract class BaseIntegrationTest {
         }
     }
 
-    /** 获取完整 URL */
+    /** get full URL */
     protected String getFullUrl(String path) {
         return "http://localhost:" + port + path;
     }
 
-    /** 设置测试用户上下文（示例，实际请按业务补充） */
+    /** set Test User context (sample, actual business) */
     protected void setTestUserContext(String userId, String tenantId) {
-        // 可用 ThreadLocal 或安全上下文设置模拟用户
+        // can ThreadLocal or security context set simulate user
     }
 }

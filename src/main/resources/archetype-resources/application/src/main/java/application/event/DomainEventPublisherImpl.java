@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 领域事件发布器实现
+ * domain event publish implementation
  * @author hanfeng
  */
 @Slf4j
@@ -28,9 +28,9 @@ public class DomainEventPublisherImpl implements DomainEventPublisher {
             return;
         }
 
-        log.debug("发布领域事件: {}, 聚合ID: {}", domainEvent.getEventType(), domainEvent.getAggregateId());
+        log.debug(" publish domain event: {}, ID: {}", domainEvent.getEventType(), domainEvent.getAggregateId());
 
-        // 直接发布领域事件，让Spring事件监听器处理
+        // publish domain event, Spring event process
         applicationEventPublisher.publishEvent(domainEvent);
     }
 

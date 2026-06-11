@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * MyBatisPlus Mapper 接口包。
+ * MyBatisPlus Mapper interface package.
  * <p>
- * 持久层 Mapper 接口定义。
+ * layer Mapper interface define.
  * </p>
  * <p>
  * MyBatisPlus mapper interfaces.

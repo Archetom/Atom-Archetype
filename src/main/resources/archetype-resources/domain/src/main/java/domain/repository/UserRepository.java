@@ -10,58 +10,58 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 用户仓储接口
+ * user repository interface
  * @author hanfeng
  */
 public interface UserRepository extends BaseRepository<User, UserId> {
 
     /**
-     * 根据用户名查找用户
+     * based on username find user
      */
     Optional<User> findByUsername(String username);
 
     /**
-     * 根据邮箱查找用户
+     * based on email find user
      */
     Optional<User> findByEmail(String email);
 
     /**
-     * 检查用户名是否存在
+     * check username whether exists
      */
     boolean existsByUsername(String username);
 
     /**
-     * 检查邮箱是否存在
+     * check email whether exists
      */
     boolean existsByEmail(String email);
 
     /**
-     * 根据状态查找用户
+     * based on status find user
      */
     List<User> findByStatus(UserStatus status);
 
     /**
-     * 根据租户ID查找用户
+     * based on tenant ID find user
      */
     List<User> findByTenantId(Long tenantId);
 
     /**
-     * 查找指定时间段内创建的用户
+     * find create of user
      */
     List<User> findByCreatedTimeBetween(LocalDateTime start, LocalDateTime end);
 
     /**
-     * 分页查询用户
+     * paged query user
      */
     Pager<User> findUsers(String username, String email, UserStatus status, int page, int size);
 
     /**
-     * 查找需要激活的用户（注册后未激活超过指定天数）
+     * find need active of user (inactive)
      */
     List<User> findUsersNeedingActivation(int days);
 
     /**
-     * 查找长时间未登录的用户
+     * find not of user
      */
     List<User> findInactiveUsers(int days);
 }

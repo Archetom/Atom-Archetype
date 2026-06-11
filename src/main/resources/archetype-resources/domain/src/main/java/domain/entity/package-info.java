@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 领域实体包。
+ * domain entity package.
  * <p>
- * 定义核心业务模型（实体）。
+ * define business (entity).
  * </p>
  * <p>
  * Core business entities.

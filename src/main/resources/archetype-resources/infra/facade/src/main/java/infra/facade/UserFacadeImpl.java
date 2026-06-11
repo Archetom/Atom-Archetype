@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * 用户门面实现
+ * user facade implementation
  * @author hanfeng
  */
 @Slf4j

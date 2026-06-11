@@ -5,48 +5,48 @@ import ${package}.domain.valueobject.Email;
 import ${package}.domain.valueobject.Username;
 
 /**
- * 用户领域服务接口
+ * user domain service interface
  * @author hanfeng
  */
 public interface UserDomainService {
 
     /**
-     * 检查用户名是否可用
+     * check username whether can
      */
     boolean isUsernameAvailable(Username username);
 
     /**
-     * 检查邮箱是否可用
+     * check email whether can
      */
     boolean isEmailAvailable(Email email);
 
     /**
-     * 验证用户创建规则
+     * validate user create rule
      */
     void validateUserCreation(String username, String email);
 
     /**
-     * 加密密码
+     * password
      */
     String encryptPassword(String plainPassword);
 
     /**
-     * 验证密码
+     * validate password
      */
     boolean validatePassword(String plainPassword, String encryptedPassword);
 
     /**
-     * 检查用户是否可以删除
+     * check user whether can delete
      */
     boolean canDeleteUser(User user);
 
     /**
-     * 生成用户默认密码
+     * generate user default password
      */
     String generateDefaultPassword();
 
     /**
-     * 检查用户权限
+     * check user permission
      */
     boolean hasPermission(User user, String permission);
 }

@@ -6,36 +6,36 @@ import io.github.archetom.common.error.ErrorContext;
 import java.io.Serial;
 
 /**
- * 应用无需重试异常
+ * application non-retryable exception
  */
 public class AppUnRetryException extends AppException {
     @Serial
     private static final long serialVersionUID = 6445665908006351745L;
 
     /**
-     * 构造方法
+     * method
      *
-     * @param errorCode    异常CODE
-     * @param errorContext 错误上下文
+     * @param errorCode exception CODE
+     * @param errorContext error context
      */
     public AppUnRetryException(final ErrorCodeEnum errorCode, final ErrorContext errorContext) {
         super(errorCode, errorContext);
     }
 
     /**
-     * 构造方法
+     * method
      *
-     * @param errorCode 异常
-     * @param msg       异常信息
+     * @param errorCode exception
+     * @param msg exception
      */
     public AppUnRetryException(final ErrorCodeEnum errorCode, final String msg) {
         super(errorCode, msg);
     }
 
     /**
-     * 构造方法
+     * method
      *
-     * @param errorCode 异常CODE
+     * @param errorCode exception CODE
      */
     public AppUnRetryException(final ErrorCodeEnum errorCode) {
         super(errorCode);

@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * MyBatisPlus 持久化对象（PO）包。
+ * MyBatisPlus persistence object (PO) package.
  * <p>
- * 定义数据库表对应的持久化对象。
+ * define database table for of persistence object.
  * </p>
  * <p>
  * Persistent Objects (PO) for MyBatisPlus.

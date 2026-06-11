@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 统一服务模板包。
+ * unified service template package.
  * <p>
- * 提供服务执行标准模板、回调等基类。
+ * provide service execute standard template, callback etc. class.
  * </p>
  * <p>
  * Service template and callback interfaces.

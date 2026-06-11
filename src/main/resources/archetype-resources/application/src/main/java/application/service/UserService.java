@@ -10,33 +10,33 @@ import io.github.archetom.common.result.Pager;
 import io.github.archetom.common.result.Result;
 
 /**
- * 用户应用服务接口
+ * user application service interface
  * @author hanfeng
  */
 public interface UserService {
     
     /**
-     * 创建用户
+     * create user
      */
     Result<UserVO> createUser(UserCreateRequest request);
     
     /**
-     * 根据ID获取用户
+     * based on ID get user
      */
     Result<UserVO> getUserById(Long userId);
     
     /**
-     * 分页查询用户
+     * paged query user
      */
     Result<Pager<UserVO>> queryUsers(UserQueryRequest request);
     
     /**
-     * 更新用户状态
+     * update user status
      */
     Result<Void> updateUserStatus(Long userId, String status);
     
     /**
-     * 删除用户
+     * delete user
      */
     Result<Void> deleteUser(Long userId);
 }

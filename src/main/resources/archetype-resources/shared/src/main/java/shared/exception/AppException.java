@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import java.io.Serial;
 
 /**
- * 应用需要重试的异常
+ * application need of exception
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -18,25 +18,25 @@ public class AppException extends RuntimeException {
     private static final long serialVersionUID = 4718379562894293206L;
 
     /**
-     * 异常错误代码
+     * exception error code
      */
     private ErrorCodeEnum errorCode;
 
     /**
-     * 错误上下文
+     * error context
      */
     private ErrorContext errorContext;
 
     /**
-     * 错误上下文
+     * error context
      */
     private Throwable originalThrowable;
 
     /**
-     * 创建一DataQueryException
+     * create DataQueryException
      *
-     * @param errorCode    系统定义异常 当前异常
-     * @param errorContext 外部系统发生异常
+     * @param errorCode system define exception current exception
+     * @param errorContext external system exception
      */
     @SuppressWarnings("unused")
     public AppException(ErrorCodeEnum errorCode, ErrorContext errorContext) {
@@ -46,12 +46,12 @@ public class AppException extends RuntimeException {
     }
 
     /**
-     * 创建一DataQueryException
+     * create DataQueryException
      *
-     * <p>内部异常时使用</p>
+     * <p> internal exception </p>
      *
-     * @param errorCode 内部错误码
-     * @param message   异常信息
+     * @param errorCode internal error code
+     * @param message exception
      */
     public AppException(ErrorCodeEnum errorCode, String message) {
         super(message);
@@ -59,9 +59,9 @@ public class AppException extends RuntimeException {
     }
 
     /**
-     * 创建一DataQueryException
+     * create DataQueryException
      *
-     * @param errorCode 错误码
+     * @param errorCode error code
      */
     public AppException(ErrorCodeEnum errorCode, Throwable originalThrowable) {
         super(errorCode.getDescription());
@@ -70,9 +70,9 @@ public class AppException extends RuntimeException {
     }
 
     /**
-     * 创建一DataQueryException,保存原始异常信息
+     * create DataQueryException, save exception
      *
-     * @param errorCode 错误码
+     * @param errorCode error code
      */
     public AppException(ErrorCodeEnum errorCode) {
         super(errorCode.getDescription());
@@ -80,11 +80,11 @@ public class AppException extends RuntimeException {
     }
 
     /**
-     * 异常构造函数
+     * exception function
      *
-     * @param errorCode 错误码
-     * @param message   异常信息
-     * @param e         异常堆栈
+     * @param errorCode error code
+     * @param message exception
+     * @param e exception
      */
     public AppException(ErrorCodeEnum errorCode, String message, Throwable e) {
         super(message, e);

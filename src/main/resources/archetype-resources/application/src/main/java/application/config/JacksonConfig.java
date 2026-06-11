@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 /**
- * Jackson 配置
+ * Jackson configuration
  * @author hanfeng
  */
 @Configuration
@@ -20,9 +20,9 @@ public class JacksonConfig {
     @Primary
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
-        // 注册 Java 8 时间模块
+        // Java 8
         mapper.registerModule(new JavaTimeModule());
-        // 禁用将日期写为时间戳
+        // disable copy as
         mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper;
     }

@@ -15,14 +15,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 用户PO转换器
+ * user PO convert
  * @author hanfeng
  */
 @Mapper(componentModel = "spring")
 public abstract class UserPOConverter {
 
     /**
-     * UserPO -> User（使用 reconstitute 方法重建领域对象）
+     * UserPO -> User (reconstitute method reconstitute domain object)
      */
     public User toDomain(UserPO userPO) {
         if (userPO == null) {
@@ -80,7 +80,7 @@ public abstract class UserPOConverter {
      */
     public abstract List<UserPO> toPOList(List<User> users);
 
-    // ========== 转换方法 ==========
+    // ========== convert method ==========
 
     /**
      * Long -> UserId

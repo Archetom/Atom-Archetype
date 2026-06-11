@@ -21,15 +21,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
- * 用户控制器集成测试
+ * user controller integration test
  * @author hanfeng
  */
-@DisplayName("用户控制器集成测试")
+@DisplayName(" user controller integration test ")
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 class UserControllerIntegrationTest extends BaseIntegrationTest {
     
     @Test
-    @DisplayName("创建用户 - 成功")
+    @DisplayName(" create user - success ")
     void createUser_Success() throws Exception {
         // Given
         UserCreateRequest request = new UserCreateRequest()
@@ -50,13 +50,13 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     }
     
     @Test
-    @DisplayName("创建用户 - 参数校验失败")
+    @DisplayName(" create user - parameter validation failure ")
     void createUser_ValidationFailed() throws Exception {
         // Given
         UserCreateRequest request = new UserCreateRequest()
-            .setUsername("") // 用户名为空
-            .setEmail("invalid-email") // 邮箱格式错误
-            .setPassword("123"); // 密码太短
+            .setUsername("") // username is empty
+            .setEmail("invalid-email") // email format error
+            .setPassword("123"); // password
         
         // When
         ResultActions result = performPost("/api/v1/users", request);
@@ -66,9 +66,9 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     }
     
     @Test
-    @DisplayName("创建用户 - 用户名已存在")
+    @DisplayName(" create user - Username already exists")
     void createUser_UsernameExists() throws Exception {
-        // Given - 先创建一个用户
+        // Given - first create user
         UserCreateRequest firstRequest = new UserCreateRequest()
             .setUsername("existinguser")
             .setEmail("first@example.com")
@@ -76,9 +76,9 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setRealName("First User");
         performPost("/api/v1/users", firstRequest);
         
-        // 再次创建相同用户名的用户
+        // again create username of user
         UserCreateRequest secondRequest = new UserCreateRequest()
-            .setUsername("existinguser") // 相同用户名
+            .setUsername("existinguser") // username
             .setEmail("second@example.com")
             .setPassword("password123")
             .setRealName("Second User");
@@ -88,13 +88,13 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         
         // Then
         result.andExpect(status().isUnprocessableEntity())
-              .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("用户名已存在")));
+              .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("Username already exists")));
     }
     
     @Test
-    @DisplayName("根据ID获取用户 - 成功")
+    @DisplayName(" based on ID get user - success ")
     void getUserById_Success() throws Exception {
-        // Given - 先创建一个用户
+        // Given - first create user
         UserCreateRequest createRequest = new UserCreateRequest()
             .setUsername("testuser")
             .setEmail("test@example.com")
@@ -116,20 +116,20 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     }
     
     @Test
-    @DisplayName("根据ID获取用户 - 用户不存在")
+    @DisplayName(" based on ID get user - User does not exist")
     void getUserById_UserNotFound() throws Exception {
         // When
         ResultActions result = performGet("/api/v1/users/{userId}", 99999L);
         
         // Then
         result.andExpect(status().isUnprocessableEntity())
-              .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("用户不存在")));
+              .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("User does not exist")));
     }
     
     @Test
-    @DisplayName("分页查询用户 - 成功")
+    @DisplayName(" paged query user - success ")
     void queryUsers_Success() throws Exception {
-        // Given - 创建几个测试用户
+        // Given - create Test User
         for (int i = 1; i <= 3; i++) {
             UserCreateRequest request = new UserCreateRequest()
                 .setUsername("user" + i)
@@ -153,9 +153,9 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     }
     
     @Test
-    @DisplayName("分页查询用户 - 按用户名筛选")
+    @DisplayName(" paged query user - username ")
     void queryUsers_FilterByUsername() throws Exception {
-        // Given - 创建测试用户
+        // Given - create Test User
         UserCreateRequest request = new UserCreateRequest()
             .setUsername("filteruser")
             .setEmail("filter@example.com")
@@ -183,9 +183,9 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     }
     
     @Test
-    @DisplayName("更新用户状态 - 成功")
+    @DisplayName(" update user status - success ")
     void updateUserStatus_Success() throws Exception {
-        // Given - 先创建一个用户
+        // Given - first create user
         UserCreateRequest createRequest = new UserCreateRequest()
             .setUsername("statususer")
             .setEmail("status@example.com")
@@ -205,16 +205,16 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         // Then
         result.andExpect(status().isOk());
         
-        // 验证状态已更新
+        // validate status already update
         ResultActions getResult = performGet("/api/v1/users/{userId}", createdUser.getId());
         getResult.andExpect(status().isOk())
                  .andExpect(jsonPath("$.status").value("INACTIVE"));
     }
     
     @Test
-    @DisplayName("更新用户状态 - 无效状态")
+    @DisplayName(" update user status - invalid status ")
     void updateUserStatus_InvalidStatus() throws Exception {
-        // Given - 先创建一个用户
+        // Given - first create user
         UserCreateRequest createRequest = new UserCreateRequest()
             .setUsername("invalidstatususer")
             .setEmail("invalidstatus@example.com")
@@ -236,9 +236,9 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     }
     
     @Test
-    @DisplayName("删除用户 - 成功")
+    @DisplayName(" delete user - success ")
     void deleteUser_Success() throws Exception {
-        // Given - 先创建一个用户
+        // Given - first create user
         UserCreateRequest createRequest = new UserCreateRequest()
             .setUsername("deleteuser")
             .setEmail("delete@example.com")
@@ -255,32 +255,32 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         // Then
         result.andExpect(status().isOk());
         
-        // 验证用户状态已变为DELETED
+        // validate user status already as DELETED
         ResultActions getResult = performGet("/api/v1/users/{userId}", createdUser.getId());
         getResult.andExpect(status().isOk())
                  .andExpect(jsonPath("$.status").value("DELETED"));
     }
     
     @Test
-    @DisplayName("删除用户 - 用户不存在")
+    @DisplayName(" delete user - User does not exist")
     void deleteUser_UserNotFound() throws Exception {
         // When
         ResultActions result = performDelete("/api/v1/users/{userId}", 99999L);
         
         // Then
         result.andExpect(status().isUnprocessableEntity())
-              .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("用户不存在")));
+              .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("User does not exist")));
     }
     
     @Override
     protected void initTestData() {
-        // 清理测试数据
+        // clean test data
         truncateTable("t_user");
     }
     
     @Override
     protected void clearTestData() {
-        // 清理测试数据
+        // clean test data
         truncateTable("t_user");
     }
 }

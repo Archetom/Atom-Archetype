@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.regex.Pattern;
 
 /**
- * 手机号值对象
+ * phone number value object
  * @author hanfeng
  */
 @Value
@@ -37,7 +37,7 @@ public class PhoneNumber implements ValueObject<PhoneNumber> {
     }
 
     /**
-     * 获取脱敏后的手机号
+     * get masked of phone number
      */
     public String getMasked() {
         if (value.length() >= 11) {

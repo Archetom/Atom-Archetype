@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 服务模板实现包。
+ * service template implementation package.
  * <p>
- * 提供业务服务模板抽象实现。
+ * provide business service template implementation.
  * </p>
  * <p>
  * Service template implementations.

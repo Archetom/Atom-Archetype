@@ -15,7 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import java.util.List;
 
 /**
- * 结果处理类
+ * result process class
  *
  * @author hanfeng
  */
@@ -23,11 +23,11 @@ import java.util.List;
 public class ErrorResultWrapUtil {
 
     /**
-     * 生成 controller 验证错误结果。
+     * generate controller validate error result.
      *
-     * @param ex      异常
-     * @param appName 应用名称
-     * @return 错误结果
+     * @param ex exception
+     * @param appName application
+     * @return error result
      */
     public static <T> Result<T> genErrorResultValidation(T ex, String appName) {
         String message = "";
@@ -56,7 +56,7 @@ public class ErrorResultWrapUtil {
         final Result<T> result = new Result<>();
         result.setSuccess(false);
 
-        // 组装参数校验的错误
+        // parameter validation of error
         ErrorCodeEnum errorCodeEnum = ErrorCodeEnum.PARAM_CHECK_EXP;
         ErrorContext errorContext = ErrorUtil.makeAndAddError(
                 new ErrorCode(errorCodeEnum.getCompleteCode("9999"), ErrorCodeEnum.VERSION),

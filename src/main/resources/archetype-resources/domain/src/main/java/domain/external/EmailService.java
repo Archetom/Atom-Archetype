@@ -4,23 +4,23 @@
 package ${package}.domain.external;
 
 /**
- * 邮件服务接口
+ * email service interface
  * @author hanfeng
  */
 public interface EmailService {
 
     /**
-     * 发送欢迎邮件
+     * send email
      */
     void sendWelcomeEmail(String email, String username);
 
     /**
-     * 发送密码重置邮件
+     * send password email
      */
     void sendPasswordResetEmail(String email, String resetToken);
 
     /**
-     * 发送账户激活邮件
+     * send active email
      */
     void sendActivationEmail(String email, String activationToken);
 }

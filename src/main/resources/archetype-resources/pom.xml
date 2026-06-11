@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
+        <version>4.1.0</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -48,14 +48,15 @@
 
         <!-- SpringDoc -->
         <springdoc.version>2.8.9</springdoc.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
         <!-- Metrics -->
         <prometheus.version>1.15.2</prometheus.version>
         <zipkin.version>3.5.1</zipkin.version>
     </properties>
 
-    <!-- 主 pom 统一定义依赖版本，版本统一使用自定义标签 -->
-    <!-- 子 pom 不允许定义依赖的版本 -->
-    <!-- 所有基础依赖必须定义在 common，它是最底层 -->
+    <!-- The root pom centrally defines dependency versions using custom properties -->
+    <!-- Child poms must not define dependency versions -->
+    <!-- All base dependencies must be defined in common, the lowest layer -->
     <dependencyManagement>
         <dependencies>
             <!-- Common -->
@@ -128,6 +129,15 @@
                 <version>${springdoc.version}</version>
             </dependency>
 
+            <!-- Testcontainers -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- Metrics -->
             <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus -->
             <dependency>
@@ -143,25 +153,25 @@
             </dependency>
 
             <!-- Project Modules -->
-            <!-- 第一层 公共层 -->
+            <!-- First layer: common layer -->
             <dependency>
                 <groupId>${groupId}</groupId>
                 <artifactId>${rootArtifactId}-api</artifactId>
                 <version>${version}</version>
             </dependency>
-            <!-- 第二层 领域层 纯POJO -->
+            <!-- Second layer: domain layer, pure POJO -->
             <dependency>
                 <groupId>${groupId}</groupId>
                 <artifactId>${rootArtifactId}-domain</artifactId>
                 <version>${version}</version>
             </dependency>
-            <!-- 第三层 应用层 服务编排 -->
+            <!-- Third layer: application layer, service orchestration -->
             <dependency>
                 <groupId>${groupId}</groupId>
                 <artifactId>${rootArtifactId}-application</artifactId>
                 <version>${version}</version>
             </dependency>
-            <!-- 第四层 基础设施层 -->
+            <!-- Fourth layer: infrastructure layer -->
             <dependency>
                 <groupId>${groupId}</groupId>
                 <artifactId>${rootArtifactId}-infra-external</artifactId>
@@ -187,7 +197,7 @@
                 <artifactId>${rootArtifactId}-infra-facade</artifactId>
                 <version>${version}</version>
             </dependency>
-            <!-- 第五层 共享层 -->
+            <!-- Fifth layer: shared layer -->
             <dependency>
                 <groupId>${groupId}</groupId>
                 <artifactId>${rootArtifactId}-shared</artifactId>

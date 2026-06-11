@@ -52,7 +52,7 @@
         </dependency>
 
         <!-- Test -->
-        <!-- 单元测试依赖 -->
+        <!-- unit test dependency -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -64,7 +64,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Spring Boot 测试支持 -->
+        <!-- Spring Boot test support -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

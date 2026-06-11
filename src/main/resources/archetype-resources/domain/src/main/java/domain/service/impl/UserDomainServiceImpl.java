@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 
 /**
- * 用户领域服务实现
+ * user domain service implementation
  * @author hanfeng
  */
 @Slf4j
@@ -54,7 +54,7 @@ public class UserDomainServiceImpl implements UserDomainService {
     @Override
     public String encryptPassword(String plainPassword) {
         if (plainPassword == null || plainPassword.trim().isEmpty()) {
-            throw new UserDomainException("密码不能为空");
+            throw new UserDomainException("Password must not be empty");
         }
 
         return passwordEncoder.encode(plainPassword);
@@ -65,7 +65,7 @@ public class UserDomainServiceImpl implements UserDomainService {
         try {
             return passwordEncoder.matches(plainPassword, encryptedPassword);
         } catch (Exception e) {
-            log.error("密码验证失败", e);
+            log.error(" password validate failure ", e);
             return false;
         }
     }
@@ -76,21 +76,21 @@ public class UserDomainServiceImpl implements UserDomainService {
             return false;
         }
 
-        // 已删除的用户不能再删除
+        // Deleted users cannot be deleted again
         if (user.isDeleted()) {
             return false;
         }
 
-        // 管理员用户不能删除
+        // Administrator users cannot be deleted
         if (user.isAdmin()) {
-            log.warn("尝试删除管理员用户: {}", user.getUsernameValue());
+            log.warn(" try delete administrator user: {}", user.getUsernameValue());
             return false;
         }
 
-        // 外部系统用户需要特殊处理
+        // external system user need process
         if (user.isExternalUser()) {
-            log.info("删除外部系统用户: {}", user.getUsernameValue());
-            // 可以添加额外的验证逻辑
+            log.info(" delete external system user: {}", user.getUsernameValue());
+            // can add of validate
         }
 
         return true;
@@ -98,7 +98,7 @@ public class UserDomainServiceImpl implements UserDomainService {
 
     @Override
     public String generateDefaultPassword() {
-        // 生成8位随机密码，包含大小写字母和数字
+        // generate 8 position password, package letters and digits
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder password = new StringBuilder();
 
@@ -115,16 +115,16 @@ public class UserDomainServiceImpl implements UserDomainService {
             return false;
         }
 
-        // 管理员拥有所有权限
+        // administrator all permission
         if (user.isAdmin()) {
             return true;
         }
 
-        // 根据权限类型进行判断
+        // based on permission class
         return switch (permission) {
-            case "READ_USER" -> true; // 所有激活用户都可以读取
-            case "WRITE_USER" -> user.isAdmin(); // 只有管理员可以写入
-            case "DELETE_USER" -> user.isAdmin(); // 只有管理员可以删除
+            case "READ_USER" -> true; // all active user can
+            case "WRITE_USER" -> user.isAdmin(); // administrator can
+            case "DELETE_USER" -> user.isAdmin(); // administrator can delete
             default -> false;
         };
     }

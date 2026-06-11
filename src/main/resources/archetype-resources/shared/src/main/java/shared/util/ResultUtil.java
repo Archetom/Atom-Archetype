@@ -7,16 +7,16 @@ import io.github.archetom.common.error.ErrorCode;
 import io.github.archetom.common.error.ErrorContext;
 
 /**
- * 结果处理类
+ * result process class
  */
 public class ResultUtil {
 
     /**
-     * 生成错误结果。
+     * generate error result.
      *
-     * @param ex      异常
-     * @param appName 应用名称
-     * @return 错误结果
+     * @param ex exception
+     * @param appName application
+     * @return error result
      */
     public static <T> Result<T> genErrorResult(Throwable ex, String appName) {
 
@@ -35,11 +35,11 @@ public class ResultUtil {
     }
 
     /**
-     * 根据异常信息生成错误上下文添加到结果中
+     * based on exception generate error context add to result in
      *
-     * @param result 查询结果
-     * @param e      异常
-     * @return 封装后的结果
+     * @param result query result
+     * @param e exception
+     * @return encapsulate of result
      */
     public static <T> Result<T> genErrorResult(Result<T> result, AppException e,
                                                String eventCode, String appName) {

@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Rest结果封装
+ * Rest result encapsulate
  *
  * @author hanfeng
  */

@@ -4,7 +4,7 @@ import ${package}.api.enums.UserStatus;
 import lombok.Getter;
 
 /**
- * 用户状态变更事件
+ * user status event
  * @author hanfeng
  */
 @Getter

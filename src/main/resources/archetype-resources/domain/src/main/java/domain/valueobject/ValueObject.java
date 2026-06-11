@@ -3,21 +3,21 @@ package ${package}.domain.valueobject;
 import java.io.Serializable;
 
 /**
- * 值对象基接口
+ * value object interface
  * @author hanfeng
  */
 public interface ValueObject<T> extends Serializable {
 
     /**
-     * 值对象相等性比较
+     * value object etc.
      */
     boolean sameValueAs(T other);
 
     /**
-     * 验证值对象
+     * validate value object
      */
     default void validate() {
-        // 子类可重写进行验证
+        // class can override validate
     }
 }
 

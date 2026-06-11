@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
 /**
- * 用户查询请求
+ * user query request
  * @author hanfeng
  */
 @Data
@@ -20,19 +20,19 @@ import jakarta.validation.constraints.Size;
 public class UserQueryRequest extends QueryRequest {
     
     /**
-     * 用户名
+     * username
      */
-    @Size(max = 50, message = "用户名长度不能超过50个字符")
+    @Size(max = 50, message = " username length cannot 50 characters ")
     private String username;
     
     /**
-     * 邮箱
+     * email
      */
-    @Email(message = "邮箱格式不正确")
+    @Email(message = "Invalid email format")
     private String email;
     
     /**
-     * 状态
+     * status
      */
     private String status;
 }

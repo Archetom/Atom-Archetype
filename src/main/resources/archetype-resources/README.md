@@ -84,7 +84,7 @@ mvn verify
 
 ## 🔧 技术栈
 
-- **框架**: Spring Boot 3.5.0
+- **框架**: Spring Boot 4.1.0
 - **数据库**: MyBatis-Plus + MySQL
 - **缓存**: Redis
 - **测试**: JUnit 5 + Testcontainers

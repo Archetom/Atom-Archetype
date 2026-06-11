@@ -17,7 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 用户控制器
+ * user controller
  * @author hanfeng
  */
 @Slf4j
@@ -29,54 +29,54 @@ public class UserController {
     private final UserFacade userFacade;
     
     /**
-     * 创建用户
+     * create user
      */
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody @Validated UserCreateRequest request) {
-        log.info("创建用户请求: {}", request);
+        log.info(" create user request: {}", request);
         Result<UserResponse> result = userFacade.createUser(request);
         return ResponseEntityUtil.assembleResponse(result);
     }
     
     /**
-     * 根据ID获取用户
+     * based on ID get user
      */
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUserById(@PathVariable Long userId) {
-        log.info("获取用户请求, userId: {}", userId);
+        log.info(" get user request, userId: {}", userId);
         Result<UserResponse> result = userFacade.getUserById(userId);
         return ResponseEntityUtil.assembleResponse(result);
     }
     
     /**
-     * 分页查询用户
+     * paged query user
      */
     @GetMapping
     public ResponseEntity<?> queryUsers(UserQueryRequest request) {
-        log.info("分页查询用户请求: {}", request);
+        log.info(" paged query user request: {}", request);
         Result<Pager<UserResponse>> result = userFacade.queryUsers(request);
         return ResponseEntityUtil.assembleResponse(result);
     }
     
     /**
-     * 更新用户状态
+     * update user status
      */
     @PutMapping("/{userId}/status")
     public ResponseEntity<?> updateUserStatus(
         @PathVariable Long userId,
         @RequestParam String status
     ) {
-        log.info("更新用户状态请求, userId: {}, status: {}", userId, status);
+        log.info(" update user status request, userId: {}, status: {}", userId, status);
         Result<Void> result = userFacade.updateUserStatus(userId, status);
         return ResponseEntityUtil.assembleResponse(result);
     }
     
     /**
-     * 删除用户
+     * delete user
      */
     @DeleteMapping("/{userId}")
     public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
-        log.info("删除用户请求, userId: {}", userId);
+        log.info(" delete user request, userId: {}", userId);
         Result<Void> result = userFacade.deleteUser(userId);
         return ResponseEntityUtil.assembleResponse(result);
     }

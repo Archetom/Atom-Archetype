@@ -2,20 +2,20 @@ spring:
   application:
     name: ${artifactId}-test
   
-  # 测试数据源配置（由Testcontainers动态配置）
+  # test data source configuration (by Testcontainers dynamic configuration)
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # url, username, password 由 Testcontainers 动态配置
+    # url, username, password by Testcontainers dynamic configuration
     
-  # 测试Redis配置（由Testcontainers动态配置）
+  # test Redis configuration (by Testcontainers dynamic configuration)
   data:
     redis:
-      # host, port 由 Testcontainers 动态配置
+      # host, port by Testcontainers dynamic configuration
       password: 
       database: 0
       timeout: 5000ms
 
-# MyBatis Plus配置
+# MyBatis Plus configuration
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
@@ -30,7 +30,7 @@ mybatis-plus:
       logic-not-delete-value: 'null'
   mapper-locations: classpath*:mapper/**/*.xml
 
-# 日志配置
+# logging configuration
 logging:
   level:
     ${package}: DEBUG
@@ -38,7 +38,7 @@ logging:
     org.testcontainers: INFO
     com.github.dockerjava: WARN
 
-# 线程池配置
+# thread pool configuration
 task:
   executor:
     core-pool-size: 2

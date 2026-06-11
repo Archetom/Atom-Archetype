@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 领域仓储接口包。
+ * domain repository interface package.
  * <p>
- * 用于定义领域对象的持久化接口。
+ * used for define domain object of persistence interface.
  * </p>
  * <p>
  * Repository interfaces for persisting domain objects.

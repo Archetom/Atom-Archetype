@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * 异常处理
+ * exception process
  *
  * @author laiyongguo
  */
@@ -24,10 +24,10 @@ public class RestExceptionAdvice {
     private String appName;
 
     /**
-     * 校验错误拦截处理
+     * error process
      *
-     * @param exception 错误信息集合
-     * @return 错误信息
+     * @param exception error message
+     * @return error message
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> validationBodyException(MethodArgumentNotValidException exception) {
@@ -35,19 +35,19 @@ public class RestExceptionAdvice {
     }
 
     /**
-     * 参数类型转换错误
+     * parameter class convert error
      *
-     * @param exception 错误
-     * @return 错误信息
+     * @param exception error
+     * @return error message
      */
     @ExceptionHandler(HttpMessageConversionException.class)
     public ResponseEntity<?> parameterTypeException(HttpMessageConversionException exception) {
-        log.error("{}App 参数校验，参数转化失败{}", exception.getCause().getLocalizedMessage(), exception);
+        log.error("{}App parameter validation, parameter failure {}", exception.getCause().getLocalizedMessage(), exception);
         return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResultValidation(exception, appName));
     }
 
     /**
-     * 运行异常
+     * exception
      *
      * @param exception RuntimeException
      * @return ResponseEntity

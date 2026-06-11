@@ -1,10 +1,10 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-Atom Archetype is a **Maven archetype** that scaffolds DDD (Domain-Driven Design) based Java applications using Spring Boot 4.1+ and JDK 21. It generates a multi-module Maven project with layered architecture. The archetype itself is published to Maven Central under `io.github.archetom:atom-archetype`.
+Atom Archetype is a **Maven archetype** that scaffolds DDD (Domain-Driven Design) based Java applications using Spring Boot 3.5+ and JDK 21. It generates a multi-module Maven project with layered architecture. The archetype itself is published to Maven Central under `io.github.archetom:atom-archetype`.
 
 All template source code lives under `src/main/resources/archetype-resources/`. Files there use Maven archetype Velocity variables (`${groupId}`, `${artifactId}`, `${package}`, `${rootArtifactId}`, `${version}`) — these are **not** typos. Some template files also use `#set( $symbol_dollar = '$' )` to escape dollar signs that should appear literally in the generated output (e.g., Spring `${SOME_ENV_VAR}` placeholders in YAML).
 
@@ -64,7 +64,7 @@ Generated projects have these modules (defined in `archetype-resources/pom.xml`)
 
 ## Tech Stack (Generated Projects)
 
-Spring Boot 4.1.0, MyBatis-Plus 3.5.12, MySQL 9.4.0, Druid connection pool, Redis (Lettuce), MapStruct 1.6.3, Lombok, SpringDoc OpenAPI 2.8.9, Kotlin 2.2.0 (optional), Testcontainers for integration tests. Core framework dependency: `io.github.archetom:atom-common:1.0.0`.
+Spring Boot 3.5.4, MyBatis-Plus 3.5.12, MySQL 9.4.0, Druid connection pool, Redis (Lettuce), MapStruct 1.6.3, Lombok, SpringDoc OpenAPI 2.8.9, Kotlin 2.2.0 (optional), Testcontainers for integration tests. Core framework dependency: `io.github.archetom:atom-common:1.0.0`.
 
 ## Configuration
 

@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 聚合根基类
+ * aggregate root class
  * @author hanfeng
  */
 public abstract class AggregateRoot<ID> {
@@ -20,26 +20,26 @@ public abstract class AggregateRoot<ID> {
     private Long version = 0L;
 
     /**
-     * 获取聚合根ID
+     * get aggregate root ID
      */
     public abstract ID getId();
 
     /**
-     * 获取领域事件（只读）
+     * get domain event ()
      */
     public List<DomainEvent> getDomainEvents() {
         return Collections.unmodifiableList(domainEvents);
     }
 
     /**
-     * 清除领域事件
+     * clear domain event
      */
     public void clearDomainEvents() {
         domainEvents.clear();
     }
 
     /**
-     * 添加领域事件
+     * add domain event
      */
     protected void addDomainEvent(DomainEvent event) {
         if (event != null) {
@@ -48,21 +48,21 @@ public abstract class AggregateRoot<ID> {
     }
 
     /**
-     * 移除领域事件
+     * remove domain event
      */
     protected void removeDomainEvent(DomainEvent event) {
         domainEvents.remove(event);
     }
 
     /**
-     * 检查是否有领域事件
+     * check whether domain event
      */
     public boolean hasDomainEvents() {
         return !domainEvents.isEmpty();
     }
 
     /**
-     * 递增版本号（用于乐观锁）
+     * (used for)
      */
     public void incrementVersion() {
         this.version++;

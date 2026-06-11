@@ -27,7 +27,7 @@
                 <include>clean.sh</include>
             </includes>
         </fileSet>
-        <!-- 添加 docs 目录 -->
+        <!-- add docs directory -->
         <fileSet filtered="false" encoding="UTF-8">
             <directory>docs</directory>
             <includes>

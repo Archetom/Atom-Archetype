@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 用户规约测试
+ * user specification test
  * @author hanfeng
  */
-@DisplayName("用户规约测试")
+@DisplayName(" user specification test ")
 class UserSpecificationTest {
 
     @Test
-    @DisplayName("用户可以登录 - 激活用户")
+    @DisplayName(" user can - active user ")
     void canLogin_ActiveUser() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
@@ -27,11 +27,11 @@ class UserSpecificationTest {
     }
 
     @Test
-    @DisplayName("用户不能登录 - 锁定用户")
+    @DisplayName(" user cannot - locked user ")
     void cannotLogin_LockedUser() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
-        user.lock("违规操作");
+        user.lock("");
 
         // When
         boolean canLogin = UserSpecification.canLogin().isSatisfiedBy(user);
@@ -41,7 +41,7 @@ class UserSpecificationTest {
     }
 
     @Test
-    @DisplayName("组合规约 - 可登录且属于指定租户")
+    @DisplayName(" specification - can and in tenant ")
     void compositeSpecification_CanLoginAndBelongsToTenant() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");

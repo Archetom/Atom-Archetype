@@ -1,15 +1,15 @@
 /**
- * 领域事件包。
+ * domain event package.
  * <p>
- * 定义领域事件接口和具体事件实现，支持事件驱动架构。
+ * define domain event interface and event implementation, support event.
  * </p>
  * <p>
- * 领域事件用于：
+ * domain event used for:
  * <ul>
- *   <li>解耦聚合之间的依赖</li>
- *   <li>实现最终一致性</li>
- *   <li>支持事件溯源</li>
- *   <li>集成外部系统</li>
+ * <li> decouple of dependency </li>
+ * <li> implementation consistency </li>
+ * <li> support event </li>
+ * <li> integration external system </li>
  * </ul>
  * </p>
  *

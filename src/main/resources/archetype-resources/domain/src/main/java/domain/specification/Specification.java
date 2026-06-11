@@ -1,32 +1,32 @@
 package ${package}.domain.specification;
 
 /**
- * 规约接口
+ * specification interface
  * @author hanfeng
  */
 public interface Specification<T> {
 
     /**
-     * 检查对象是否满足规约
+     * check object whether specification
      */
     boolean isSatisfiedBy(T candidate);
 
     /**
-     * 与操作
+     * and
      */
     default Specification<T> and(Specification<T> other) {
         return new AndSpecification<>(this, other);
     }
 
     /**
-     * 或操作
+     * or
      */
     default Specification<T> or(Specification<T> other) {
         return new OrSpecification<>(this, other);
     }
 
     /**
-     * 非操作
+     * non-
      */
     default Specification<T> not() {
         return new NotSpecification<>(this);

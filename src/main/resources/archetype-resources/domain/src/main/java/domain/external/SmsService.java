@@ -4,18 +4,18 @@
 package ${package}.domain.external;
 
 /**
- * 短信服务接口
+ * SMS service interface
  * @author hanfeng
  */
 public interface SmsService {
 
     /**
-     * 发送验证码
+     * send verification code
      */
     void sendVerificationCode(String phoneNumber, String code);
 
     /**
-     * 发送通知短信
+     * send notification SMS
      */
     void sendNotification(String phoneNumber, String message);
 }

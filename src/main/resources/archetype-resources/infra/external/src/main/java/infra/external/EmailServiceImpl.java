@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * 邮件服务实现
+ * email service implementation
  * @author hanfeng
  */
 @Slf4j
@@ -17,27 +17,27 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendWelcomeEmail(String email, String username) {
-        log.info("发送欢迎邮件到: {}, 用户名: {}", email, username);
-        // TODO: 集成真实的邮件服务提供商（如 SendGrid、阿里云邮件推送等）
+        log.info(" send email to: {}, username: {}", email, username);
+        // TODO: integration of email service provide (such as SendGrid, email etc.)
         simulateEmailSending("welcome", email, username);
     }
 
     @Override
     public void sendPasswordResetEmail(String email, String resetToken) {
-        log.info("发送密码重置邮件到: {}, 重置令牌: {}", email, resetToken);
-        // TODO: 集成真实的邮件服务
+        log.info(" send password email to: {}, token: {}", email, resetToken);
+        // TODO: integration of email service
         simulateEmailSending("password-reset", email, resetToken);
     }
 
     @Override
     public void sendActivationEmail(String email, String activationToken) {
-        log.info("发送账户激活邮件到: {}, 激活令牌: {}", email, activationToken);
-        // TODO: 集成真实的邮件服务
+        log.info(" send active email to: {}, active token: {}", email, activationToken);
+        // TODO: integration of email service
         simulateEmailSending("activation", email, activationToken);
     }
 
     private void simulateEmailSending(String type, String email, String content) {
-        // TODO: 替换为真实的邮件发送逻辑
-        log.info("邮件发送成功 - 类型: {}, 收件人: {}, 内容: {}", type, email, content);
+        // TODO: as of email send
+        log.info("Email sent successfully - class: {},: {}, content: {}", type, email, content);
     }
 }

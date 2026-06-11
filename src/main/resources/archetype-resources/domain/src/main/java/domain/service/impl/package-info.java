@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 领域服务实现包。
+ * domain service implementation package.
  * <p>
- * 领域服务接口的实现类。
+ * domain service interface of implementation class.
  * </p>
  * <p>
  * Implementations of domain service interfaces.

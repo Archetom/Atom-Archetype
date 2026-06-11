@@ -18,7 +18,7 @@ import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 /**
- * 操作类服务模板
+ * class service template
  *
  * @author hanfeng
  */
@@ -43,7 +43,7 @@ public class AbstractOperatorServiceTemplate implements ServiceTemplate {
                     .addStep(StandardTemplateSteps.persistence())
                     .addStep(StandardTemplateSteps.after());
 
-            // 执行责任链，获取处理结果
+            // execute responsibility chain, get process result
             T data = chain.execute(action);
 
             result.setData(data);
@@ -51,7 +51,7 @@ public class AbstractOperatorServiceTemplate implements ServiceTemplate {
             return result;
 
         } catch (AppUnRetryException ex) {
-            log.error("App Biz Error 无需重试的业务异常{}", ex.getMessage(), ex);
+            log.error("App Biz Error non-retryable of business exception {}", ex.getMessage(), ex);
             try {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             } catch (NoTransactionException exception) {
@@ -60,7 +60,7 @@ public class AbstractOperatorServiceTemplate implements ServiceTemplate {
             return ResultUtil.genErrorResult(result, ex, eventCode.getCode(), appName);
 
         } catch (AppException ex) {
-            log.error("App Biz Error 可重试的业务异常{}", ex.getMessage(), ex);
+            log.error("App Biz Error retryable of business exception {}", ex.getMessage(), ex);
             try {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             } catch (NoTransactionException exception) {
@@ -78,7 +78,7 @@ public class AbstractOperatorServiceTemplate implements ServiceTemplate {
             return ResultUtil.genErrorResult(ex, appName);
 
         } finally {
-            log.info("App操作结果:" + result);
+            log.info("App result:" + result);
         }
     }
 }

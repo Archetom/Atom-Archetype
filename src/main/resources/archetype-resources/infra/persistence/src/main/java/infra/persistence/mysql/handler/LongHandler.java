@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * 解析 Json 强制使用 Long 类型
+ * Json Long class
  *
  * @author hanfeng
  */

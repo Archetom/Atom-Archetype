@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * MySQL 持久化工具包。
+ * MySQL persistence utility package.
  * <p>
- * 提供分页、转换等持久化工具类。
+ * provide paged, convert etc. persistence utility class.
  * </p>
  * <p>
  * Utilities for MySQL persistence.

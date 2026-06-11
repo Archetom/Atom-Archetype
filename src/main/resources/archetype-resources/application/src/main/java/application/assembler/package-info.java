@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 装配器（Assembler）包。
+ * (Assembler) package.
  * <p>
- * 负责在不同层（如 domain、dto、vo）间的数据对象转换。
+ * responsible for in layer (such as domain, dto, vo) of data object convert.
  * </p>
  * <p>
  * Assemblers for mapping between domain, DTO, VO, etc.

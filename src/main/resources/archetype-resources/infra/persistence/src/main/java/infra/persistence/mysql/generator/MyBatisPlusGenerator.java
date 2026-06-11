@@ -31,11 +31,11 @@ import static org.springframework.util.StringUtils.capitalize;
 public class MyBatisPlusGenerator {
     public static void main(String[] args) throws IOException {
         Properties ymlProperty = new Properties();
-        // 获取生成dao层配置
+        // get generate dao layer configuration
         InputStream inputStream = Files.newInputStream(Paths.get("./infra/src/main/resources/mybatis-plus.yml"));
         ymlProperty.load(inputStream);
 
-        // 构建数据配置信息
+        // build data configuration
         DataSourceConfig.Builder databaseBuilder = new DataSourceConfig.Builder(
                 ymlProperty.getProperty("url"),
                 ymlProperty.getProperty("username"),
@@ -46,7 +46,7 @@ public class MyBatisPlusGenerator {
                 .keyWordsHandler(new MySqlKeyWordsHandler());
 
         FastAutoGenerator.create(databaseBuilder)
-                // dao 层代码输出路径
+                // dao layer code path
                 .globalConfig(builder ->
                         builder.outputDir(ymlProperty.getProperty("output-path"))
                         .disableOpenDir()
@@ -61,25 +61,25 @@ public class MyBatisPlusGenerator {
 
                     return typeRegistry.getColumnType(metaInfo);
                 }))
-                // 包名配置
+                // package configuration
                 .packageConfig(builder ->
                         builder.parent(ymlProperty.getProperty("parent-package"))
-                        .service("dao") // 配置 dao 包名
-                        .serviceImpl("dao.impl") // 配置 dao 实现 包名
-                        .entity("po") // 配置 PO 包名
-                        // Mapper xml地址
+                        .service("dao") // configuration dao package
+                        .serviceImpl("dao.impl") // configuration dao implementation package
+                        .entity("po") // configuration PO package
+                        // Mapper xml
                         .pathInfo(Collections.singletonMap(OutputFile.xml, ymlProperty.getProperty("mapper-path")))
                         .build()
                 )
                 .strategyConfig((scanner, builder) -> {
-                    String tableName = scanner.apply("请输入表名");
-                    String clazz = capitalize(scanner.apply("请输入类名"));
+                    String tableName = scanner.apply(" table ");
+                    String clazz = capitalize(scanner.apply(" class "));
 
-                    builder.enableSkipView() // 开启跳过视图
-                            .addInclude(tableName) //增加包含的表名
+                    builder.enableSkipView() // enable skip view
+                            .addInclude(tableName) // package of table
                             .build()
 
-                            // 不生成 Controller
+                            // generate Controller
                             .controllerBuilder()
                             .disable()
                             .build()
@@ -88,26 +88,26 @@ public class MyBatisPlusGenerator {
                             .serviceBuilder()
                             .superServiceClass(BaseDao.class)
                             .superServiceImplClass(BaseDaoImpl.class)
-                            .convertServiceFileName(entityName -> clazz + "Dao") // 格式化 配置类 接口文件名称
-                            .convertServiceImplFileName(entityName -> clazz + "DaoImpl") // 格式化 datainterface 实现类文件名称
+                            .convertServiceFileName(entityName -> clazz + "Dao") // format configuration class interface file
+                            .convertServiceImplFileName(entityName -> clazz + "DaoImpl") // format datainterface implementation class file
                             .build()
 
                             // po
                             .entityBuilder()
-                            .superClass(BasePO.class) // 自定义继承 BasePO
-                            .enableLombok() // 增加 Lombok @Getter @Setter 注解
-                            .enableTableFieldAnnotation() // 增加 TableField 注解
-                            .naming(NamingStrategy.underline_to_camel) // 表名 下划线转驼峰命名
-                            .columnNaming(NamingStrategy.underline_to_camel) // 表字段 下划线转驼峰命名
+                            .superClass(BasePO.class) // define BasePO
+                            .enableLombok() // Lombok @Getter @Setter
+                            .enableTableFieldAnnotation() // TableField
+                            .naming(NamingStrategy.underline_to_camel) // table underscore
+                            .columnNaming(NamingStrategy.underline_to_camel) // table field underscore
                             .convertFileName(entityName -> clazz + "PO")
                             .disableSerialVersionUID()
-                            .enableFileOverride() // 覆盖 PO
+                            .enableFileOverride() // override PO
                             .build()
 
                             // mapper
                             .mapperBuilder()
-                            .superClass(BaseMapper.class) // 配置 mapper 父类
-                            .enableBaseResultMap() // 开启 生成 mapper xml 通用查询映射结果
+                            .superClass(BaseMapper.class) // configuration mapper class
+                            .enableBaseResultMap() // enable generate mapper xml common query mapping result
                             .convertMapperFileName(entityName -> clazz + "Mapper")
                             .convertXmlFileName(entityName -> clazz + "Mapper")
                             .enableFileOverride()

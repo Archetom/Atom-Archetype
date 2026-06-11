@@ -10,14 +10,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 用户实体单元测试
+ * user entity unit test
  * @author hanfeng
  */
-@DisplayName("用户实体测试")
+@DisplayName(" user entity test ")
 class UserTest {
 
     @Test
-    @DisplayName("创建用户 - 成功")
+    @DisplayName(" create user - success ")
     void createUser_Success() {
         // When
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
@@ -30,19 +30,19 @@ class UserTest {
         assertEquals(UserStatus.ACTIVE, user.getStatus());
         assertTrue(user.isActive());
 
-        // 验证值对象
+        // validate value object
         assertNotNull(user.getUsername());
         assertNotNull(user.getEmail());
         assertEquals("testuser", user.getUsername().getValue());
         assertEquals("test@example.com", user.getEmail().getValue());
 
-        // 验证领域事件
+        // validate domain event
         assertEquals(1, user.getDomainEvents().size());
         assertInstanceOf(UserCreatedEvent.class, user.getDomainEvents().get(0));
     }
 
     @Test
-    @DisplayName("创建用户 - 用户名为空")
+    @DisplayName(" create user - username is empty ")
     void createUser_EmptyUsername() {
         // When & Then
         assertThrows(UserDomainException.class, () -> {
@@ -51,7 +51,7 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("创建用户 - 邮箱为空")
+    @DisplayName(" create user - email is empty ")
     void createUser_EmptyEmail() {
         // When & Then
         assertThrows(UserDomainException.class, () -> {
@@ -60,7 +60,7 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("创建用户 - 密码为空")
+    @DisplayName(" create user - password is empty ")
     void createUser_EmptyPassword() {
         // When & Then
         assertThrows(UserDomainException.class, () -> {
@@ -69,7 +69,7 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("创建用户 - 用户名太短")
+    @DisplayName(" create user - username ")
     void createUser_UsernameTooShort() {
         // When & Then
         assertThrows(UserDomainException.class, () -> {
@@ -78,7 +78,7 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("创建用户 - 密码太短")
+    @DisplayName(" create user - password ")
     void createUser_PasswordTooShort() {
         // When & Then
         assertThrows(UserDomainException.class, () -> {
@@ -87,7 +87,7 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("创建用户 - 带手机号")
+    @DisplayName(" create user - with phone number ")
     void createUser_WithPhoneNumber() {
         // When
         User user = User.create("testuser", "test@example.com", "13800138000", "password123", "Test User");
@@ -103,33 +103,33 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("更改用户状态 - 成功")
+    @DisplayName(" user status - success ")
     void changeStatus_Success() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
-        user.clearDomainEvents(); // 清除创建事件
+        user.clearDomainEvents(); // clear create event
 
         // When
-        user.changeStatus(UserStatus.LOCKED, "违规操作");
+        user.changeStatus(UserStatus.LOCKED, "");
 
         // Then
         assertEquals(UserStatus.LOCKED, user.getStatus());
         assertTrue(user.isLocked());
 
-        // 验证状态变更事件
+        // validate status event
         assertEquals(1, user.getDomainEvents().size());
         UserStatusChangedEvent event = (UserStatusChangedEvent) user.getDomainEvents().get(0);
         assertEquals(UserStatus.ACTIVE, event.getOldStatus());
         assertEquals(UserStatus.LOCKED, event.getNewStatus());
-        assertEquals("违规操作", event.getReason());
+        assertEquals("", event.getReason());
     }
 
     @Test
-    @DisplayName("激活用户")
+    @DisplayName(" active user ")
     void activate_Success() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
-        user.changeStatus(UserStatus.INACTIVE, "测试");
+        user.changeStatus(UserStatus.INACTIVE, " test ");
         user.clearDomainEvents();
 
         // When
@@ -141,14 +141,14 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("锁定用户")
+    @DisplayName(" locked user ")
     void lock_Success() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
         user.clearDomainEvents();
 
         // When
-        user.lock("违规操作");
+        user.lock("");
 
         // Then
         assertEquals(UserStatus.LOCKED, user.getStatus());
@@ -156,7 +156,7 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("删除用户")
+    @DisplayName(" delete user ")
     void delete_Success() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
@@ -171,7 +171,7 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("删除已删除的用户 - 失败")
+    @DisplayName(" delete deleted of user - failure ")
     void deleteDeletedUser_Fail() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
@@ -179,12 +179,12 @@ class UserTest {
 
         // When & Then
         assertThrows(UserDomainException.class, () -> {
-            user.changeStatus(UserStatus.ACTIVE, "重新激活");
+            user.changeStatus(UserStatus.ACTIVE, " new active ");
         });
     }
 
     @Test
-    @DisplayName("更改邮箱 - 字符串版本")
+    @DisplayName(" email - string ")
     void changeEmail_String() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
@@ -199,7 +199,7 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("更改手机号 - 字符串版本")
+    @DisplayName(" phone number - string ")
     void changePhoneNumber_String() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
@@ -215,21 +215,21 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("管理员角色管理")
+    @DisplayName(" administrator role ")
     void adminRole_Management() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
 
-        // 初始状态不是管理员
+        // status administrator
         assertFalse(user.isAdmin());
 
-        // When - 授予管理员角色
+        // When - administrator role
         user.grantAdminRole();
 
         // Then
         assertTrue(user.isAdmin());
 
-        // When - 撤销管理员角色
+        // When - administrator role
         user.revokeAdminRole();
 
         // Then
@@ -237,15 +237,15 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("外部用户管理")
+    @DisplayName("External User")
     void externalUser_Management() {
         // Given
         User user = User.create("testuser", "test@example.com", "password123", "Test User");
 
-        // 初始状态不是外部用户
+        // status External User
         assertFalse(user.isExternalUser());
 
-        // When - 标记为外部用户
+        // When - as External User
         user.markAsExternalUser();
         user.changeExternalId("EXT_001");
 
@@ -255,13 +255,13 @@ class UserTest {
     }
 
     @Test
-    @DisplayName("使用值对象创建用户")
+    @DisplayName(" value object create user ")
     void createUserWithValidatedParams_Success() {
         // Given
         var username = new ${package}.domain.valueobject.Username("testuser");
         var email = new ${package}.domain.valueobject.Email("test@example.com");
 
-        // When - 使用 createWithValidatedParams 方法
+        // When - createWithValidatedParams method
         User user = User.createWithValidatedParams(username, email, "encrypted_password_hash", "Test User");
 
         // Then
@@ -272,11 +272,11 @@ class UserTest {
         assertEquals("test@example.com", user.getEmailValue());
         assertEquals("Test User", user.getRealName());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
-        assertEquals("encrypted_password_hash", user.getPassword()); // 这里是加密后的密码
+        assertEquals("encrypted_password_hash", user.getPassword()); // encrypted of password
     }
 
     @Test
-    @DisplayName("使用值对象创建用户 - 带手机号")
+    @DisplayName(" value object create user - with phone number ")
     void createUserWithValidatedParams_WithPhone_Success() {
         // Given
         var username = new ${package}.domain.valueobject.Username("testuser");

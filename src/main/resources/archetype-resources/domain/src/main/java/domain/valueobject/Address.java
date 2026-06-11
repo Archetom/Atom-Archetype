@@ -4,7 +4,7 @@ import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * 地址值对象
+ * value object
  * @author hanfeng
  */
 @Value
@@ -19,13 +19,13 @@ public class Address implements ValueObject<Address> {
 
     public Address(String country, String province, String city, String district, String street, String zipCode) {
         if (StringUtils.isBlank(country)) {
-            throw new IllegalArgumentException("国家不能为空");
+            throw new IllegalArgumentException("Country must not be empty");
         }
         if (StringUtils.isBlank(province)) {
-            throw new IllegalArgumentException("省份不能为空");
+            throw new IllegalArgumentException("Province must not be empty");
         }
         if (StringUtils.isBlank(city)) {
-            throw new IllegalArgumentException("城市不能为空");
+            throw new IllegalArgumentException("City must not be empty");
         }
 
         this.country = country;
@@ -37,7 +37,7 @@ public class Address implements ValueObject<Address> {
     }
 
     /**
-     * 获取完整地址
+     * get full
      */
     public String getFullAddress() {
         StringBuilder sb = new StringBuilder();

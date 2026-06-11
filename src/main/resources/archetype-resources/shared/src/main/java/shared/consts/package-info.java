@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 通用常量池包。
+ * common constant pool package.
  * <p>
- * 存放全局常量、错误级别等定义。
+ * full, error level etc. define.
  * </p>
  * <p>
  * Global constants (error levels, types, etc).

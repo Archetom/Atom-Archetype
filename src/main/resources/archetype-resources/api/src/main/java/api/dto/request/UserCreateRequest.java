@@ -12,7 +12,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * 用户创建请求
+ * user create request
  * @author hanfeng
  */
 @Data
@@ -20,35 +20,35 @@ import jakarta.validation.constraints.Size;
 public class UserCreateRequest {
 
     /**
-     * 用户名
+     * username
      */
-    @NotBlank(message = "用户名不能为空")
-    @Size(min = 3, max = 50, message = "用户名长度必须在3-50个字符之间")
+    @NotBlank(message = "Username must not be empty")
+    @Size(min = 3, max = 50, message = "Username length must be between3-50 characters ")
     private String username;
 
     /**
-     * 邮箱
+     * email
      */
-    @NotBlank(message = "邮箱不能为空")
-    @Email(message = "邮箱格式不正确")
+    @NotBlank(message = "Email must not be empty")
+    @Email(message = "Invalid email format")
     private String email;
 
     /**
-     * 手机号
+     * phone number
      */
-    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "Invalid phone number format")
     private String phoneNumber;
 
     /**
-     * 密码
+     * password
      */
-    @NotBlank(message = "密码不能为空")
-    @Size(min = 6, max = 20, message = "密码长度必须在6-20个字符之间")
+    @NotBlank(message = "Password must not be empty")
+    @Size(min = 6, max = 20, message = "Password length must be between6-20 characters ")
     private String password;
 
     /**
-     * 真实姓名
+     * real name
      */
-    @Size(max = 100, message = "真实姓名长度不能超过100个字符")
+    @Size(max = 100, message = "Real name length must not exceed100 characters ")
     private String realName;
 }

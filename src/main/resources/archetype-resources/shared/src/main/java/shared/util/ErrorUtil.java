@@ -7,24 +7,24 @@ import io.github.archetom.common.error.ErrorContext;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 错误工具类
+ * error utility class
  */
 @Slf4j
 public class ErrorUtil {
 
     /**
-     * 构建错误码
+     * build error code
      */
     public static ErrorCode makeErrorCode(String errorLevel, String errorType, String errorScene, String errorSpecific) {
         return new ErrorCode(errorLevel, errorType, errorScene, errorSpecific);
     }
 
     /**
-     * 构造错误
+     * error
      *
-     * @param errorCode 错误码
-     * @param message   错误信息
-     * @return 错误
+     * @param errorCode error code
+     * @param message error message
+     * @return error
      */
     private static CommonError makeError(ErrorCode errorCode, String message) {
         CommonError error = new CommonError();
@@ -34,12 +34,12 @@ public class ErrorUtil {
     }
 
     /**
-     * 构造错误
+     * error
      *
-     * @param errorCode 错误码
-     * @param message   错误信息
-     * @param location  错误位置
-     * @return 错误
+     * @param errorCode error code
+     * @param message error message
+     * @param location error position
+     * @return error
      */
     private static CommonError makeError(ErrorCode errorCode, String message, String location) {
         CommonError error = new CommonError();
@@ -50,25 +50,25 @@ public class ErrorUtil {
     }
 
     /**
-     * 新增错误 到错误上下文
+     * new error to error context
      */
     private static ErrorContext addError(CommonError error) {
         return addError(null, error);
     }
 
     /**
-     * 新增错误
+     * new error
      *
-     * @param context 错误上下文
-     * @param error   错误
-     * @return 变化后的错误上下文
+     * @param context error context
+     * @param error error
+     * @return of error context
      */
     private static ErrorContext addError(ErrorContext context, CommonError error) {
         if (context == null) {
             context = new ErrorContext();
         }
         if (error == null) {
-            log.error("参数非法，传入的错误类为空");
+            log.error(" parameter invalid, of error class is empty ");
             return context;
         }
 
@@ -78,12 +78,12 @@ public class ErrorUtil {
     }
 
     /**
-     * 构造错误并 写入错误上下文
+     * error error context
      *
-     * @param context   错误上下文
-     * @param errorCode 错误编码
-     * @param message   错误信息
-     * @return 变化后的错误上下文
+     * @param context error context
+     * @param errorCode error code
+     * @param message error message
+     * @return of error context
      */
     public static ErrorContext makeAndAddError(ErrorContext context, ErrorCode errorCode, String message) {
         CommonError error = makeError(errorCode, message);
@@ -93,12 +93,12 @@ public class ErrorUtil {
     }
 
     /**
-     * 构造错误并 写入错误上下文
+     * error error context
      *
-     * @param errorCode 错误编码
-     * @param message   错误信息
-     * @param location  异常发生的应用
-     * @return 变化后的错误上下文
+     * @param errorCode error code
+     * @param message error message
+     * @param location exception of application
+     * @return of error context
      */
     public static ErrorContext makeAndAddError(ErrorCode errorCode, String message, String location) {
         CommonError error = makeError(errorCode, message, location);

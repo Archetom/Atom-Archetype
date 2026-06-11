@@ -1,7 +1,7 @@
 package ${package}.domain.specification;
 
 /**
- * 组合规约基类
+ * specification class
  * @author hanfeng
  */
 public abstract class CompositeSpecification<T> implements Specification<T> {
@@ -9,7 +9,7 @@ public abstract class CompositeSpecification<T> implements Specification<T> {
     public abstract boolean isSatisfiedBy(T candidate);
 }
 
-// 具体规约实现
+// specification implementation
 class AndSpecification<T> extends CompositeSpecification<T> {
     private final Specification<T> left;
     private final Specification<T> right;

@@ -10,7 +10,7 @@ import io.github.archetom.common.result.Pager;
 import java.util.List;
 
 /**
- * 用户装配器
+ * user
  * @author hanfeng
  */
 public class UserAssembler {

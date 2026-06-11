@@ -8,7 +8,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * 线程池配置，支持 yml 动态调整参数
+ * thread pool configuration, support yml parameter
  * author: hanfeng
  */
 @Configuration

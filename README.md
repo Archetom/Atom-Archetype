@@ -1,7 +1,7 @@
 # Atom Archetype
 
 ![Requirement](https://img.shields.io/badge/JDK-21+-green.svg)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.4-brightgreen.svg)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.0-brightgreen.svg)
 ![atom version](https://img.shields.io/badge/Atom_Archetype-1.1.1-blue)
 
 > 基于 DDD 设计理念的 Java 项目脚手架，专为构建高可维护性、高扩展性的现代化应用而生。
@@ -9,7 +9,7 @@
 ## ✨ 特性
 
 - 🏗️ **DDD 分层架构** - 清晰的领域驱动设计分层，职责明确
-- 🚀 **开箱即用** - 集成 Spring Boot 3.5 + JDK 21，现代化技术栈
+- 🚀 **开箱即用** - 集成 Spring Boot 4.1 + JDK 21，现代化技术栈
 - 🔧 **服务模板** - 内置责任链模式，统一业务处理流程
 - 📦 **多模块设计** - api/application/domain/infra/shared 清晰分离
 - 🔒 **安全设计** - BCrypt 密码加密，乐观锁版本控制，API 版本管理
@@ -67,7 +67,7 @@ demo/
 
 ## 🛠️ 技术栈
 
-- **框架**: Spring Boot 3.5.4
+- **框架**: Spring Boot 4.1.0
 - **数据库**: MyBatis-Plus 3.5.12 + MySQL 9.4.0 + Druid 连接池
 - **缓存**: Redis（Lettuce 客户端）
 - **文档**: SpringDoc OpenAPI 2.8.9

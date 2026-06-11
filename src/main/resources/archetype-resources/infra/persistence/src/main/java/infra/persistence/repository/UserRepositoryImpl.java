@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 用户仓储实现
+ * user repository implementation
  * @author hanfeng
  */
 @Slf4j
@@ -38,22 +38,22 @@ public class UserRepositoryImpl implements UserRepository {
     public User save(User user) {
         UserPO userPO = userPOConverter.toPO(user);
 
-        // 设置租户ID
+        // set tenant ID
         if (userPO.getTenantId() == null) {
             userPO.setTenantId(UserContextHolder.getCurrentTenantId());
         }
 
         if (userPO.getId() == null) {
             userDao.save(userPO);
-            log.info("创建用户成功: id={}, username={}, tenantId={}",
+            log.info(" create user success: id={}, username={}, tenantId={}",
                     userPO.getId(), userPO.getUsername(), userPO.getTenantId());
         } else {
             userDao.updateById(userPO);
-            log.info("更新用户成功: id={}, username={}, tenantId={}",
+            log.info(" update user success: id={}, username={}, tenantId={}",
                     userPO.getId(), userPO.getUsername(), userPO.getTenantId());
         }
 
-        // 转换回领域对象
+        // convert domain object
         User savedUser = userPOConverter.toDomain(userPO);
         return savedUser;
     }
@@ -77,7 +77,7 @@ public class UserRepositoryImpl implements UserRepository {
         if (id != null) {
             checkTenantAccess(id.getValue());
             userDao.removeById(id.getValue());
-            log.info("删除用户成功: id={}", id.getValue());
+            log.info(" delete user success: id={}", id.getValue());
         }
     }
 
@@ -89,9 +89,9 @@ public class UserRepositoryImpl implements UserRepository {
 
         UserPO userPO = userDao.getById(id.getValue());
         if (userPO != null) {
-            // 检查租户权限
+            // check tenant permission
             if (!canAccessTenant(userPO.getTenantId())) {
-                log.warn("无权访问其他租户用户: userId={}, userTenantId={}, currentTenantId={}",
+                log.warn("No permission to access users from another tenant: userId={}, userTenantId={}, currentTenantId={}",
                         id.getValue(), userPO.getTenantId(), UserContextHolder.getCurrentTenantId());
                 return Optional.empty();
             }
@@ -118,8 +118,8 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public List<User> findBySpecification(Specification<User> specification) {
-        // 简化实现：获取所有用户然后过滤
-        // 实际项目中可以将 Specification 转换为数据库查询条件
+        // implementation: get all user then filter
+        // actual in can copy Specification convert as database query
         LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
         addTenantFilter(wrapper);
 
@@ -220,7 +220,7 @@ public class UserRepositoryImpl implements UserRepository {
         Pager<User> pager = PageUtil.toPager(result);
         List<User> users = userPOConverter.toDomainList(result.getRecords());
 
-        // 创建新的Pager对象并设置数据
+        // create new of Pager object set data
         Pager<User> finalPager = new Pager<>();
         finalPager.setPageNum(pager.getPageNum());
         finalPager.setPageSize(pager.getPageSize());
@@ -245,15 +245,15 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public List<User> findInactiveUsers(int days) {
-        // 这里需要根据实际业务逻辑实现
-        // 比如根据最后登录时间查找长时间未登录的用户
-        // 由于当前 UserPO 没有 lastLoginTime 字段，这里提供一个简化实现
+        // need based on actual business logic implementation
+        // such as based on find not of user
+        // by in current UserPO lastLoginTime field, provide implementation
 
         LocalDateTime cutoffTime = LocalDateTime.now().minusDays(days);
 
         LambdaQueryWrapper<UserPO> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserPO::getStatus, UserStatus.ACTIVE.getCode())
-                .lt(UserPO::getUpdatedTime, cutoffTime); // 使用更新时间作为活跃度指标
+                .lt(UserPO::getUpdatedTime, cutoffTime); // updated time as
         addTenantFilter(wrapper);
 
         List<UserPO> userPOs = userDao.list(wrapper);
@@ -261,7 +261,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     /**
-     * 添加租户过滤条件
+     * add tenant filter
      */
     private void addTenantFilter(LambdaQueryWrapper<UserPO> wrapper) {
         Long tenantId = UserContextHolder.getCurrentTenantId();
@@ -271,17 +271,17 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     /**
-     * 检查租户访问权限
+     * check tenant permission
      */
     private void checkTenantAccess(Long userId) {
         UserPO userPO = userDao.getById(userId);
         if (userPO != null && !canAccessTenant(userPO.getTenantId())) {
-            throw new RuntimeException("无权访问其他租户的用户数据");
+            throw new RuntimeException("No permission to access user data from another tenant");
         }
     }
 
     /**
-     * 检查是否可以访问指定租户
+     * check whether can tenant
      */
     private boolean canAccessTenant(Long tenantId) {
         return UserContextHolder.canAccessTenant(tenantId);

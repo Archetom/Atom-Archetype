@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 通用枚举包。
+ * common enum package.
  * <p>
- * 定义统一错误码、事件等系统通用枚举。
+ * define unified error code, event etc. system common.
  * </p>
  * <p>
  * System-wide enums (error codes, events, etc).

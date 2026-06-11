@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 枚举类型包。
+ * class package.
  * <p>
- * 用于定义 API 层的枚举常量（如状态、类型等）。
+ * used for define API layer of (such as status, class etc.).
  * </p>
  * <p>
  * Enums for API layer (status, types, etc).

@@ -1,7 +1,7 @@
 package ${package}.domain.exception;
 
 /**
- * 用户领域异常
+ * user domain exception
  * @author hanfeng
  */
 public class UserDomainException extends DomainException {

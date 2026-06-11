@@ -8,53 +8,53 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 基础仓储接口
+ * base repository interface
  * @author hanfeng
  */
 public interface BaseRepository<T extends AggregateRoot<ID>, ID extends Serializable> {
 
     /**
-     * 保存聚合根
+     * save aggregate root
      */
     T save(T aggregate);
 
     /**
-     * 批量保存
+     * batch save
      */
     List<T> saveAll(List<T> aggregates);
 
     /**
-     * 删除聚合根
+     * delete aggregate root
      */
     void delete(T aggregate);
 
     /**
-     * 根据ID删除
+     * based on ID delete
      */
     void deleteById(ID id);
 
     /**
-     * 根据ID查找
+     * based on ID find
      */
     Optional<T> findById(ID id);
 
     /**
-     * 检查是否存在
+     * check whether exists
      */
     boolean existsById(ID id);
 
     /**
-     * 根据规约查找
+     * based on specification find
      */
     List<T> findBySpecification(Specification<T> specification);
 
     /**
-     * 根据规约查找单个
+     * based on specification find single
      */
     Optional<T> findOneBySpecification(Specification<T> specification);
 
     /**
-     * 根据规约统计数量
+     * based on specification count
      */
     long countBySpecification(Specification<T> specification);
 }

@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * REST 控制器包。
+ * REST controller package.
  * <p>
- * 定义对外开放的 RESTful API 接口。
+ * define for of RESTful API interface.
  * </p>
  * <p>
  * REST controllers for exposing APIs.

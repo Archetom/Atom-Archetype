@@ -4,7 +4,7 @@ import ${package}.api.enums.UserStatus;
 import ${package}.domain.entity.User;
 
 /**
- * 用户规约
+ * user specification
  * @author hanfeng
  */
 public class UserSpecification {
@@ -12,7 +12,7 @@ public class UserSpecification {
     private static final String TEMP_PASSWORD_PREFIX = "temp_";
 
     /**
-     * 用户是否可以登录
+     * user whether can
      */
     public static Specification<User> canLogin() {
         return new CompositeSpecification<User>() {
@@ -27,7 +27,7 @@ public class UserSpecification {
     }
 
     /**
-     * 用户是否可以修改
+     * user whether can
      */
     public static Specification<User> canModify() {
         return new CompositeSpecification<User>() {
@@ -39,7 +39,7 @@ public class UserSpecification {
     }
 
     /**
-     * 用户是否属于指定租户
+     * user whether in tenant
      */
     public static Specification<User> belongsToTenant(Long tenantId) {
         return new CompositeSpecification<User>() {
@@ -53,7 +53,7 @@ public class UserSpecification {
     }
 
     /**
-     * 用户是否为管理员
+     * user whether as administrator
      */
     public static Specification<User> isAdmin() {
         return new CompositeSpecification<User>() {
@@ -65,7 +65,7 @@ public class UserSpecification {
     }
 
     /**
-     * 用户是否为外部用户
+     * user whether as External User
      */
     public static Specification<User> isExternalUser() {
         return new CompositeSpecification<User>() {
@@ -77,7 +77,7 @@ public class UserSpecification {
     }
 
     /**
-     * 用户是否需要密码重置
+     * user whether need password
      */
     public static Specification<User> needsPasswordReset() {
         return new CompositeSpecification<User>() {
@@ -92,13 +92,13 @@ public class UserSpecification {
     }
 
     /**
-     * 组合规约示例：可以操作的用户
+     * specification sample: can of user
      */
     public static Specification<User> canBeOperatedBy(Long operatorTenantId, boolean isOperatorAdmin) {
         Specification<User> spec = canModify().and(belongsToTenant(operatorTenantId));
 
         if (!isOperatorAdmin) {
-            // 非管理员不能操作管理员用户
+            // non- administrator cannot administrator user
             spec = spec.and(isAdmin().not());
         }
 

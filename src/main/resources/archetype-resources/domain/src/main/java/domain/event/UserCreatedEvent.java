@@ -3,7 +3,7 @@ package ${package}.domain.event;
 import lombok.Getter;
 
 /**
- * 用户创建事件
+ * user create event
  * @author hanfeng
  */
 @Getter

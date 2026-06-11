@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 应用层事件监听器包。
+ * application layer event package.
  * <p>
- * 定义应用层事件的监听器，处理事件驱动的业务逻辑。
+ * define application layer event of, process event of business logic.
  * </p>
  * <p>
  * Application layer event listeners for event-driven business logic.
@@ -12,7 +12,7 @@
  * <pre>
  * @EventListener
  * public void handleUserCreated(UserCreatedApplicationEvent event) {
- *     // 处理用户创建事件
+ * // process user create event
  * }
  * </pre>
  */

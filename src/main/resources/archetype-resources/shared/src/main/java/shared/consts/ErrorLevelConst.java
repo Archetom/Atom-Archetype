@@ -2,28 +2,28 @@ package ${package}.shared.consts;
 
 
 /**
- * 错误级别常量池
- * <>对应标准错误码第4位</>
+ * error level
+ * <> for standard error code No. 4 position </>
  */
 public class ErrorLevelConst {
     /**
-     * INFO 级别
+     * INFO
      */
     public static final String INFO = "1";
 
     /**
-     * WARN 级别
+     * WARN
      */
     public static final String WARN = "3";
 
     /**
-     * ERROR 级别
+     * ERROR
      */
     public static final String ERROR = "5";
 
     /**
-     * FATAL 级别
-     * <p>致命的错误</p>
+     * FATAL
+     * <p> of error </p>
      */
     public static final String FATAL = "7";
 }

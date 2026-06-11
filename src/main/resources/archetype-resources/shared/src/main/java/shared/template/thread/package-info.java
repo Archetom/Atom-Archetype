@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 线程上下文管理包。
+ * thread context management package.
  * <p>
- * 定义业务线程变量上下文等。
+ * define business context etc..
  * </p>
  * <p>
  * Thread context management for business logic.

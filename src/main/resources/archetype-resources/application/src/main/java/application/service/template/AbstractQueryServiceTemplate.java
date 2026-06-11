@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * 查询服务模板
+ * query service template
  *
  * @author hanfeng
  */
@@ -30,28 +30,28 @@ public class AbstractQueryServiceTemplate implements ServiceTemplate {
         final Result<T> result = new Result<>();
 
         try {
-            // 初始化上下文
+            // initialize context
             begin();
 
-            // 构建责任链
+            // build responsibility chain
             TemplateChain<T> chain = new TemplateChain<T>()
-                    .addStep(StandardTemplateSteps.checkParam())    // 参数校验
-                    .addStep(StandardTemplateSteps.buildContext()) // 构建上下文
-                    .addStep(StandardTemplateSteps.process())      // 核心逻辑处理
-                    .addStep(StandardTemplateSteps.after());       // 后置处理
+                    .addStep(StandardTemplateSteps.checkParam()) // parameter validation
+                    .addStep(StandardTemplateSteps.buildContext()) // build context
+                    .addStep(StandardTemplateSteps.process()) // process
+                    .addStep(StandardTemplateSteps.after()); // post-processing
 
-            // 执行责任链，获取处理结果
+            // execute responsibility chain, get process result
             T data = chain.execute(action);
 
             result.setData(data);
             result.setSuccess(true);
             return result;
         } catch (AppUnRetryException ex) {
-            log.error("App Biz Error 无需重试的业务异常{}", ex.getMessage(), ex);
+            log.error("App Biz Error non-retryable of business exception {}", ex.getMessage(), ex);
             return ResultUtil.genErrorResult(result, ex, eventCode.getCode(), appName);
 
         } catch (AppException ex) {
-            log.error("App Biz Error 可重试的业务异常{}", ex.getMessage(), ex);
+            log.error("App Biz Error retryable of business exception {}", ex.getMessage(), ex);
             return ResultUtil.genErrorResult(result, ex, eventCode.getCode(), appName);
 
         } catch (Throwable ex) {
@@ -59,7 +59,7 @@ public class AbstractQueryServiceTemplate implements ServiceTemplate {
             return ResultUtil.genErrorResult(ex, appName);
 
         } finally {
-            log.info("App操作结果:" + result);
+            log.info("App result:" + result);
         }
     }
 }

@@ -103,7 +103,7 @@ public class MyBatisNativeConfig {
         @Override
         public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
             Stream.of(RawLanguageDriver.class,
-                    // TODO 增加了MybatisXMLLanguageDriver.class
+                    // TODO MybatisXMLLanguageDriver.class
                     XMLLanguageDriver.class, MybatisXMLLanguageDriver.class,
                     RuntimeSupport.class,
                     ProxyFactory.class,
@@ -120,7 +120,7 @@ public class MyBatisNativeConfig {
                     LruCache.class,
                     SoftCache.class,
                     WeakCache.class,
-                    //TODO 增加了MybatisSqlSessionFactoryBean.class
+                    //TODO MybatisSqlSessionFactoryBean.class
                     SqlSessionFactoryBean.class, MybatisSqlSessionFactoryBean.class,
                     ArrayList.class,
                     HashMap.class,

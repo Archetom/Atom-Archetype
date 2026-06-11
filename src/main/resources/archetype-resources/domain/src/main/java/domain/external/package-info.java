@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 外部依赖包。
+ * external dependency package.
  * <p>
- * 存放与外部系统交互的相关定义。
+ * and external system of related define.
  * </p>
  * <p>
  * Definitions for interactions with external systems.

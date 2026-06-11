@@ -1,7 +1,7 @@
 package ${package}.domain.exception;
 
 /**
- * 领域异常基类
+ * domain exception class
  * @author hanfeng
  */
 public abstract class DomainException extends RuntimeException {

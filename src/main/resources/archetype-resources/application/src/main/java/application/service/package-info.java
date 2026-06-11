@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 应用服务接口包。
+ * application service interface package.
  * <p>
- * 用于声明应用服务的接口，承载业务用例和流程。
+ * used for application service of interface, business use case and workflow.
  * </p>
  * <p>
  * Application service interfaces.

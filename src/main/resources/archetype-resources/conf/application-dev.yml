@@ -23,7 +23,7 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
-  # JPA 配置
+  # JPA configuration
   jpa:
     hibernate:
       ddl-auto: update
@@ -33,7 +33,7 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-# 日志配置
+# logging configuration
 logging:
   config: classpath:logback-spring.xml
   level:
@@ -56,7 +56,7 @@ mybatis-plus:
       logic-not-delete-value: 'null'
   mapper-locations: classpath*:mapper/**/*.xml
 
-# 线程池配置
+# thread pool configuration
 task:
   executor:
     core-pool-size: 5

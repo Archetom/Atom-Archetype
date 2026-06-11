@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Redis 分布式锁实现
+ * Redis distributed lock implementation
  * @author hanfeng
  */
 @Slf4j
@@ -49,14 +49,14 @@ public class RedisDistributedLock implements DistributedLock {
 
             if (Boolean.TRUE.equals(success)) {
                 lockValues.put(key, lockValue);
-                log.debug("获取Redis分布式锁成功: {}", key);
+                log.debug(" get Redis distributed lock success: {}", key);
                 return true;
             } else {
-                log.debug("获取Redis分布式锁失败: {}", key);
+                log.debug(" get Redis distributed lock failure: {}", key);
                 return false;
             }
         } catch (Exception e) {
-            log.error("获取Redis分布式锁异常: {}", key, e);
+            log.error(" get Redis distributed lock exception: {}", key, e);
             return false;
         }
     }
@@ -67,7 +67,7 @@ public class RedisDistributedLock implements DistributedLock {
         String lockValue = lockValues.get(key);
 
         if (lockValue == null) {
-            log.warn("尝试释放未持有的Redis锁: {}", key);
+            log.warn(" try release not of Redis: {}", key);
             return;
         }
 
@@ -81,14 +81,14 @@ public class RedisDistributedLock implements DistributedLock {
 
             if (result != null && result == 1) {
                 lockValues.remove(key);
-                log.debug("释放Redis分布式锁成功: {}", key);
+                log.debug(" release Redis distributed lock success: {}", key);
             } else {
-                log.warn("释放Redis分布式锁失败，锁可能已过期: {}", key);
-                lockValues.remove(key); // 清理本地记录
+                log.warn(" release Redis distributed lock failure, can already: {}", key);
+                lockValues.remove(key); // clean
             }
         } catch (Exception e) {
-            log.error("释放Redis分布式锁异常: {}", key, e);
-            lockValues.remove(key); // 清理本地记录
+            log.error(" release Redis distributed lock exception: {}", key, e);
+            lockValues.remove(key); // clean
         }
     }
 }

@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * API 外观接口包。
+ * API facade interface package.
  * <p>
- * 用于定义业务对外暴露的高层接口。
+ * used for define business for of layer interface.
  * </p>
  * <p>
  * API Facade interfaces.

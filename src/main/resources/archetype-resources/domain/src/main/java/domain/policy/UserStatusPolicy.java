@@ -6,41 +6,41 @@ import ${package}.domain.exception.UserDomainException;
 import org.springframework.stereotype.Component;
 
 /**
- * 用户状态策略
+ * user status policy
  * @author hanfeng
  */
 @Component
 public class UserStatusPolicy {
 
     /**
-     * 检查状态变更是否允许
+     * check status whether
      */
     public void validateStatusChange(User user, UserStatus newStatus) {
         if (user == null) {
-            throw new UserDomainException("用户不能为空");
+            throw new UserDomainException("User must not be empty");
         }
 
         UserStatus currentStatus = user.getStatus();
 
-        // 已删除的用户不能变更状态
+        // Deleted users cannot change status
         if (currentStatus == UserStatus.DELETED) {
-            throw new UserDomainException("已删除的用户不能修改状态");
+            throw new UserDomainException("Deleted users cannot change status");
         }
 
-        // 定义状态变更规则
+        // define status rule
         switch (currentStatus) {
             case ACTIVE:
                 if (newStatus == UserStatus.INACTIVE) {
-                    throw new UserDomainException("激活用户不能直接设置为未激活");
+                    throw new UserDomainException("Active users cannot be set directly to inactive");
                 }
                 break;
             case LOCKED:
                 if (newStatus == UserStatus.INACTIVE) {
-                    throw new UserDomainException("锁定用户不能设置为未激活");
+                    throw new UserDomainException("Locked users cannot be set to inactive");
                 }
                 break;
             default:
-                // 其他状态变更允许
+                // status
                 break;
         }
     }

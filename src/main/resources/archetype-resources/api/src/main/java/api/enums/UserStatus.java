@@ -7,17 +7,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 用户状态枚举
+ * user status
  * @author hanfeng
  */
 @Getter
 @AllArgsConstructor
 public enum UserStatus {
     
-    ACTIVE("ACTIVE", "激活"),
-    INACTIVE("INACTIVE", "未激活"),
-    LOCKED("LOCKED", "锁定"),
-    DELETED("DELETED", "已删除");
+    ACTIVE("ACTIVE", " active "),
+    INACTIVE("INACTIVE", " inactive "),
+    LOCKED("LOCKED", " locked "),
+    DELETED("DELETED", " deleted ");
     
     private final String code;
     private final String name;

@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 请求 DTO（Data Transfer Object）包。
+ * request DTO (Data Transfer Object) package.
  * <p>
- * 用于定义 API 层的请求参数数据结构，负责接收前端或客户端传入的数据。
+ * used for define API layer of request parameter data structure, responsible for frontend or client of data.
  * </p>
  * <p>
  * Request DTOs for receiving API parameters.

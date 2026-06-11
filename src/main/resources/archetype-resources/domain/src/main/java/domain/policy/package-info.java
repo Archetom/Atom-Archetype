@@ -1,15 +1,15 @@
 /**
- * 领域策略包。
+ * domain policy package.
  * <p>
- * 定义领域策略，封装复杂的业务规则和算法。
+ * define domain policy, encapsulate complex of business rule and algorithm.
  * </p>
  * <p>
- * 策略模式用于：
+ * policy used for:
  * <ul>
- *   <li>封装可变的业务规则</li>
- *   <li>支持运行时策略切换</li>
- *   <li>提高代码的扩展性</li>
- *   <li>遵循开闭原则</li>
+ * <li> encapsulate can of business rule </li>
+ * <li> support policy </li>
+ * <li> improve code of </li>
+ * <li> follow then </li>
  * </ul>
  * </p>
  *

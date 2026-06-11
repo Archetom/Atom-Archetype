@@ -21,9 +21,9 @@ public class RedisCacheService implements CacheService {
     public RedisCacheService(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = new ObjectMapper();
-        // 注册 Java 8 时间模块
+        // Java 8
         this.objectMapper.registerModule(new JavaTimeModule());
-        // 禁用将日期写为时间戳
+        // disable copy as
         this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
@@ -32,13 +32,13 @@ public class RedisCacheService implements CacheService {
         try {
             String value = redisTemplate.opsForValue().get(key);
             if (value == null) {
-                log.debug("Redis缓存未命中: {}", key);
+                log.debug("Redis cache miss: {}", key);
                 return null;
             }
-            log.debug("Redis缓存命中: {}", key);
+            log.debug("Redis cache hit: {}", key);
             return objectMapper.readValue(value, type);
         } catch (Exception e) {
-            log.error("Redis缓存获取失败: key={}", key, e);
+            log.error("Redis cache get failure: key={}", key, e);
             return null;
         }
     }
@@ -52,9 +52,9 @@ public class RedisCacheService implements CacheService {
             } else {
                 redisTemplate.opsForValue().set(key, json);
             }
-            log.debug("Redis缓存存储: key={}, ttl={}", key, ttl);
+            log.debug("Redis cache: key={}, ttl={}", key, ttl);
         } catch (Exception e) {
-            log.error("Redis缓存存储失败: key={}", key, e);
+            log.error("Redis cache failure: key={}", key, e);
         }
     }
 
@@ -62,9 +62,9 @@ public class RedisCacheService implements CacheService {
     public void evict(String key) {
         try {
             redisTemplate.delete(key);
-            log.debug("Redis缓存清除: {}", key);
+            log.debug("Redis cache clear: {}", key);
         } catch (Exception e) {
-            log.error("Redis缓存清除失败: key={}", key, e);
+            log.error("Redis cache clear failure: key={}", key, e);
         }
     }
 }

@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 通用异常包。
+ * common exception package.
  * <p>
- * 定义应用层和系统层的自定义异常。
+ * define application layer and system layer of define exception.
  * </p>
  * <p>
  * Custom exceptions for application/system.

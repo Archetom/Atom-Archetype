@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * 用户工厂 - 负责复杂用户对象的创建
+ * user factory - responsible for complex user object of create
  * @author hanfeng
  */
 @Component
@@ -23,69 +23,69 @@ public class UserFactory {
     private final UserCreationPolicy userCreationPolicy;
 
     /**
-     * 创建标准用户
+     * create standard user
      */
     public User createStandardUser(String username, String email, String password, String realName) {
-        // 创建值对象
+        // create value object
         Username usernameVO = new Username(username);
         Email emailVO = new Email(email);
 
-        // 验证创建策略
+        // validate create policy
         userCreationPolicy.validateCreation(usernameVO, emailVO);
 
-        // 验证业务规则
+        // validate business rule
         userDomainService.validateUserCreation(username, email);
 
-        // 验证密码策略
+        // validate password policy
         passwordPolicy.validate(password);
 
-        // 加密密码
+        // password
         String encryptedPassword = userDomainService.encryptPassword(password);
 
-        // 使用内部工厂方法创建用户（跳过密码校验）
+        // internal method create user (skip password)
         User user = User.createWithValidatedParams(usernameVO, emailVO, encryptedPassword, realName);
 
         return user;
     }
 
     /**
-     * 创建带手机号的用户
+     * create with phone number of user
      */
     public User createUserWithPhone(String username, String email, String phoneNumber,
                                     String password, String realName) {
-        // 创建值对象
+        // create value object
         Username usernameVO = new Username(username);
         Email emailVO = new Email(email);
         PhoneNumber phoneVO = new PhoneNumber(phoneNumber);
 
-        // 验证创建策略
+        // validate create policy
         userCreationPolicy.validateCreation(usernameVO, emailVO);
 
-        // 验证业务规则
+        // validate business rule
         userDomainService.validateUserCreation(username, email);
 
-        // 验证密码策略
+        // validate password policy
         passwordPolicy.validate(password);
 
-        // 加密密码
+        // password
         String encryptedPassword = userDomainService.encryptPassword(password);
 
-        // 使用内部工厂方法创建用户（跳过密码校验）
+        // internal method create user (skip password)
         User user = User.createWithValidatedParams(usernameVO, emailVO, phoneVO, encryptedPassword, realName);
 
         return user;
     }
 
     /**
-     * 从外部系统创建用户
+     * from external system create user
      */
     public User createFromExternalSystem(String externalId, String username, String email, String realName) {
-        // 生成临时密码
+        // generate temporary password
         String tempPassword = userDomainService.generateDefaultPassword();
 
         User user = createStandardUser(username, email, tempPassword, realName);
 
-        // 设置外部系统标识
+        // set external system
         user.changeExternalId(externalId);
         user.markAsExternalUser();
 
@@ -93,7 +93,7 @@ public class UserFactory {
     }
 
     /**
-     * 创建管理员用户
+     * create administrator user
      */
     public User createAdminUser(String username, String email, String password, String realName) {
         User user = createStandardUser(username, email, password, realName);

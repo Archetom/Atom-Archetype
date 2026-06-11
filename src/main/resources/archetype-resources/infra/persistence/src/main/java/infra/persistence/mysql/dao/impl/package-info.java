@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * MySQL Dao 实现包。
+ * MySQL Dao implementation package.
  * <p>
- * 实现自定义的 Dao 逻辑。
+ * implementation define of Dao.
  * </p>
  * <p>
  * Custom implementations for MySQL DAOs.

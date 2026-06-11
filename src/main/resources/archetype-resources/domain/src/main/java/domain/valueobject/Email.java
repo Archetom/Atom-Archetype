@@ -8,7 +8,7 @@ import lombok.Value;
 import java.util.regex.Pattern;
 
 /**
- * 邮箱值对象
+ * email value object
  * @author hanfeng
  */
 @Value

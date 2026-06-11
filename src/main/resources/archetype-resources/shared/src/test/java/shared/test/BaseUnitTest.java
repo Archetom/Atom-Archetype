@@ -15,13 +15,13 @@ import java.util.Random;
 import static org.mockito.Mockito.*;
 
 /**
- * 单元测试基类
+ * unit test class
  * <ul>
- *   <li>集成 Mockito</li>
- *   <li>便捷 mock 创建、断言工具</li>
- *   <li>通用测试数据构造方法</li>
- *   <li>增强的异常测试工具</li>
- *   <li>集合和对象断言工具</li>
+ * <li> integration Mockito</li>
+ * <li> convenience mock create, utility </li>
+ * <li> common test data method </li>
+ * <li> of exception test utility </li>
+ * <li> and object utility </li>
  * </ul>
  */
 @ExtendWith(MockitoExtension.class)
@@ -39,7 +39,7 @@ public abstract class BaseUnitTest {
         clearTestData();
     }
 
-    // ========== Mock 工具 ==========
+    // ========== Mock utility ==========
     protected <T> T mock(Class<T> clazz) {
         return mock(clazz);
     }
@@ -53,7 +53,7 @@ public abstract class BaseUnitTest {
         verifyNoInteractions(mock);
     }
 
-    // ========== 断言工具 ==========
+    // ========== utility ==========
     protected <T> void assertListNotEmpty(List<T> list) {
         Assertions.assertNotNull(list, "list should not be null");
         Assertions.assertFalse(list.isEmpty(), "list should not be empty");
@@ -67,24 +67,24 @@ public abstract class BaseUnitTest {
         Assertions.assertFalse(str.trim().isEmpty(), message + " should not be blank");
     }
 
-    // ========== 异常测试 ==========
+    // ========== exception test ==========
     protected void assertThrows(Class<? extends Throwable> expectedType, Runnable action) {
         Assertions.assertThrows(expectedType, action::run);
     }
     protected <T extends Throwable> T assertThrowsWithMessage(
             Class<T> expectedType, String expectedMessage, Runnable action) {
-        T exception = Assertions.assertThrows(expectedType, action::run, "异常未抛出");
+        T exception = Assertions.assertThrows(expectedType, action::run, " exception not ");
         Assertions.assertTrue(exception.getMessage() != null && exception.getMessage().contains(expectedMessage),
-                "实际异常信息: " + exception.getMessage());
+                " actual exception: " + exception.getMessage());
         return exception;
     }
     protected AppException assertAppException(ErrorCodeEnum expectedErrorCode, Runnable action) {
-        AppException exception = Assertions.assertThrows(AppException.class, action::run, "未抛出AppException");
+        AppException exception = Assertions.assertThrows(AppException.class, action::run, " not AppException");
         Assertions.assertEquals(expectedErrorCode, exception.getErrorCode());
         return exception;
     }
 
-    // ========== 测试数据构造 ==========
+    // ========== test data ==========
     protected String randomString(int length) {
         return RandomStringUtils.randomAlphabetic(length);
     }
@@ -104,7 +104,7 @@ public abstract class BaseUnitTest {
         return result;
     }
 
-    // ========== 生命周期管理 ==========
-    protected void initTestData() { /* 可被子类复写 */ }
-    protected void clearTestData() { /* 可被子类复写 */ }
+    // ========== ==========
+    protected void initTestData() {/* can class */}
+    protected void clearTestData() {/* can class */}
 }

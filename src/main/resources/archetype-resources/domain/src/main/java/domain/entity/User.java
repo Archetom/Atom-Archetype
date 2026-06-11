@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.LocalDateTime;
 
 /**
- * 用户聚合根
+ * user aggregate root
  * @author hanfeng
  */
 @Getter
@@ -31,82 +31,82 @@ public class User extends AggregateRoot<UserId> {
     private String realName;
     private UserStatus status;
     private Long tenantId;
-    private String externalId; // 外部系统ID
-    private boolean externalUser; // 是否外部用户
-    private boolean admin; // 是否管理员
+    private String externalId; // external system ID
+    private boolean externalUser; // whether External User
+    private boolean admin; // whether administrator
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
 
-    // 无参构造函数 - 仅供框架使用（MapStruct、JPA等）
+    // without function - framework (MapStruct, JPA etc.)
     public User() {
-        // 框架专用构造函数，不进行业务验证
+        // framework function, business validate
     }
 
-    // ========== 重写 Lombok 生成的 getter 方法以确保类型正确 ==========
+    // ========== override Lombok generate of getter method class ==========
 
     /**
-     * 获取用户名值对象
+     * get username value object
      */
     public Username getUsername() {
         return this.username;
     }
 
     /**
-     * 获取邮箱值对象
+     * get email value object
      */
     public Email getEmail() {
         return this.email;
     }
 
     /**
-     * 获取手机号值对象
+     * get phone number value object
      */
     public PhoneNumber getPhoneNumber() {
         return this.phoneNumber;
     }
 
     /**
-     * 获取用户ID值对象
+     * get user ID value object
      */
     @Override
     public UserId getId() {
         return this.id;
     }
 
-    // ========== 便捷方法获取字符串值 ==========
+    // ========== convenience method get string value ==========
 
     /**
-     * 获取用户名字符串值
+     * get username string value
      */
     public String getUsernameValue() {
         return username != null ? username.getValue() : null;
     }
 
     /**
-     * 获取邮箱字符串值
+     * get email string value
      */
     public String getEmailValue() {
         return email != null ? email.getValue() : null;
     }
 
     /**
-     * 获取手机号字符串值
+     * get phone number string value
      */
     public String getPhoneNumberValue() {
         return phoneNumber != null ? phoneNumber.getValue() : null;
     }
 
     /**
-     * 获取脱敏手机号
+     * get masked phone number
      */
     public String getMaskedPhoneNumber() {
         return phoneNumber != null ? phoneNumber.getMasked() : null;
     }
 
-    // ========== 工厂方法（简单场景使用） ==========
+    // ========== method (simple) ==========
 
     /**
-     * 创建用户（简单工厂方法，用于测试或简单场景）
+     * create user (simple method, used for test or simple)
      */
     public static User create(String username, String email, String password, String realName) {
         validateCreateParams(username, email, password);
@@ -122,14 +122,14 @@ public class User extends AggregateRoot<UserId> {
         user.createdTime = LocalDateTime.now();
         user.updatedTime = LocalDateTime.now();
 
-        // 添加领域事件
+        // add domain event
         user.addDomainEvent(new UserCreatedEvent(user.getId() != null ? user.getId().getValue() : null, username, email));
 
         return user;
     }
 
     /**
-     * 创建用户（带手机号，简单场景）
+     * create user (with phone number, simple)
      */
     public static User create(String username, String email, String phoneNumber, String password, String realName) {
         User user = create(username, email, password, realName);
@@ -140,7 +140,7 @@ public class User extends AggregateRoot<UserId> {
     }
 
     /**
-     * 内部工厂方法 - 用于已经校验过的参数（供 UserFactory 使用）
+     * internal method - used for already of parameter (UserFactory)
      */
     public static User createWithValidatedParams(Username username, Email email, String encryptedPassword, String realName) {
         User user = new User();
@@ -154,7 +154,7 @@ public class User extends AggregateRoot<UserId> {
         user.createdTime = LocalDateTime.now();
         user.updatedTime = LocalDateTime.now();
 
-        // 添加领域事件
+        // add domain event
         user.addDomainEvent(new UserCreatedEvent(
                 user.getId() != null ? user.getId().getValue() : null,
                 username.getValue(),
@@ -165,7 +165,7 @@ public class User extends AggregateRoot<UserId> {
     }
 
     /**
-     * 内部工厂方法 - 带手机号版本
+     * internal method - with phone number
      */
     public static User createWithValidatedParams(Username username, Email email, PhoneNumber phoneNumber,
                                           String encryptedPassword, String realName) {
@@ -175,7 +175,7 @@ public class User extends AggregateRoot<UserId> {
     }
 
     /**
-     * 重建方法 - 从持久层重建领域对象（不触发领域事件）
+     * reconstitute method - from layer reconstitute domain object (domain event)
      */
     public static User reconstitute(UserId id, Username username, Email email, PhoneNumber phoneNumber,
                                      String password, String realName, UserStatus status,
@@ -198,59 +198,59 @@ public class User extends AggregateRoot<UserId> {
         return user;
     }
 
-    // ========== 业务方法 ==========
+    // ========== business method ==========
 
     /**
-     * 更新状态
+     * update status
      */
     public void changeStatus(UserStatus newStatus, String reason) {
         if (newStatus == null) {
-            throw new UserDomainException("用户状态不能为空");
+            throw new UserDomainException("User status must not be empty");
         }
 
         if (this.status == UserStatus.DELETED) {
-            throw new UserDomainException("已删除的用户不能修改状态");
+            throw new UserDomainException("Deleted users cannot change status");
         }
 
         if (this.status == newStatus) {
-            return; // 状态未变化，无需处理
+            return; // status not, no need process
         }
 
         UserStatus oldStatus = this.status;
         this.status = newStatus;
         this.updatedTime = LocalDateTime.now();
 
-        // 添加状态变更事件
+        // add status event
         addDomainEvent(new UserStatusChangedEvent(this.getId() != null ? this.getId().getValue() : null, oldStatus, newStatus, reason));
     }
 
     /**
-     * 激活用户
+     * active user
      */
     public void activate() {
-        changeStatus(UserStatus.ACTIVE, "用户激活");
+        changeStatus(UserStatus.ACTIVE, " user active ");
     }
 
     /**
-     * 锁定用户
+     * locked user
      */
     public void lock(String reason) {
         changeStatus(UserStatus.LOCKED, reason);
     }
 
     /**
-     * 删除用户（软删除）
+     * delete user (soft delete)
      */
     public void delete() {
-        changeStatus(UserStatus.DELETED, "用户删除");
+        changeStatus(UserStatus.DELETED, " user delete ");
     }
 
     /**
-     * 更改邮箱（使用值对象）
+     * email (value object)
      */
     public void changeEmail(Email newEmail) {
         if (newEmail == null) {
-            throw new UserDomainException("邮箱不能为空");
+            throw new UserDomainException("Email must not be empty");
         }
 
         if (!newEmail.sameValueAs(this.email)) {
@@ -260,7 +260,7 @@ public class User extends AggregateRoot<UserId> {
     }
 
     /**
-     * 更改邮箱（字符串版本）
+     * email (string)
      */
     public void changeEmail(String newEmail) {
         Email newEmailVO = new Email(newEmail);
@@ -271,7 +271,7 @@ public class User extends AggregateRoot<UserId> {
     }
 
     /**
-     * 更改手机号（使用值对象）
+     * phone number (value object)
      */
     public void changePhoneNumber(PhoneNumber newPhoneNumber) {
         if (newPhoneNumber != null && !newPhoneNumber.sameValueAs(this.phoneNumber)) {
@@ -281,7 +281,7 @@ public class User extends AggregateRoot<UserId> {
     }
 
     /**
-     * 更新手机号（字符串版本）
+     * update phone number (string)
      */
     public void changePhoneNumber(String newPhoneNumber) {
         this.phoneNumber = new PhoneNumber(newPhoneNumber);
@@ -289,97 +289,97 @@ public class User extends AggregateRoot<UserId> {
     }
 
     /**
-     * 设置外部系统ID
+     * set external system ID
      */
     public void changeExternalId(String externalId) {
         this.externalId = externalId;
     }
 
     /**
-     * 设置租户ID
+     * set tenant ID
      */
     public void changeTenantId(Long tenantId) {
         this.tenantId = tenantId;
     }
 
     /**
-     * 标记为外部用户
+     * as External User
      */
     public void markAsExternalUser() {
         this.externalUser = true;
     }
 
     /**
-     * 授予管理员角色
+     * administrator role
      */
     public void grantAdminRole() {
         this.admin = true;
     }
 
     /**
-     * 撤销管理员角色
+     * administrator role
      */
     public void revokeAdminRole() {
         this.admin = false;
     }
 
-    // ========== 状态检查方法 ==========
+    // ========== status check method ==========
 
     /**
-     * 检查用户是否激活
+     * check user whether active
      */
     public boolean isActive() {
         return UserStatus.ACTIVE.equals(this.status);
     }
 
     /**
-     * 检查用户是否被锁定
+     * check user whether locked
      */
     public boolean isLocked() {
         return UserStatus.LOCKED.equals(this.status);
     }
 
     /**
-     * 检查用户是否被删除
+     * check user whether delete
      */
     public boolean isDeleted() {
         return UserStatus.DELETED.equals(this.status);
     }
 
     /**
-     * 检查是否为管理员
+     * check whether as administrator
      */
     public boolean isAdmin() {
         return this.admin;
     }
 
     /**
-     * 检查是否为外部用户
+     * check whether as External User
      */
     public boolean isExternalUser() {
         return this.externalUser;
     }
 
-    // ========== 验证方法（仅用于简单工厂方法） ==========
+    // ========== validate method (used for simple method) ==========
 
     /**
-     * 验证创建参数（仅用于简单工厂方法）
+     * validate create parameter (used for simple method)
      */
     private static void validateCreateParams(String username, String email, String password) {
         if (StringUtils.isBlank(username)) {
-            throw new UserDomainException("用户名不能为空");
+            throw new UserDomainException("Username must not be empty");
         }
         if (StringUtils.isBlank(email)) {
-            throw new UserDomainException("邮箱不能为空");
+            throw new UserDomainException("Email must not be empty");
         }
         if (StringUtils.isBlank(password)) {
-            throw new UserDomainException("密码不能为空");
+            throw new UserDomainException("Password must not be empty");
         }
         if (username.length() < 3 || username.length() > 50) {
-            throw new UserDomainException("用户名长度必须在3-50个字符之间");
+            throw new UserDomainException("Username length must be between3-50 characters ");
         }
         if (password.length() < 6 || password.length() > 20) {
-            throw new UserDomainException("密码长度必须在6-20个字符之间");
+            throw new UserDomainException("Password length must be between6-20 characters ");
         }
     }
 }

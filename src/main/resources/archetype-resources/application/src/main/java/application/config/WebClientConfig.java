@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
- * WebClient 配置
+ * WebClient configuration
  * @author hanfeng
  */
 @Configuration
@@ -36,7 +36,7 @@ public class WebClientConfig {
 
     @Bean
     public WebClient webClient() {
-        // 配置底层 HttpClient
+        // configuration layer HttpClient
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeoutMillis)
                 .responseTimeout(Duration.ofMillis(readTimeoutMillis))

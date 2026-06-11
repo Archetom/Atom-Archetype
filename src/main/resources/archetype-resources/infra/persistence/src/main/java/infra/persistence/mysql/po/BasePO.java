@@ -19,32 +19,32 @@ public class BasePO implements Serializable {
     private static final long serialVersionUID = -7330573630298592450L;
 
     /**
-     * 租户，指 SaaS 租户
+     * tenant, SaaS tenant
      */
     @TableField(fill = FieldFill.INSERT, value = "tenant_id")
     private Long tenantId;
 
     /**
-     * 创建时间
+     * created time
      */
     @TableField(value = "created_time", fill = FieldFill.INSERT)
     private LocalDateTime createdTime;
 
     /**
-     * 最后修改时间
+     *
      */
     @TableField(value = "updated_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedTime;
 
     /**
-     * 删除时间，逻辑删除
+     * deleted time, logical delete
      */
     @TableLogic
     @TableField("deleted_time")
     private LocalDateTime deletedTime;
 
     /**
-     * 版本号，乐观锁
+     *,
      */
     @Version
     private Long version;

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 
 /**
- * 用户缓存服务
+ * user cache service
  * @author hanfeng
  */
 @Slf4j
@@ -29,18 +29,18 @@ public class UserCacheService {
     }
 
     /**
-     * 缓存用户信息
+     * cache user
      */
     public void cacheUser(UserVO user) {
         if (user != null && user.getId() != null) {
             String cacheKey = USER_CACHE_PREFIX + user.getId();
             cacheService.put(cacheKey, user, USER_CACHE_TTL);
-            log.debug("缓存用户信息: userId={}", user.getId());
+            log.debug(" cache user: userId={}", user.getId());
         }
     }
 
     /**
-     * 获取缓存的用户信息
+     * get cache of user
      */
     public UserVO getCachedUser(Long userId) {
         if (userId == null) {
@@ -51,38 +51,38 @@ public class UserCacheService {
         UserVO user = cacheService.get(cacheKey, UserVO.class);
 
         if (user != null) {
-            log.debug("命中用户缓存: userId={}", userId);
+            log.debug(" hit user cache: userId={}", userId);
         } else {
-            log.debug("未命中用户缓存: userId={}", userId);
+            log.debug(" miss user cache: userId={}", userId);
         }
 
         return user;
     }
 
     /**
-     * 清除用户缓存
+     * clear user cache
      */
     public void evictUser(Long userId) {
         if (userId != null) {
             String cacheKey = USER_CACHE_PREFIX + userId;
             cacheService.evict(cacheKey);
-            log.debug("清除用户缓存: userId={}", userId);
+            log.debug(" clear user cache: userId={}", userId);
         }
     }
 
     /**
-     * 缓存用户名到ID的映射
+     * cache username to ID of mapping
      */
     public void cacheUsernameMapping(String username, Long userId) {
         if (username != null && userId != null) {
             String cacheKey = "username:" + username;
             cacheService.put(cacheKey, userId, USER_CACHE_TTL);
-            log.debug("缓存用户名映射: username={}, userId={}", username, userId);
+            log.debug(" cache username mapping: username={}, userId={}", username, userId);
         }
     }
 
     /**
-     * 获取用户名对应的用户ID
+     * get username for of user ID
      */
     public Long getCachedUserIdByUsername(String username) {
         if (username == null) {

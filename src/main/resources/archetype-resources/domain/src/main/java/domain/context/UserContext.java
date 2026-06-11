@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 
 /**
- * 用户领域上下文
+ * user domain context
  * @author hanfeng
  */
 @Data
@@ -17,47 +17,47 @@ import java.time.LocalDateTime;
 public class UserContext {
 
     /**
-     * 当前操作用户ID
+     * current user ID
      */
     private Long currentUserId;
 
     /**
-     * 租户ID
+     * tenant ID
      */
     private Long tenantId;
 
     /**
-     * 操作时间
+     *
      */
     private LocalDateTime operationTime;
 
     /**
-     * 操作类型
+     * class
      */
     private String operationType;
 
     /**
-     * 客户端IP
+     * client IP
      */
     private String clientIp;
 
     /**
-     * 用户代理
+     * user
      */
     private String userAgent;
 
     /**
-     * 请求ID（用于链路追踪）
+     * request ID (used for)
      */
     private String requestId;
 
     /**
-     * 是否为管理员
+     * whether as administrator
      */
     private boolean admin;
 
     /**
-     * 创建用户上下文
+     * create user context
      */
     public static UserContext create(Long currentUserId, Long tenantId) {
         return new UserContext()
@@ -67,7 +67,7 @@ public class UserContext {
     }
 
     /**
-     * 设置操作信息
+     * set
      */
     public UserContext withOperation(String operationType, String clientIp, String userAgent) {
         return this.setOperationType(operationType)
@@ -76,28 +76,28 @@ public class UserContext {
     }
 
     /**
-     * 设置请求ID
+     * set request ID
      */
     public UserContext withRequestId(String requestId) {
         return this.setRequestId(requestId);
     }
 
     /**
-     * 设置管理员标识
+     * set administrator
      */
     public UserContext withAdmin(boolean admin) {
         return this.setAdmin(admin);
     }
 
     /**
-     * 检查是否有权限操作指定租户的数据
+     * check whether permission tenant of data
      */
     public boolean canAccessTenant(Long targetTenantId) {
         return this.tenantId != null && this.tenantId.equals(targetTenantId);
     }
 
     /**
-     * 检查是否为系统管理员
+     * check whether as System Administrator
      */
     public boolean isSystemAdmin() {
         return this.admin;

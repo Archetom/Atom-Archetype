@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 服务模板责任链包。
+ * service template responsibility chain package.
  * <p>
- * 提供服务调用链步骤定义和实现。
+ * provide service define and implementation.
  * </p>
  * <p>
  * Chain-of-responsibility for service templates.

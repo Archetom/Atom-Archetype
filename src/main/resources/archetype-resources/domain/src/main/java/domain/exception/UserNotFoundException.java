@@ -1,16 +1,16 @@
 package ${package}.domain.exception;
 
 /**
- * 用户未找到异常
+ * user not to exception
  * @author hanfeng
  */
 public class UserNotFoundException extends UserDomainException {
 
     public UserNotFoundException(Long userId) {
-        super("用户不存在: " + userId);
+        super("User does not exist: " + userId);
     }
 
     public UserNotFoundException(String username) {
-        super("用户不存在: " + username);
+        super("User does not exist: " + username);
     }
 }

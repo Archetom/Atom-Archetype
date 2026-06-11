@@ -1,7 +1,7 @@
 /**
- * 类型转换器（Converter）包。
+ * class convert (Converter) package.
  * <p>
- * 用于实现简单的属性映射和类型转换（常配合 MapStruct 或手工转换）。
+ * used for implementation simple of mapping and class convert (MapStruct or convert).
  * </p>
  * <p>
  * Converters for mapping between entities, DTOs, and VOs.

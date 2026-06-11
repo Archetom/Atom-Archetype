@@ -7,7 +7,7 @@ import io.github.archetom.common.result.Pager;
  */
 public class PageUtil {
     /**
-     * 复制基础页码信息
+     * base code
      *
      * @param pager Pager
      */

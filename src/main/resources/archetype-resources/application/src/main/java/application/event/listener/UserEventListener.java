@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
- * 用户事件监听器
+ * user event listener
  * @author hanfeng
  */
 @Slf4j
@@ -23,53 +23,53 @@ public class UserEventListener {
     private final SmsService smsService;
 
     /**
-     * 处理用户创建事件
+     * process user create event
      */
     @Async
     @EventListener
     public void handleUserCreated(UserCreatedEvent event) {
-        log.info("处理用户创建事件: userId={}, username={}",
+        log.info(" process user create event: userId={}, username={}",
                 event.getUserId(), event.getUsername());
 
         try {
-            // 发送欢迎邮件
+            // send email
             emailService.sendWelcomeEmail(event.getEmail(), event.getUsername());
 
-            log.info("用户创建事件处理完成: userId={}", event.getUserId());
+            log.info(" user create event process: userId={}", event.getUserId());
         } catch (Exception e) {
-            log.error("处理用户创建事件失败: userId={}", event.getUserId(), e);
+            log.error(" process user create event failure: userId={}", event.getUserId(), e);
         }
     }
 
     /**
-     * 处理用户状态变更事件
+     * process user status event
      */
     @Async
     @EventListener
     public void handleUserStatusChanged(UserStatusChangedEvent event) {
-        log.info("处理用户状态变更事件: userId={}, oldStatus={}, newStatus={}",
+        log.info(" process user status event: userId={}, oldStatus={}, newStatus={}",
                 event.getUserId(), event.getOldStatus(), event.getNewStatus());
 
         try {
-            // 根据状态变更发送通知
+            // based on status send notification
             switch (event.getNewStatus()) {
                 case LOCKED -> {
-                    log.info("用户账户被锁定: userId={}, reason={}", event.getUserId(), event.getReason());
+                    log.info(" user locked: userId={}, reason={}", event.getUserId(), event.getReason());
                 }
                 case ACTIVE -> {
-                    log.info("用户账户被激活: userId={}", event.getUserId());
+                    log.info(" user active: userId={}", event.getUserId());
                 }
                 case INACTIVE -> {
-                    log.info("用户账户被停用: userId={}", event.getUserId());
+                    log.info(" user: userId={}", event.getUserId());
                 }
                 case DELETED -> {
-                    log.info("用户账户被删除: userId={}", event.getUserId());
+                    log.info(" user delete: userId={}", event.getUserId());
                 }
             }
 
-            log.info("用户状态变更事件处理完成: userId={}", event.getUserId());
+            log.info(" user status event process: userId={}", event.getUserId());
         } catch (Exception e) {
-            log.error("处理用户状态变更事件失败: userId={}", event.getUserId(), e);
+            log.error(" process user status event failure: userId={}", event.getUserId(), e);
         }
     }
 }

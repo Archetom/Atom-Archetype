@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.regex.Pattern;
 
 /**
- * 用户名值对象
+ * username value object
  * @author hanfeng
  */
 @Value
@@ -18,10 +18,10 @@ public class Username implements ValueObject<Username> {
 
     public Username(String value) {
         if (StringUtils.isBlank(value)) {
-            throw new IllegalArgumentException("用户名不能为空");
+            throw new IllegalArgumentException("Username must not be empty");
         }
         if (!USERNAME_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException("用户名只能包含字母、数字和下划线，长度3-50位");
+            throw new IllegalArgumentException("Username can only contain letters, digits and underscores, length 3-50 position ");
         }
         this.value = value;
     }

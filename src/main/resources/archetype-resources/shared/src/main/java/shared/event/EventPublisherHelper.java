@@ -5,7 +5,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 /**
- * 事件发布工具
+ * event publish utility
  */
 @Component
 public class EventPublisherHelper {

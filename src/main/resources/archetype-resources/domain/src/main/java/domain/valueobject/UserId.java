@@ -3,7 +3,7 @@ package ${package}.domain.valueobject;
 import lombok.Value;
 
 /**
- * 用户ID值对象
+ * user ID value object
  * @author hanfeng
  */
 @Value
@@ -13,7 +13,7 @@ public class UserId implements ValueObject<UserId> {
 
     public UserId(Long value) {
         if (value == null || value <= 0) {
-            throw new IllegalArgumentException("用户ID必须是正数");
+            throw new IllegalArgumentException(" user ID ");
         }
         this.value = value;
     }

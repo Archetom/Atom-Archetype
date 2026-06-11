@@ -4,7 +4,7 @@ import io.github.archetom.common.utils.Profiler;
 
 public class StandardTemplateSteps {
     /**
-     * 参数校验步骤
+     * parameter validation
      */
     public static <T> TemplateStep<T> checkParam() {
         return action -> {
@@ -17,7 +17,7 @@ public class StandardTemplateSteps {
     }
 
     /**
-     * 构建上下文步骤
+     * build context
      */
     public static <T> TemplateStep<T> buildContext() {
         return action -> {
@@ -30,7 +30,7 @@ public class StandardTemplateSteps {
     }
 
     /**
-     * 幂等校验步骤
+     * idempotency
      */
     public static <T> TemplateStep<T> checkConcurrent() {
         return action -> {
@@ -43,20 +43,20 @@ public class StandardTemplateSteps {
     }
 
     /**
-     * 核心处理逻辑
+     * core processing logic
      */
     public static <T> TemplateStep<T> process() {
         return action -> {
             Profiler.enter("process");
-            T result = action.process();  // 获取处理结果
+            T result = action.process(); // get process result
             Profiler.release();
 
-            return result;  // 返回处理结果
+            return result; // return process result
         };
     }
 
     /**
-     * 持久化步骤
+     * persistence
      */
     public static <T> TemplateStep<T> persistence() {
         return action -> {
@@ -69,7 +69,7 @@ public class StandardTemplateSteps {
     }
 
     /**
-     * 后置处理步骤
+     * post-processing
      */
     public static <T> TemplateStep<T> after() {
         return action -> {

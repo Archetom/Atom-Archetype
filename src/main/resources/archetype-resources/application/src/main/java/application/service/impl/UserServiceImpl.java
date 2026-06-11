@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 
 /**
- * 用户应用服务实现
+ * user application service implementation
  * @author hanfeng
  */
 @Slf4j
@@ -75,20 +75,20 @@ public class UserServiceImpl implements UserService {
             @Override
             public void checkParam() {
                 if (request == null) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "请求参数不能为空");
+                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "Request parameters must not be empty");
                 }
             }
 
             @Override
             public void buildContext() {
-                // 使用分布式锁防止重复创建用户
+                // distributed lock create user
                 lockKey = "user:create:" + request.getUsername();
                 if (!distributedLock.tryLock(lockKey, Duration.ofSeconds(10))) {
-                    throw new AppException(ErrorCodeEnum.MAIN_TRANS_CONTROL_EXP, "用户创建操作正在进行中，请稍后重试");
+                    throw new AppException(ErrorCodeEnum.MAIN_TRANS_CONTROL_EXP, "User creation is in progress, Please try again later");
                 }
 
                 try {
-                    // 使用工厂创建用户实体
+                    // create user entity
                     if (request.getPhoneNumber() != null) {
                         user = userFactory.createUserWithPhone(
                                 request.getUsername(),
@@ -114,10 +114,10 @@ public class UserServiceImpl implements UserService {
             @Override
             public UserVO process() {
                 try {
-                    // 保存用户
+                    // save user
                     user = userRepository.save(user);
 
-                    // 转换为VO
+                    // convert as VO
                     userVO = UserAssembler.toVO(user);
 
                     return userVO;
@@ -128,19 +128,19 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void after() {
-                // 缓存用户信息
+                // cache user
                 userCacheService.cacheUser(userVO);
                 if (user.getId() != null) {
                     userCacheService.cacheUsernameMapping(user.getUsernameValue(), user.getId().getValue());
                 }
 
-                // 发布领域事件
+                // publish domain event
                 if (user.hasDomainEvents()) {
                     domainEventPublisher.publishAll(user.getDomainEvents());
                     user.clearDomainEvents();
                 }
 
-                log.info("用户创建成功，用户ID: {}, 用户名: {}",
+                log.info("User created successfully, user ID: {}, username: {}",
                         user.getId() != null ? user.getId().getValue() : null,
                         user.getUsernameValue());
             }
@@ -153,25 +153,25 @@ public class UserServiceImpl implements UserService {
             @Override
             public void checkParam() {
                 if (userId == null || userId <= 0) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户ID不能为空或小于等于0");
+                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, " user ID must not be empty or in etc. in 0");
                 }
             }
 
             @Override
             public UserVO process() {
-                // 先从缓存获取
+                // first from cache get
                 UserVO cachedUser = userCacheService.getCachedUser(userId);
                 if (cachedUser != null) {
                     return cachedUser;
                 }
 
-                // 缓存未命中，从数据库获取
+                // cache miss, from database get
                 User user = userRepository.findById(new UserId(userId))
                         .orElseThrow(() -> new UserNotFoundException(userId));
 
                 UserVO userVO = UserAssembler.toVO(user);
 
-                // 缓存用户信息
+                // cache user
                 userCacheService.cacheUser(userVO);
 
                 return userVO;
@@ -185,7 +185,7 @@ public class UserServiceImpl implements UserService {
             @Override
             public void checkParam() {
                 if (request == null) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "查询请求不能为空");
+                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "Query request must not be empty");
                 }
                 if (request.getPage() == null || request.getPage() < 1) {
                     request.setPage(1);
@@ -225,19 +225,19 @@ public class UserServiceImpl implements UserService {
             @Override
             public void checkParam() {
                 if (userId == null || userId <= 0) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户ID不能为空或小于等于0");
+                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, " user ID must not be empty or in etc. in 0");
                 }
                 if (status == null) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "状态不能为空");
+                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "Status must not be empty");
                 }
             }
 
             @Override
             public void buildContext() {
-                // 使用分布式锁防止并发修改
+                // distributed lock
                 lockKey = "user:update:" + userId;
                 if (!distributedLock.tryLock(lockKey, Duration.ofSeconds(5))) {
-                    throw new AppException(ErrorCodeEnum.MAIN_TRANS_CONTROL_EXP, "用户状态更新操作正在进行中，请稍后重试");
+                    throw new AppException(ErrorCodeEnum.MAIN_TRANS_CONTROL_EXP, "User status update is in progress, Please try again later");
                 }
 
                 try {
@@ -253,7 +253,7 @@ public class UserServiceImpl implements UserService {
             public Void process() {
                 try {
                     UserStatus newStatus = UserStatus.fromCode(status);
-                    user.changeStatus(newStatus, "管理员操作");
+                    user.changeStatus(newStatus, " administrator ");
                     userRepository.save(user);
                     return null;
                 } finally {
@@ -263,16 +263,16 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void after() {
-                // 清除缓存
+                // clear cache
                 userCacheService.evictUser(userId);
 
-                // 发布领域事件
+                // publish domain event
                 if (user.hasDomainEvents()) {
                     domainEventPublisher.publishAll(user.getDomainEvents());
                     user.clearDomainEvents();
                 }
 
-                log.info("用户状态更新成功，用户ID: {}, 新状态: {}", userId, status);
+                log.info("User status updated successfully, user ID: {}, new status: {}", userId, status);
             }
         });
     }
@@ -287,16 +287,16 @@ public class UserServiceImpl implements UserService {
             @Override
             public void checkParam() {
                 if (userId == null || userId <= 0) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户ID不能为空或小于等于0");
+                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, " user ID must not be empty or in etc. in 0");
                 }
             }
 
             @Override
             public void buildContext() {
-                // 使用分布式锁防止并发删除
+                // distributed lock delete
                 lockKey = "user:delete:" + userId;
                 if (!distributedLock.tryLock(lockKey, Duration.ofSeconds(5))) {
-                    throw new AppException(ErrorCodeEnum.MAIN_TRANS_CONTROL_EXP, "用户删除操作正在进行中，请稍后重试");
+                    throw new AppException(ErrorCodeEnum.MAIN_TRANS_CONTROL_EXP, "User deletion is in progress, Please try again later");
                 }
 
                 try {
@@ -311,9 +311,9 @@ public class UserServiceImpl implements UserService {
             @Override
             public Void process() {
                 try {
-                    // 检查是否可以删除
+                    // check whether can delete
                     if (!userDomainService.canDeleteUser(user)) {
-                        throw new AppException(ErrorCodeEnum.NOT_SUPPORT_OPERATE_EXP, "该用户不能被删除");
+                        throw new AppException(ErrorCodeEnum.NOT_SUPPORT_OPERATE_EXP, "This user cannot be deleted");
                     }
 
                     user.delete();
@@ -326,16 +326,16 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void after() {
-                // 清除缓存
+                // clear cache
                 userCacheService.evictUser(userId);
 
-                // 发布领域事件
+                // publish domain event
                 if (user.hasDomainEvents()) {
                     domainEventPublisher.publishAll(user.getDomainEvents());
                     user.clearDomainEvents();
                 }
 
-                log.info("用户删除成功，用户ID: {}", userId);
+                log.info("User deleted successfully, user ID: {}", userId);
             }
         });
     }

@@ -5,34 +5,34 @@ import lombok.Data;
 import java.util.Map;
 
 /**
- * 业务线程变量上下文--隐式传递数据
+ * business context -- data
  */
 @Data
 public final class AppContext {
 
     /**
-     * 用户 ID
+     * user ID
      */
     private String accountId;
 
     /**
-     * 租户 ID
+     * tenant ID
      */
     private String tenantId;
 
     /**
-     * 业务数据（用于底层向上层数据传递）
+     * business data (used for layer layer data)
      */
     private Map<String, Object> extra;
 
     /**
-     * 初始化函数
+     * initialize function
      */
     public AppContext() {
     }
 
     /**
-     * 初始化
+     * initialize
      */
     public static AppContext getInstance() {
         return new AppContext();

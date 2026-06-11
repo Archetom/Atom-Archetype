@@ -6,7 +6,7 @@ package ${package}.domain.context;
 import ${package}.domain.context.UserContext;
 
 /**
- * 用户上下文持有者
+ * user context
  * @author hanfeng
  */
 public class UserContextHolder {
@@ -14,28 +14,28 @@ public class UserContextHolder {
     private static final ThreadLocal<UserContext> CONTEXT_HOLDER = new ThreadLocal<>();
 
     /**
-     * 设置用户上下文
+     * set user context
      */
     public static void setContext(UserContext context) {
         CONTEXT_HOLDER.set(context);
     }
 
     /**
-     * 获取用户上下文
+     * get user context
      */
     public static UserContext getContext() {
         return CONTEXT_HOLDER.get();
     }
 
     /**
-     * 清除用户上下文
+     * clear user context
      */
     public static void clear() {
         CONTEXT_HOLDER.remove();
     }
 
     /**
-     * 获取当前用户ID
+     * get current user ID
      */
     public static Long getCurrentUserId() {
         UserContext context = getContext();
@@ -43,7 +43,7 @@ public class UserContextHolder {
     }
 
     /**
-     * 获取当前租户ID
+     * get current tenant ID
      */
     public static Long getCurrentTenantId() {
         UserContext context = getContext();
@@ -51,7 +51,7 @@ public class UserContextHolder {
     }
 
     /**
-     * 检查是否有权限访问指定租户
+     * check whether permission tenant
      */
     public static boolean canAccessTenant(Long tenantId) {
         UserContext context = getContext();

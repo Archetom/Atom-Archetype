@@ -14,7 +14,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.UUID;
 
 /**
- * 用户上下文拦截器
+ * user context
  * @author hanfeng
  */
 @Slf4j
@@ -23,7 +23,7 @@ public class UserContextInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        // 从请求头中获取用户信息（实际项目中可能从JWT token中解析）
+        // from request in get user (actual in can from JWT token in)
         String userIdHeader = request.getHeader("X-User-Id");
         String tenantIdHeader = request.getHeader("X-Tenant-Id");
         String adminHeader = request.getHeader("X-Admin");
@@ -33,7 +33,7 @@ public class UserContextInterceptor implements HandlerInterceptor {
             requestId = UUID.randomUUID().toString();
         }
 
-        // 创建用户上下文
+        // create user context
         UserContext context = UserContext.create(
                 userIdHeader != null ? Long.parseLong(userIdHeader) : null,
                 tenantIdHeader != null ? Long.parseLong(tenantIdHeader) : null
@@ -44,13 +44,13 @@ public class UserContextInterceptor implements HandlerInterceptor {
         ).withRequestId(requestId)
          .withAdmin("true".equalsIgnoreCase(adminHeader));
 
-        // 设置到ThreadLocal
+        // set to ThreadLocal
         UserContextHolder.setContext(context);
 
-        // 设置响应头
+        // set response
         response.setHeader("X-Request-Id", requestId);
 
-        log.debug("设置用户上下文: userId={}, tenantId={}, requestId={}",
+        log.debug(" set user context: userId={}, tenantId={}, requestId={}",
                 context.getCurrentUserId(), context.getTenantId(), requestId);
 
         return true;
@@ -59,13 +59,13 @@ public class UserContextInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
                                 Object handler, Exception ex) {
-        // 清理ThreadLocal
+        // clean ThreadLocal
         UserContextHolder.clear();
-        log.debug("清理用户上下文");
+        log.debug(" clean user context ");
     }
 
     /**
-     * 获取客户端IP地址
+     * get client IP
      */
     private String getClientIpAddress(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");

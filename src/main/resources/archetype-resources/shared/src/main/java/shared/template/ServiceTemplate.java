@@ -5,16 +5,16 @@ import ${package}.shared.enums.EventEnum;
 import io.github.archetom.common.result.Result;
 
 /**
- * 服务模板
+ * service template
  */
 public interface ServiceTemplate {
 
     /**
-     * 接口执行(框架实现)
+     * interface execute (framework implementation)
      *
-     * @param eventEnum 事件码(4位)
-     * @param action    执行的接口
-     * @return 返回结果
+     * @param eventEnum event code (4 position)
+     * @param action execute of interface
+     * @return return result
      */
     default <T> Result<T> execute(EventEnum eventEnum, ServiceCallback<T> action) {
         try {
@@ -26,18 +26,18 @@ public interface ServiceTemplate {
     }
 
     /**
-     * 接口执行(业务实现)
+     * interface execute (business implementation)
      *
-     * @param eventEnum 事件码(4位)
-     * @param action    执行的接口
-     * @return 返回结果
+     * @param eventEnum event code (4 position)
+     * @param action execute of interface
+     * @return return result
      */
     <T> Result<T> doBiz(EventEnum eventEnum, ServiceCallback<T> action);
 
 
     /**
-     * 开始
-     * 用于上下文初始化
+     *
+     * used for context initialize
      */
     default void begin() {
         if (AppThreadLocal.get() == null) {
@@ -46,8 +46,8 @@ public interface ServiceTemplate {
     }
 
     /**
-     * 结束
-     * 用于上下文清理
+     *
+     * used for context clean
      */
     default void after() {
         AppThreadLocal.clear();

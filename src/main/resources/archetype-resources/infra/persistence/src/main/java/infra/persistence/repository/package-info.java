@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 基础设施仓储实现包。
+ * infrastructure repository implementation package.
  * <p>
- * 实现对数据库等持久化存储的访问逻辑。
+ * implementation for database etc. persistence of.
  * </p>
  * <p>
  * Repository implementations for persistence.

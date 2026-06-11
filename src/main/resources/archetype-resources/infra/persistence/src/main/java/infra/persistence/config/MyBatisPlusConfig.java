@@ -28,14 +28,14 @@ public class MyBatisPlusConfig {
 
     @Component
     static class MyMetaObjectHandler implements MetaObjectHandler {
-        //使用mp实现添加操作，这个方法执行
+        //mp implementation add, method execute
         @Override
         public void insertFill(MetaObject metaObject) {
             this.setFieldValByName("createdTime", LocalDateTime.now(), metaObject);
             this.setFieldValByName("updatedTime", LocalDateTime.now(), metaObject);
         }
 
-        //使用mp实现修改操作，这个方法执行
+        //mp implementation, method execute
         @Override
         public void updateFill(MetaObject metaObject) {
             this.setFieldValByName("updatedTime", LocalDateTime.now(), metaObject);

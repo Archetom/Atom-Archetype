@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.stereotype.Repository;
 
 /**
- * 用户数据访问对象实现
+ * user data access object implementation
  * @author hanfeng
  */
 @Repository

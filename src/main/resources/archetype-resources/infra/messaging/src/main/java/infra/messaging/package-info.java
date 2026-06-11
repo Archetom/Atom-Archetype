@@ -2,9 +2,9 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * 基础设施消息包。
+ * infrastructure messaging package.
  * <p>
- * 负责对接消息队列等消息基础设施。
+ * responsible for integrate with message queue etc. message infrastructure.
  * </p>
  * <p>
  * Messaging infrastructure integration (Kafka, RabbitMQ, etc).
