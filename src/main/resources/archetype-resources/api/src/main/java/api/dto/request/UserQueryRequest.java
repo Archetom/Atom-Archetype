@@ -15,20 +15,20 @@ import jakarta.validation.constraints.Size;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class UserQueryRequest extends QueryRequest {
-    
+
     /**
      * username
      */
     @Size(max = 50, message = "Username filter length must not exceed 50 characters")
     private String username;
-    
+
     /**
      * email
      */
     @Email(message = "Invalid email format")
     @Size(max = 254, message = "Email filter length must not exceed 254 characters")
     private String email;
-    
+
     /**
      * status
      */

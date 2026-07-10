@@ -35,10 +35,10 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "Users", description = "Tenant-scoped user lifecycle example")
 public class UserController {
-    
+
     private final UserFacade userFacade;
     private final AuthenticatedCallerMapper callerMapper;
-    
+
     @Operation(summary = "Create a user")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User created",
@@ -56,7 +56,7 @@ public class UserController {
         Result<UserResponse> result = userFacade.createUser(caller, request);
         return ResponseEntityUtil.assembleResponse(result);
     }
-    
+
     @Operation(summary = "Get a visible user by ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User found",
@@ -73,7 +73,7 @@ public class UserController {
         Result<UserResponse> result = userFacade.getUserById(caller, userId);
         return ResponseEntityUtil.assembleResponse(result);
     }
-    
+
     @Operation(summary = "Query visible users")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Page containing UserResponse objects",
@@ -87,7 +87,7 @@ public class UserController {
         Result<Pager<UserResponse>> result = userFacade.queryUsers(caller, request);
         return ResponseEntityUtil.assembleResponse(result);
     }
-    
+
     @Operation(summary = "Change a user's non-deleted status",
             description = "DELETED is rejected; use the DELETE operation instead.")
     @ApiResponses({
@@ -112,7 +112,7 @@ public class UserController {
         Result<Void> result = userFacade.updateUserStatus(caller, userId, status);
         return ResponseEntityUtil.assembleResponse(result);
     }
-    
+
     @Operation(summary = "Soft-delete a user")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User deleted"),

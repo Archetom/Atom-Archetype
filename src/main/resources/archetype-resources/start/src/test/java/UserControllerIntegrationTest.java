@@ -50,7 +50,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
                         .header("X-Dev-User-Id", "888888"))
                 .andExpect(status().isUnauthorized());
     }
-    
+
     @Test
     @DisplayName("create user - success")
     void createUser_Success() throws Exception {
@@ -60,10 +60,10 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setEmail("newuser@example.com")
             .setPassword("password1234")
             .setRealName("New User");
-        
+
         // When
         ResultActions result = performPost("/api/v1/users", request);
-        
+
         // Then
         result.andExpect(status().isOk())
               .andExpect(jsonPath("$.username").value("newuser"))
@@ -71,7 +71,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
               .andExpect(jsonPath("$.realName").value("New User"))
               .andExpect(jsonPath("$.status").value("ACTIVE"));
     }
-    
+
     @Test
     @DisplayName("create user - parameter validation failure")
     void createUser_ValidationFailed() throws Exception {
@@ -80,14 +80,14 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setUsername("") // username is empty
             .setEmail("invalid-email") // email format error
             .setPassword("123"); // password
-        
+
         // When
         ResultActions result = performPost("/api/v1/users", request);
-        
+
         // Then
         assertValidationError(result);
     }
-    
+
     @Test
     @DisplayName("create user - username already exists")
     void createUser_UsernameExists() throws Exception {
@@ -98,22 +98,22 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setPassword("password1234")
             .setRealName("First User");
         performPost("/api/v1/users", firstRequest);
-        
+
         // again create username of user
         UserCreateRequest secondRequest = new UserCreateRequest()
             .setUsername("existinguser") // username
             .setEmail("second@example.com")
             .setPassword("password1234")
             .setRealName("Second User");
-        
+
         // When
         ResultActions result = performPost("/api/v1/users", secondRequest);
-        
+
         // Then
         result.andExpect(status().isConflict())
               .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("Username already exists")));
     }
-    
+
     @Test
     @DisplayName("get user by ID - success")
     void getUserById_Success() throws Exception {
@@ -123,14 +123,14 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setEmail("test@example.com")
             .setPassword("password1234")
             .setRealName("Test User");
-        
+
         ResultActions createResult = performPost("/api/v1/users", createRequest);
         String responseJson = createResult.andReturn().getResponse().getContentAsString();
         UserResponse createdUser = fromJson(responseJson, UserResponse.class);
-        
+
         // When
         ResultActions result = performGet("/api/v1/users/{userId}", createdUser.getId());
-        
+
         // Then
         result.andExpect(status().isOk())
               .andExpect(jsonPath("$.id").value(createdUser.getId()))
@@ -156,18 +156,18 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
                         .header("X-Dev-Tenant-Id", "123456"))
                 .andExpect(status().isNotFound());
     }
-    
+
     @Test
     @DisplayName("get user by ID - user does not exist")
     void getUserById_UserNotFound() throws Exception {
         // When
         ResultActions result = performGet("/api/v1/users/{userId}", 99999L);
-        
+
         // Then
         result.andExpect(status().isNotFound())
               .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("User does not exist")));
     }
-    
+
     @Test
     @DisplayName("query users - success")
     void queryUsers_Success() throws Exception {
@@ -180,20 +180,20 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
                 .setRealName("User " + i);
             performPost("/api/v1/users", request);
         }
-        
+
         // When
         Map<String, String> params = new HashMap<>();
         params.put("page", "1");
         params.put("size", "10");
-        
+
         ResultActions result = performGetWithParams("/api/v1/users", params);
-        
+
         // Then
         result.andExpect(status().isOk())
               .andExpect(jsonPath("$.totalNum").value(org.hamcrest.Matchers.greaterThanOrEqualTo(3)))
               .andExpect(jsonPath("$.objectList").isArray());
     }
-    
+
     @Test
     @DisplayName("query users - username filter")
     void queryUsers_FilterByUsername() throws Exception {
@@ -204,21 +204,21 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setPassword("password1234")
             .setRealName("Filter User");
         performPost("/api/v1/users", request);
-        
+
         // When
         Map<String, String> params = new HashMap<>();
         params.put("username", "filteruser");
         params.put("page", "1");
         params.put("size", "10");
-        
+
         ResultActions result = performGetWithParams("/api/v1/users", params);
-        
+
         // Then
         result.andExpect(status().isOk());
-        
+
         String responseJson = result.andReturn().getResponse().getContentAsString();
         Pager<UserResponse> pager = fromJson(responseJson, new TypeReference<Pager<UserResponse>>() {});
-        
+
         assertTrue(pager.getTotalNum() >= 1);
         assertTrue(pager.getObjectList().stream()
             .anyMatch(user -> "filteruser".equals(user.getUsername())));
@@ -230,7 +230,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         performGetWithParams("/api/v1/users", Map.of("page", "1", "size", "201"))
                 .andExpect(status().isBadRequest());
     }
-    
+
     @Test
     @DisplayName("update user status - success")
     void updateUserStatus_Success() throws Exception {
@@ -240,26 +240,26 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setEmail("status@example.com")
             .setPassword("password1234")
             .setRealName("Status User");
-        
+
         ResultActions createResult = performPost("/api/v1/users", createRequest);
         String responseJson = createResult.andReturn().getResponse().getContentAsString();
         UserResponse createdUser = fromJson(responseJson, UserResponse.class);
-        
+
         // When
         ResultActions result = mockMvc.perform(withTestActor(
             put("/api/v1/users/{userId}/status", createdUser.getId())
                 .param("status", "INACTIVE")
         ));
-        
+
         // Then
         result.andExpect(status().isOk());
-        
+
         // validate status already update
         ResultActions getResult = performGet("/api/v1/users/{userId}", createdUser.getId());
         getResult.andExpect(status().isOk())
                  .andExpect(jsonPath("$.status").value("INACTIVE"));
     }
-    
+
     @Test
     @DisplayName("update user status - invalid status")
     void updateUserStatus_InvalidStatus() throws Exception {
@@ -269,17 +269,17 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setEmail("invalidstatus@example.com")
             .setPassword("password1234")
             .setRealName("Invalid Status User");
-        
+
         ResultActions createResult = performPost("/api/v1/users", createRequest);
         String responseJson = createResult.andReturn().getResponse().getContentAsString();
         UserResponse createdUser = fromJson(responseJson, UserResponse.class);
-        
+
         // When
         ResultActions result = mockMvc.perform(withTestActor(
             put("/api/v1/users/{userId}/status", createdUser.getId())
                 .param("status", "INVALID_STATUS")
         ));
-        
+
         // Then
         result.andExpect(status().isBadRequest());
     }
@@ -305,7 +305,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         performGet("/api/v1/users/{userId}", createdUser.getId())
                 .andExpect(status().isOk());
     }
-    
+
     @Test
     @DisplayName("delete user - success")
     void deleteUser_Success() throws Exception {
@@ -315,17 +315,17 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             .setEmail("delete@example.com")
             .setPassword("password1234")
             .setRealName("Delete User");
-        
+
         ResultActions createResult = performPost("/api/v1/users", createRequest);
         String responseJson = createResult.andReturn().getResponse().getContentAsString();
         UserResponse createdUser = fromJson(responseJson, UserResponse.class);
-        
+
         // When
         ResultActions result = performDelete("/api/v1/users/{userId}", createdUser.getId());
-        
+
         // Then
         result.andExpect(status().isOk());
-        
+
         // Soft-deleted users are no longer visible through the public read API.
         ResultActions getResult = performGet("/api/v1/users/{userId}", createdUser.getId());
         getResult.andExpect(status().isNotFound());
@@ -334,24 +334,24 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         performDelete("/api/v1/users/{userId}", createdUser.getId())
                 .andExpect(status().isNotFound());
     }
-    
+
     @Test
     @DisplayName("delete user - user does not exist")
     void deleteUser_UserNotFound() throws Exception {
         // When
         ResultActions result = performDelete("/api/v1/users/{userId}", 99999L);
-        
+
         // Then
         result.andExpect(status().isNotFound())
               .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("User does not exist")));
     }
-    
+
     @Override
     protected void initTestData() {
         // clean test data
         truncateTable("t_user");
     }
-    
+
     @Override
     protected void clearTestData() {
         // clean test data
