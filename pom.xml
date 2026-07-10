@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.archetom</groupId>
     <artifactId>atom-archetype</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.0.0</version>
     <packaging>maven-archetype</packaging>
 
     <name>Atom :: Archetype</name>
@@ -30,13 +30,13 @@
         <connection>scm:git:https://github.com/Archetom/atom-archetype.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/Archetom/atom-archetype.git</developerConnection>
         <url>https://github.com/Archetom/atom-archetype</url>
-        <tag>HEAD</tag>
+        <tag>v2.0.0</tag>
     </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <project.build.outputTimestamp>2026-07-10T00:00:00Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-07-10T05:12:49Z</project.build.outputTimestamp>
         <java.version>21</java.version>
 
         <!-- Maven Plugin -->
@@ -46,6 +46,8 @@
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
         <maven.central.plugin.version>0.11.0</maven.central.plugin.version>
         <versions.maven.plugin.version>2.21.0</versions.maven.plugin.version>
+        <central.autoPublish>false</central.autoPublish>
+        <central.waitUntil>validated</central.waitUntil>
     </properties>
 
     <distributionManagement>
@@ -135,9 +137,9 @@
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>
-                    <!-- Keep the irreversible publish action as an explicit Portal approval. -->
-                    <autoPublish>false</autoPublish>
-                    <waitUntil>validated</waitUntil>
+                    <!-- Local deploys require Portal approval; the protected release workflow overrides both properties. -->
+                    <autoPublish>${central.autoPublish}</autoPublish>
+                    <waitUntil>${central.waitUntil}</waitUntil>
                     <deploymentName>${project.artifactId}:${project.version}</deploymentName>
                 </configuration>
             </plugin>

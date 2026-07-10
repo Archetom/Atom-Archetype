@@ -2,22 +2,20 @@
 
 ## Maven cannot find the archetype
 
-The 2.0 architecture is currently a local snapshot. Install it from the repository before generation:
+Refresh Maven metadata and generate with the exact stable version:
 
 ```bash
-make install
-
 mvn -U -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.0.0-SNAPSHOT \
+  -DarchetypeVersion=2.0.0 \
   -DgroupId=com.example.demo \
   -DartifactId=demo-service \
   -Dpackage=com.example.demo \
   -Dversion=1.0.0-SNAPSHOT
 ```
 
-If it still fails, confirm that `~/.m2/repository/io/github/archetom/atom-archetype/2.0.0-SNAPSHOT/` exists, then inspect `~/.m2/settings.xml` for a mirror, proxy, or offline policy. Maven Central `1.1.0` is a different, legacy template.
+If it still fails, inspect `~/.m2/settings.xml` for a mirror, proxy, or offline policy and confirm that Maven can reach `repo.maven.apache.org`. Maven Central `1.1.0` is a different, legacy template.
 
 ## The generated project uses the wrong Java version
 
