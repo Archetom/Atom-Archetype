@@ -67,7 +67,7 @@ Generated projects have these modules (defined in `archetype-resources/pom.xml`)
 
 ## Tech Stack (Generated Projects)
 
-Spring Boot 4.1, Java 21, MyBatis-Plus 3.5.16, MySQL 8.4.10 in Docker Compose, Flyway, optional Redis 7.4.9 (Lettuce), MapStruct 1.6.3, Lombok, SpringDoc OpenAPI 3.0.3, and Testcontainers. Core result/error dependency: `io.github.archetom:atom-common:1.0.0`.
+Spring Boot 4.1, Java 21, MyBatis-Plus 3.5.16, MySQL 9.7.1 LTS in Docker Compose, Flyway, optional Redis 8.8.0 (Lettuce), MapStruct 1.6.3, Lombok, SpringDoc OpenAPI 3.0.3, and Testcontainers. Core result/error dependency: `io.github.archetom:atom-common:1.0.0`.
 
 ## Configuration
 

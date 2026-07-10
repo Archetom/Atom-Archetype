@@ -39,12 +39,10 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.github.archetom</groupId>
             <artifactId>atom-common</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <!-- Testcontainers -->

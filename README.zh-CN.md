@@ -130,17 +130,19 @@ REST / Facade 适配器
 
 ## 兼容性
 
-| 组件 | 2.0 基线 |
+| 组件 | `main` 开发基线 |
 |---|---|
 | Java | 21 |
 | Spring Boot | 4.1.x |
 | Maven | 推荐 3.9+ |
-| MySQL | Docker Compose 使用 8.4.10；其他 MySQL 8 部署需自行验证 |
-| Redis | 可选，7.4.9 |
+| MySQL | `main` 使用 9.7.1 LTS；稳定版 2.0.0 使用 8.4.10 LTS |
+| Redis | `main` 可选使用 8.8.0；稳定版 2.0.0 使用 7.4.9 |
 | MyBatis-Plus | 3.5.16 |
 | SpringDoc OpenAPI | 3.0.3 |
 
 当前验证目标是 JVM 部署。GraalVM native-image 尚未进入持续兼容测试，因此模板不会默认生成相关配置。
+
+升级已有生成项目的 MySQL 数据卷时，必须先升级到 MySQL 8.4 LTS，再迁移到 9.7 LTS；不要让新镜像直接读取由更早非 LTS 版本创建的数据目录。
 
 当前生成命令固定使用精确的 `2.0.0` 正式版本，以保证生成过程可复现。Archetype 升级不会自动改写已经生成的项目，请参考 [升级指南](docs/upgrade-guide.md)。
 

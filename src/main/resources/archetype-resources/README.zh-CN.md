@@ -25,10 +25,12 @@ $h2 环境要求
 
 - JDK 21
 - Docker 与 Docker Compose，用于本地 MySQL 和集成测试
-- MySQL 8.4.10 或兼容的 MySQL 8 服务
+- MySQL 9.7.1 LTS 或兼容的 MySQL 9.7 服务
 - Make（可选；每个 Make 目标都有对应的 `sh ./mvnw` 命令）
 
 Redis 是可选组件。
+
+复用已有 MySQL 数据卷时，必须先升级到 MySQL 8.4 LTS，再迁移到 9.7 LTS。不要只修改 Compose 镜像标签而跳过受支持的 LTS 升级步骤。
 
 $h2 快速开始
 
