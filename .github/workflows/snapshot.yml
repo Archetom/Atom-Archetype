@@ -1,0 +1,77 @@
+name: Publish Snapshot to Central Portal
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact -SNAPSHOT version from pom.xml
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: maven-central-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish snapshot
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: maven-central
+
+    steps:
+      - name: Check out snapshot commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Java and Central credentials
+        uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+
+      - name: Verify snapshot coordinates and repository state
+        shell: bash
+        run: |
+          version="$(awk -F'[<>]' '/^[[:space:]]*<version>/{print $3; exit}' pom.xml)"
+          test "$version" = "${{ inputs.version }}"
+          case "$version" in
+            *-SNAPSHOT) ;;
+            *) echo "Refusing to publish a non-SNAPSHOT version."; exit 1 ;;
+          esac
+          git diff --check 4b825dc642cb6eb9a060e54bf8d69288fbee4904 HEAD -- .
+
+      - name: Publish snapshot
+        timeout-minutes: 15
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+        run: ./mvnw -B -ntp clean deploy -Dgpg.skip=true
+
+      - name: Verify snapshot is publicly resolvable
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          local_repository="${RUNNER_TEMP}/snapshot-verification-repository"
+          remote_repository="central-portal-snapshots::default::https://central.sonatype.com/repository/maven-snapshots/"
+          for attempt in {1..20}; do
+            if ./mvnw -B -U -ntp dependency:get \
+              -Dmaven.repo.local="$local_repository" \
+              -Dartifact="io.github.archetom:atom-archetype:${{ inputs.version }}" \
+              -Dtransitive=false \
+              -DremoteRepositories="$remote_repository"; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 20 ]; then
+              echo "Snapshot did not become publicly resolvable in time."
+              exit 1
+            fi
+            sleep 15
+          done

@@ -10,6 +10,7 @@ All notable architecture, compatibility, and security changes are documented her
 - updated the generated Docker defaults to MySQL 9.7.1 LTS and optional Redis 8.8.0
 - updated Maven JAR/source plugins and GitHub checkout actions
 - aligned Testcontainers and compatibility documentation with the generated Docker defaults
+- added a protected Central Portal snapshot workflow with public resolution verification
 
 ### Fixed
 
