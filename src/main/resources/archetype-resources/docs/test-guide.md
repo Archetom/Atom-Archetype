@@ -25,7 +25,7 @@ Run the Docker-backed integration suite:
 CI=true sh ./mvnw test
 ```
 
-The `CI=true` switch enables the generated integration test classes. Docker must be available. Testcontainers starts MySQL 8.4.10; Redis remains disabled because cache correctness is covered through its port and no-op adapter.
+The `CI=true` switch enables the generated integration test classes. Docker must be available. Testcontainers starts MySQL 9.7.1 LTS; Redis remains disabled because cache correctness is covered through its port and no-op adapter.
 
 ## Test layers
 

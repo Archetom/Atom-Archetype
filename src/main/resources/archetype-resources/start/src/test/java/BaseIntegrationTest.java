@@ -47,7 +47,7 @@ public abstract class BaseIntegrationTest {
 
     // ======= Shared Testcontainers configuration =======
 
-    protected static final MySQLContainer MYSQL = new MySQLContainer(DockerImageName.parse("mysql:8.4.10"))
+    protected static final MySQLContainer MYSQL = new MySQLContainer(DockerImageName.parse("mysql:9.7.1"))
             .withDatabaseName("test_db")
             .withUsername("test_user")
             .withPassword("test_password")

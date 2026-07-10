@@ -2,6 +2,20 @@
 
 All notable architecture, compatibility, and security changes are documented here. Atom Archetype follows semantic versioning for generated-project contracts.
 
+## [Unreleased]
+
+### Changed
+
+- moved the development line to `2.1.0-SNAPSHOT`
+- updated the generated Docker defaults to MySQL 9.7.1 LTS and optional Redis 8.8.0
+- updated Maven JAR/source plugins and GitHub checkout actions
+- aligned Testcontainers and compatibility documentation with the generated Docker defaults
+
+### Fixed
+
+- include `atom-common` and Spring JDBC on the generated executable application's runtime classpath
+- document that existing MySQL data volumes must reach 8.4 LTS before upgrading to 9.7 LTS
+
 ## [2.0.0] — 2026-07-10
 
 This is a breaking release of the generated-project architecture and public API contracts.

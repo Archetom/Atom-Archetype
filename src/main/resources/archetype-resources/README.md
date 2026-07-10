@@ -25,10 +25,12 @@ $h2 Requirements
 
 - JDK 21
 - Docker with Docker Compose for local MySQL and integration tests
-- MySQL 8.4.10 or a compatible MySQL 8 server
+- MySQL 9.7.1 LTS or a compatible MySQL 9.7 server
 - Make (optional; every Make target has an equivalent `sh ./mvnw` command)
 
 Redis is optional.
+
+If you reuse an existing MySQL data volume, upgrade it to MySQL 8.4 LTS before moving to 9.7 LTS. Do not skip the supported LTS upgrade step by changing only the Compose image tag.
 
 $h2 Quick start
 

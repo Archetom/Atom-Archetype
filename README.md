@@ -130,17 +130,19 @@ These defaults establish a safe boundary, but generated sample authorization rul
 
 ## Compatibility
 
-| Component | 2.0 baseline |
+| Component | `main` development baseline |
 |---|---|
 | Java | 21 |
 | Spring Boot | 4.1.x |
 | Maven | 3.9+ recommended |
-| MySQL | 8.4.10 used by Docker Compose; compatible MySQL 8 deployments should be verified |
-| Redis | 7.4.9 optional |
+| MySQL | 9.7.1 LTS on `main`; the stable 2.0.0 release uses 8.4.10 LTS |
+| Redis | 8.8.0 optional on `main`; the stable 2.0.0 release uses 7.4.9 |
 | MyBatis-Plus | 3.5.16 |
 | SpringDoc OpenAPI | 3.0.3 |
 
 The verified deployment target is the JVM. GraalVM native-image support is intentionally not generated until it has a maintained compatibility test.
+
+When upgrading an existing generated project's MySQL data volume, reach MySQL 8.4 LTS before moving to 9.7 LTS. Do not point the new image at a data directory created by an older non-LTS release.
 
 The generation command pins the exact `2.0.0` release for reproducibility. Existing generated projects are not rewritten automatically when the archetype changes—follow the [Upgrade guide](docs/upgrade-guide.md).
 
