@@ -1,67 +1,56 @@
 package ${package}.domain.repository;
 
-import ${package}.api.enums.UserStatus;
 import ${package}.domain.entity.User;
+import ${package}.domain.model.UserStatus;
+import ${package}.domain.specification.Specification;
+import ${package}.domain.valueobject.TenantId;
 import ${package}.domain.valueobject.UserId;
-import io.github.archetom.common.result.Pager;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * user repository interface
- * @author hanfeng
- */
-public interface UserRepository extends BaseRepository<User, UserId> {
+/** Tenant-scoped persistence port for the User aggregate. */
+public interface UserRepository {
 
-    /**
-     * based on username find user
-     */
-    Optional<User> findByUsername(String username);
+    User save(TenantId tenantId, User user);
 
-    /**
-     * based on email find user
-     */
-    Optional<User> findByEmail(String email);
+    List<User> saveAll(TenantId tenantId, List<User> users);
 
-    /**
-     * check username whether exists
-     */
-    boolean existsByUsername(String username);
+    Optional<User> findById(TenantId tenantId, UserId id);
 
-    /**
-     * check email whether exists
-     */
-    boolean existsByEmail(String email);
+    boolean existsById(TenantId tenantId, UserId id);
 
-    /**
-     * based on status find user
-     */
-    List<User> findByStatus(UserStatus status);
+    List<User> findBySpecification(TenantId tenantId, Specification<User> specification);
 
-    /**
-     * based on tenant ID find user
-     */
-    List<User> findByTenantId(Long tenantId);
+    Optional<User> findOneBySpecification(TenantId tenantId, Specification<User> specification);
 
-    /**
-     * find create of user
-     */
-    List<User> findByCreatedTimeBetween(LocalDateTime start, LocalDateTime end);
+    long countBySpecification(TenantId tenantId, Specification<User> specification);
 
-    /**
-     * paged query user
-     */
-    Pager<User> findUsers(String username, String email, UserStatus status, int page, int size);
+    /** Find a user by tenant-scoped username. */
+    Optional<User> findByUsername(TenantId tenantId, String username);
 
-    /**
-     * find need active of user (inactive)
-     */
-    List<User> findUsersNeedingActivation(int days);
+    /** Find a user by tenant-scoped email. */
+    Optional<User> findByEmail(TenantId tenantId, String email);
 
-    /**
-     * find not of user
-     */
-    List<User> findInactiveUsers(int days);
+    /** Return whether a username exists inside the tenant. */
+    boolean existsByUsername(TenantId tenantId, String username);
+
+    /** Return whether an email exists inside the tenant. */
+    boolean existsByEmail(TenantId tenantId, String email);
+
+    /** Find users with the requested status inside the tenant. */
+    List<User> findByStatus(TenantId tenantId, UserStatus status);
+
+    /** Find users created inside a time interval. */
+    List<User> findByCreatedTimeBetween(TenantId tenantId, LocalDateTime start, LocalDateTime end);
+
+    /** Query a bounded page of tenant-visible users. */
+    PageResult<User> findUsers(TenantId tenantId, String username, String email, UserStatus status, int page, int size);
+
+    /** Find inactive users old enough for an activation workflow. */
+    List<User> findUsersNeedingActivation(TenantId tenantId, int days);
+
+    /** Find active users that have not changed during the supplied number of days. */
+    List<User> findInactiveUsers(TenantId tenantId, int days);
 }

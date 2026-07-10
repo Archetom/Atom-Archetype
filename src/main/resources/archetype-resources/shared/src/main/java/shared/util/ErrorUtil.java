@@ -6,15 +6,14 @@ import io.github.archetom.common.error.ErrorContext;
 
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * error utility class
- */
+/** Builds the error primitives used by the public result contract. */
 @Slf4j
-public class ErrorUtil {
+public final class ErrorUtil {
 
-    /**
-     * build error code
-     */
+    private ErrorUtil() {
+    }
+
+    /** Build an error code from its stable components. */
     public static ErrorCode makeErrorCode(String errorLevel, String errorType, String errorScene, String errorSpecific) {
         return new ErrorCode(errorLevel, errorType, errorScene, errorSpecific);
     }
@@ -49,26 +48,18 @@ public class ErrorUtil {
         return error;
     }
 
-    /**
-     * new error to error context
-     */
+    /** Create a new context containing one error. */
     private static ErrorContext addError(CommonError error) {
         return addError(null, error);
     }
 
-    /**
-     * new error
-     *
-     * @param context error context
-     * @param error error
-     * @return of error context
-     */
+    /** Add an error to an existing context or create a new context. */
     private static ErrorContext addError(ErrorContext context, CommonError error) {
         if (context == null) {
             context = new ErrorContext();
         }
         if (error == null) {
-            log.error(" parameter invalid, of error class is empty ");
+            log.error("Cannot add a null error to the error context");
             return context;
         }
 

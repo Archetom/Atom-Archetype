@@ -2,22 +2,9 @@ package ${package}.domain.valueobject;
 
 import java.io.Serializable;
 
-/**
- * value object interface
- * @author hanfeng
- */
+/** Marker contract for immutable domain values with value-based equality semantics. */
 public interface ValueObject<T> extends Serializable {
 
-    /**
-     * value object etc.
-     */
+    /** Return whether another instance represents the same domain value. */
     boolean sameValueAs(T other);
-
-    /**
-     * validate value object
-     */
-    default void validate() {
-        // class can override validate
-    }
 }
-

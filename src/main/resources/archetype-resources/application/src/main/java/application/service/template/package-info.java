@@ -2,15 +2,6 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * service template implementation package.
- * <p>
- * provide business service template implementation.
- * </p>
- * <p>
- * Service template implementations.
- * </p>
- * <pre>
- * public class AbstractOperatorServiceTemplate implements ServiceTemplate { ... }
- * </pre>
+ * Type-safe application use-case lifecycle and result mapping.
  */
 package ${package}.application.service.template;

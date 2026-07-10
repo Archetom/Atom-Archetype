@@ -1,8 +1,13 @@
+#set( $dollar = '$' )
+server:
+  # Keep the development-only trusted-header adapter off the network by default.
+  address: ${dollar}{SERVER_ADDRESS:127.0.0.1}
+
 spring:
   application:
-    name: atom-demo
+    name: ${rootArtifactId}
   datasource:
-    url: jdbc:mysql://localhost:3306/atom_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/atom_db?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
     username: atom_user
     password: atom_pass
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -23,16 +28,6 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
-  # JPA configuration
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-
 # logging configuration
 logging:
   config: classpath:logback-spring.xml
@@ -48,12 +43,6 @@ mybatis-plus:
     cache-enabled: false
     call-setters-on-nulls: true
     jdbc-type-for-null: 'null'
-  global-config:
-    db-config:
-      id-type: auto
-      logic-delete-field: deletedTime
-      logic-delete-value: now()
-      logic-not-delete-value: 'null'
   mapper-locations: classpath*:mapper/**/*.xml
 
 # thread pool configuration
@@ -63,4 +52,13 @@ task:
     max-pool-size: 10
     queue-capacity: 100
     keep-alive-seconds: 60
-    thread-name-prefix: atom-demo-task-
+    thread-name-prefix: ${rootArtifactId}-task-
+
+# Trusted headers are for explicit local development only.
+atom:
+  security:
+    trusted-header:
+      enabled: ${dollar}{ATOM_SECURITY_TRUSTED_HEADER_ENABLED:false}
+      authorities: "users:read,users:write,users:delete"
+  redis:
+    enabled: ${dollar}{ATOM_REDIS_ENABLED:false}

@@ -2,10 +2,7 @@ package ${package}.domain.valueobject;
 
 import lombok.Value;
 
-/**
- * user ID value object
- * @author hanfeng
- */
+/** Positive persisted identity of a User aggregate. */
 @Value
 public class UserId implements ValueObject<UserId> {
 
@@ -13,7 +10,7 @@ public class UserId implements ValueObject<UserId> {
 
     public UserId(Long value) {
         if (value == null || value <= 0) {
-            throw new IllegalArgumentException(" user ID ");
+            throw new IllegalArgumentException("User ID must be positive");
         }
         this.value = value;
     }

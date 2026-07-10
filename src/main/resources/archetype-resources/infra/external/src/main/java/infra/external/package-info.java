@@ -2,15 +2,12 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /**
- * infrastructure external dependency package.
+ * Outbound infrastructure adapters for third-party systems.
  * <p>
- * integration No. API or external implementation.
+ * Implement application-layer output ports here.
  * </p>
  * <p>
- * External dependencies (3rd-party APIs, libraries).
- * </p>
- * <pre>
- * public class PaymentGatewayImpl { ... }
- * </pre>
+ * The generated logging notification adapter is disabled in production so a
+ * missing provider integration fails fast.
  */
 package ${package}.infra.external;

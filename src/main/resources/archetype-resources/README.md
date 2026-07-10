@@ -1,143 +1,184 @@
-# ${artifactId}
+#set( $h2 = '##' )
+# ${rootArtifactId}
 
-> 基于 Atom Archetype 脚手架生成，采用 DDD 分层架构设计
+[简体中文](README.zh-CN.md)
 
-## 📁 项目结构
+A production-oriented Java 21 and Spring Boot 4.1 multi-module starter for Domain-Driven Design (DDD), hexagonal boundaries, explicit multi-tenancy, MyBatis-Plus, MySQL, Flyway, and optional Redis caching.
 
-```
-${artifactId}/
-├── api/                  # 对外服务声明层
-├── application/          # 应用层，业务编排
-├── domain/               # 领域层，核心业务
-├── infra/                # 基础设施层
-│   ├── external/         # 外部服务集成
-│   ├── messaging/        # 消息队列
-│   ├── persistence/      # 数据持久化
-│   ├── rest/             # REST 接口
-│   └── rpc/              # RPC 接口
-├── shared/               # 共享组件
-└── start/                # 启动模块
-```
-## 🚀 快速开始
+Generated coordinates: `${groupId}:${rootArtifactId}:${version}`.
 
-### 环境要求
+This generated project contains a working user aggregate as an executable example. Replace or extend the example while preserving the dependency and security rules documented below.
 
-- **JDK**: 21+
-- **Maven**: 3.6+
-- **MySQL**: 8.0+
-- **Redis**: 6.0+
+$h2 Key properties
 
-### 配置和启动
+- Domain logic is independent of HTTP, MyBatis, Redis, and other infrastructure.
+- Every user repository and cache operation requires an explicit `TenantId`.
+- Authentication becomes an explicit `AuthenticatedCaller` at the API boundary; identity is never read from a request body.
+- Commands and queries use separate `CommandServiceTemplate` and `QueryServiceTemplate` policies.
+- Database changes are append-only Flyway migrations.
+- Optimistic locking protects aggregate updates through a persisted `version` field.
+- Cache updates and domain event publication run only after a successful transaction commit.
+- Redis is optional. With Redis disabled, a no-op adapter keeps business behavior correct.
+- Production rejects anonymous API access and cannot enable the development trusted-header adapter.
 
-1. **修改配置文件**
-   ```bash
-   # 编辑数据库配置
-   vim start/src/main/resources/application-{env}.yml
-   ```
+$h2 Requirements
 
-2. **启动项目**
-   ```bash
-   mvn clean install
-   cd start
-   mvn spring-boot:run
-   ```
+- JDK 21
+- Docker with Docker Compose for local MySQL and integration tests
+- MySQL 8.4.10 or a compatible MySQL 8 server
+- Make (optional; every Make target has an equivalent `sh ./mvnw` command)
 
-3. **验证启动**
-   ```bash
-   curl http://localhost:8080/actuator/health
-   ```
+Redis is optional.
 
-## 🛠️ 开发指南
+$h2 Quick start
 
-### 新增业务功能
-
-1. **API 层** - 定义请求/响应对象和接口
-2. **Application 层** - 实现业务服务和编排逻辑
-3. **Domain 层** - 编写核心业务逻辑和实体
-4. **Infrastructure 层** - 实现数据访问和外部集成
-
-### 代码生成
+Start MySQL:
 
 ```bash
-# MyBatis-Plus 代码生成
-cd infra/persistence
-mvn exec:java -Dexec.mainClass="${package}.infra.persistence.mysql.generator.MyBatisPlusGenerator"
+docker compose up -d mysql
 ```
 
-### 运行测试
+Build the complete reactor:
 
 ```bash
-# 单元测试
-mvn test
-
-# 集成测试（需要 Docker）
-mvn verify
+sh ./mvnw clean install
 ```
 
-## 📖 详细文档
+Run the application with the development profile and explicitly enable local trusted headers:
 
-- 🏗️ [架构设计](docs/architecture.md) - 整体架构和设计理念
-- 📋 [开发指南](docs/usage-guide.md) - 日常开发流程和示例
-- ⚙️ [配置说明](docs/configuration.md) - 各模块配置参数
-- 📊 [对象分层](docs/object-layering.md) - DTO/VO/PO 使用规范
-- 🧪 [测试指南](docs/test-guide.md) - 单元测试和集成测试
+```bash
+ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
+  sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
-## 🔧 技术栈
+Flyway creates the schema automatically. Configuration is loaded from `conf/`, not from `start/src/main/resources`.
 
-- **框架**: Spring Boot 4.1.0
-- **数据库**: MyBatis-Plus + MySQL
-- **缓存**: Redis
-- **测试**: JUnit 5 + Testcontainers
-- **构建**: Maven
+Check the public health endpoint:
 
-## 📝 开发规范
+```bash
+curl http://localhost:8080/actuator/health
+```
 
-### 分层调用规范
+Call an authenticated development endpoint:
+
+```bash
+curl \
+  -H 'X-Dev-User-Id: 1' \
+  -H 'X-Dev-Tenant-Id: 1' \
+  http://localhost:8080/api/v1/users
+```
+
+In development, API documentation is available at `http://localhost:8080/swagger-ui/index.html` and `/v3/api-docs`. Production disables both endpoints by default; opt in only after applying an appropriate access policy.
+
+If trusted headers are not explicitly enabled, application endpoints correctly return HTTP 401.
+
+$h2 Optional Redis cache
+
+Start Redis and enable its adapter:
+
+```bash
+docker compose up -d redis
+
+ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
+ATOM_REDIS_ENABLED=true \
+  sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+Use the standard Spring Boot Redis environment variables to change host, port, credentials, or TLS settings. A Redis failure must never be treated as the source of business truth.
+
+$h2 Common commands
+
+```bash
+make compile           # compile every module
+make test              # fast tests; Docker integration tests stay disabled
+make integration-test  # full suite with MySQL Testcontainers
+make infra-up          # start local MySQL and Redis
+make run               # run the start module with the dev profile
+make clean-sample      # remove the bundled User example safely
+```
+
+`make clean-sample` calls `bash clean.sh` because Maven archetypes do not preserve executable bits portably.
+
+$h2 Modules
+
+| Module | Responsibility |
+| --- | --- |
+| `api` | Public requests, responses, facade contracts, and `AuthenticatedCaller` |
+| `domain` | Aggregates, value objects, domain services, events, and repository ports |
+| `application` | Use-case orchestration, command/query policies, output ports, and transaction callbacks |
+| `shared` | Small cross-cutting result and error primitives; no business model |
+| `infra/rest` | Spring MVC controllers, Spring Security, and HTTP error mapping |
+| `infra/persistence` | MyBatis-Plus adapters, Flyway migrations, optimistic locking, and cache adapters |
+| `infra/external` | Third-party adapters implementing application output ports |
+| `infra/security` | Password hashing and security technology adapters |
+| `infra/facade` | Implementation of public API facade contracts |
+| `start` | Spring Boot composition root and integration tests |
+
+The central dependency direction is:
 
 ```text
-Controller → Service → DomainService → Repository
-     ↓         ↓           ↓               ↓
-  Request →  DTO/VO  →   Entity      →     PO
+HTTP / persistence / external adapters
+                  ↓
+             application
+                  ↓
+               domain
 ```
 
-### 异常处理
+`domain` must never depend on `application`, `api`, or `infra`.
 
-```java
-// 可重试业务异常
-throw new AppException(ErrorCodeEnum.SYSTEM_ERROR, "系统繁忙");
+$h2 Security model
 
-// 不可重试业务异常  
-throw new AppUnRetryException(ErrorCodeEnum.PARAM_CHECK_EXP, "参数错误");
+All application use cases accept an `AuthenticatedCaller`. The application derives a validated `TenantId` from that caller and passes it explicitly to repositories and caches.
+
+The bundled `X-Dev-User-Id` and `X-Dev-Tenant-Id` authentication adapter is only a local development and test convenience. It is installed only when all of these conditions are true:
+
+- the active profile is `dev` or `test`;
+- the active profile is not `prod`;
+- `atom.security.trusted-header.enabled` is explicitly `true`.
+
+Never expose that adapter through a public gateway. Production must supply a real authentication adapter such as an OAuth2 resource server and map its verified principal to `AuthenticatedCaller`.
+
+The included `LoggingUserNotificationAdapter` is also non-production only. Implement `UserNotificationPort` with a real provider before starting with the `prod` profile; the missing bean is designed to fail fast.
+
+See [configuration](docs/configuration.md) for the complete profile and secret policy.
+
+$h2 Database and deletion semantics
+
+- Flyway migrations live in `infra/persistence/src/main/resources/db/migration`.
+- Never edit a migration that has already been applied; add a new versioned migration.
+- `UserStatus.DELETED` is the single soft-delete representation. There is no hidden MyBatis logical-delete column.
+- Tenant-scoped unique keys reserve usernames and email addresses inside each tenant.
+- A stale aggregate version produces an optimistic-lock conflict instead of overwriting a newer update.
+
+$h2 Tests
+
+Run fast unit and module tests:
+
+```bash
+sh ./mvnw test
 ```
 
-### 服务模板使用
+Run Docker-backed MySQL integration tests:
 
-```java
-@Service
-public class UserService {
-    @Resource(name = "operatorServiceTemplate")
-    private ServiceTemplate serviceTemplate;
-    
-    public Result<UserVO> createUser(UserCreateRequest request) {
-        return serviceTemplate.execute(EventEnum.USER_CREATE, new ServiceCallback<UserVO>() {
-            @Override
-            public UserVO process() {
-                // 核心业务逻辑
-                return userDomainService.createUser(request);
-            }
-        });
-    }
-}
+```bash
+CI=true sh ./mvnw test
 ```
 
-## 🤝 贡献指南
+The integration suite verifies Flyway, tenant isolation, full PO mapping, optimistic locking, soft deletion, HTTP authentication, and error status mapping.
 
-1. Fork 本项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+The supported baseline is a JVM deployment. GraalVM native-image support is not generated because it is not part of the verified test matrix.
 
-## 📄 许可证
+$h2 Documentation
 
-本项目基于 MIT 许可证开源 - 查看 [LICENSE](LICENSE) 文件了解详情
+- [Architecture and invariants](docs/architecture.md)
+- [HTTP API reference](docs/api-reference.md)
+- [Development workflow](docs/usage-guide.md)
+- [Configuration and security](docs/configuration.md)
+- [Object and naming conventions](docs/object-layering.md)
+- [Testing guide](docs/test-guide.md)
+- [AI contributor instructions](AGENTS.md)
+- [LLM documentation index](llms.txt)
+
+$h2 License
+
+MIT. See [LICENSE](LICENSE).

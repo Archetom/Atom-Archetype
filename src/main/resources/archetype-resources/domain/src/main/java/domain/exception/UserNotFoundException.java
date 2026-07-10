@@ -7,10 +7,10 @@ package ${package}.domain.exception;
 public class UserNotFoundException extends UserDomainException {
 
     public UserNotFoundException(Long userId) {
-        super("User does not exist: " + userId);
+        super(DomainError.NOT_FOUND, "User does not exist");
     }
 
     public UserNotFoundException(String username) {
-        super("User does not exist: " + username);
+        super(DomainError.NOT_FOUND, "User does not exist");
     }
 }

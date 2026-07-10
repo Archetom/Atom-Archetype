@@ -5,9 +5,25 @@ spring:
     name: ${rootArtifactId}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${dollar}{SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/${rootArtifactId}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai}
-    username: ${dollar}{SPRING_DATASOURCE_USERNAME:root}
-    password: ${dollar}{SPRING_DATASOURCE_PASSWORD:}
+    url: ${dollar}{SPRING_DATASOURCE_URL}
+    username: ${dollar}{SPRING_DATASOURCE_USERNAME}
+    password: ${dollar}{SPRING_DATASOURCE_PASSWORD}
+
+# API documentation is opt-in in production.
+springdoc:
+  api-docs:
+    enabled: ${dollar}{SPRINGDOC_API_DOCS_ENABLED:false}
+  swagger-ui:
+    enabled: ${dollar}{SPRINGDOC_SWAGGER_UI_ENABLED:false}
+
+# Production never trusts caller-controlled identity headers.
+atom:
+  security:
+    trusted-header:
+      enabled: false
+      authorities: ""
+  redis:
+    enabled: ${dollar}{ATOM_REDIS_ENABLED:false}
 
 # logging configuration
 logging:
@@ -24,12 +40,6 @@ mybatis-plus:
     cache-enabled: false
     call-setters-on-nulls: true
     jdbc-type-for-null: 'null'
-  global-config:
-    db-config:
-      id-type: auto
-      logic-delete-field: deletedTime
-      logic-delete-value: now()
-      logic-not-delete-value: 'null'
   mapper-locations: classpath*:mapper/**/*.xml
 
 # thread pool configuration

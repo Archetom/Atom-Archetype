@@ -1,7 +1,8 @@
 package ${package}.infra.rest.util;
 
-import ${package}.shared.enums.ErrorCodeEnum;
+import ${package}.shared.enums.ApplicationErrorCode;
 import ${package}.shared.util.ErrorUtil;
+import ${package}.shared.util.ResultUtil;
 import io.github.archetom.common.result.Result;
 import io.github.archetom.common.error.ErrorCode;
 import io.github.archetom.common.error.ErrorContext;
@@ -14,56 +15,62 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.List;
 
-/**
- * result process class
- *
- * @author hanfeng
- */
+/** Converts HTTP binding and validation failures to the stable public error contract. */
 @Slf4j
-public class ErrorResultWrapUtil {
+public final class ErrorResultWrapUtil {
 
-    /**
-     * generate controller validate error result.
-     *
-     * @param ex exception
-     * @param appName application
-     * @return error result
-     */
-    public static <T> Result<T> genErrorResultValidation(T ex, String appName) {
-        String message = "";
+    private static final String ERROR_SCENE = "9999";
+
+    private ErrorResultWrapUtil() {
+    }
+
+    /** Generate an error result for controller binding or validation failures. */
+    public static <T> Result<T> genErrorResultValidation(Object ex, String appName) {
+        String message = "Request validation failed";
         String fieldName = "";
-        if (ex instanceof MethodArgumentNotValidException) {
-            BindingResult bindingResult = ((MethodArgumentNotValidException) ex).getBindingResult();
+        if (ex instanceof MethodArgumentNotValidException validationException) {
+            BindingResult bindingResult = validationException.getBindingResult();
             if (bindingResult.hasErrors()) {
                 List<ObjectError> errors = bindingResult.getAllErrors();
-                errors.forEach(p -> {
-                    FieldError fieldError = (FieldError) p;
-                    log.error("Data check failure : object{" + fieldError.getObjectName() + "},field{" + fieldError.getField() +
-                            "},errorMessage{" + fieldError.getDefaultMessage() + "}");
-                });
+                errors.stream()
+                        .filter(FieldError.class::isInstance)
+                        .map(FieldError.class::cast)
+                        .forEach(fieldError -> log.warn(
+                                "Data check failure: object={}, field={}, message={}",
+                                fieldError.getObjectName(), fieldError.getField(), fieldError.getDefaultMessage()));
                 if (!errors.isEmpty()) {
-                    FieldError fieldError = (FieldError) errors.get(0);
-                    message = fieldError.getDefaultMessage();
-                    fieldName = fieldError.getField();
+                    ObjectError firstError = errors.get(0);
+                    if (firstError.getDefaultMessage() != null) {
+                        message = firstError.getDefaultMessage();
+                    }
+                    if (firstError instanceof FieldError fieldError) {
+                        fieldName = fieldError.getField();
+                    }
                 }
             }
         }
 
         if (ex instanceof HttpMessageConversionException) {
-            message = ((HttpMessageConversionException) ex).getCause().getLocalizedMessage();
+            message = "Request body is malformed";
         }
+
+        String detail = fieldName.isBlank() ? message : fieldName + ": " + message;
+        return genErrorResult(ApplicationErrorCode.PARAMETER_INVALID, detail, appName);
+    }
+
+    /**
+     * Build a compatible {@link Result} with a stable public error message.
+     */
+    public static <T> Result<T> genErrorResult(ApplicationErrorCode errorCode, String message, String appName) {
 
         final Result<T> result = new Result<>();
         result.setSuccess(false);
 
-        // parameter validation of error
-        ErrorCodeEnum errorCodeEnum = ErrorCodeEnum.PARAM_CHECK_EXP;
         ErrorContext errorContext = ErrorUtil.makeAndAddError(
-                new ErrorCode(errorCodeEnum.getCompleteCode("9999"), ErrorCodeEnum.VERSION),
-                String.format("%s:%s:%s", errorCodeEnum.getDescription(), fieldName, message), appName);
+                new ErrorCode(errorCode.getCompleteCode(ERROR_SCENE), ApplicationErrorCode.VERSION),
+                ResultUtil.publicMessage(errorCode, message), appName);
 
         result.setErrorContext(errorContext);
-
         return result;
     }
 }

@@ -8,10 +8,7 @@ import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 
-/**
- * user view object
- * @author hanfeng
- */
+/** Application result for User use cases; sensitive fields remain excluded. */
 @Data
 @Accessors(chain = true)
 public class UserVO {
@@ -30,11 +27,6 @@ public class UserVO {
      * email
      */
     private String email;
-
-    /**
-     * phone number
-     */
-    private String phoneNumber;
 
     /**
      * masked phone number

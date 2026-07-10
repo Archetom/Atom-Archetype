@@ -1,11 +1,12 @@
 package ${package}.application.converter;
 
 import ${package}.api.dto.response.UserResponse;
-import ${package}.api.enums.UserStatus;
 import ${package}.application.vo.UserVO;
 import ${package}.domain.entity.User;
+import ${package}.domain.model.UserStatus;
 import ${package}.domain.valueobject.Email;
 import ${package}.domain.valueobject.PhoneNumber;
+import ${package}.domain.valueobject.TenantId;
 import ${package}.domain.valueobject.UserId;
 import ${package}.domain.valueobject.Username;
 import org.mapstruct.Mapper;
@@ -14,10 +15,7 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-/**
- * user convert
- * @author hanfeng
- */
+/** MapStruct mappings for User aggregate, application VO, and public response. */
 @Mapper
 public interface UserConverter {
 
@@ -29,11 +27,11 @@ public interface UserConverter {
     @Mapping(target = "id", expression = "java(userIdToLong(user.getId()))")
     @Mapping(target = "username", expression = "java(usernameToString(user.getUsername()))")
     @Mapping(target = "email", expression = "java(emailToString(user.getEmail()))")
-    @Mapping(target = "phoneNumber", expression = "java(phoneNumberToString(user.getPhoneNumber()))")
     @Mapping(target = "maskedPhoneNumber", expression = "java(phoneNumberToMasked(user.getPhoneNumber()))")
     @Mapping(target = "status", expression = "java(statusToCode(user.getStatus()))")
     @Mapping(target = "statusName", expression = "java(statusToName(user.getStatus()))")
     @Mapping(target = "active", expression = "java(statusToActive(user.getStatus()))")
+    @Mapping(target = "tenantId", expression = "java(tenantIdToLong(user.getTenantId()))")
     UserVO toVO(User user);
 
     /**
@@ -51,13 +49,17 @@ public interface UserConverter {
      */
     List<UserResponse> toResponseList(List<UserVO> userVOs);
 
-    // ========== convert method ==========
+    // ========== Value conversions ==========
 
     /**
      * UserId -> Long
      */
     default Long userIdToLong(UserId userId) {
         return userId != null ? userId.getValue() : null;
+    }
+
+    default Long tenantIdToLong(TenantId tenantId) {
+        return tenantId != null ? tenantId.getValue() : null;
     }
 
     /**
@@ -72,13 +74,6 @@ public interface UserConverter {
      */
     default String emailToString(Email email) {
         return email != null ? email.getValue() : null;
-    }
-
-    /**
-     * PhoneNumber -> String
-     */
-    default String phoneNumberToString(PhoneNumber phoneNumber) {
-        return phoneNumber != null ? phoneNumber.getValue() : null;
     }
 
     /**
@@ -99,7 +94,7 @@ public interface UserConverter {
      * status convert as
      */
     default String statusToName(UserStatus status) {
-        return status != null ? status.getName() : null;
+        return status != null ? status.getDisplayName() : null;
     }
 
     /**

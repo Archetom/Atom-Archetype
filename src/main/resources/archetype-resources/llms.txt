@@ -1,0 +1,59 @@
+#set( $h2 = '##' )
+# ${rootArtifactId}
+
+> `${groupId}:${rootArtifactId}:${version}` — Java 21 and Spring Boot 4.1 multi-module DDD application with explicit authenticated caller and tenant context, MyBatis-Plus, MySQL, Flyway, optimistic locking, after-commit domain events, and optional Redis.
+
+$h2 Primary documentation
+
+- [Project overview and quick start](README.md): requirements, commands, module summary, security model, and test entry points.
+- [Chinese project overview](README.zh-CN.md): 简体中文快速开始、架构、安全与测试说明。
+- [Architecture and invariants](docs/architecture.md): dependency direction, request flow, transactions, tenancy, persistence, cache, and events.
+- [HTTP API reference](docs/api-reference.md): routes, authorization, query constraints, response shapes, status values, and errors.
+- [Development workflow](docs/usage-guide.md): how to add commands, queries, aggregate behavior, repository operations, migrations, HTTP endpoints, and errors.
+- [Configuration and security](docs/configuration.md): profiles, environment variables, trusted-header restrictions, Flyway, Redis, MyBatis, and observability.
+- [Object layering and naming](docs/object-layering.md): Request, Response, AuthenticatedCaller, VO, aggregate, value object, PO, converter, error, and naming rules.
+- [Testing guide](docs/test-guide.md): unit, adapter, security, transaction, migration, and MySQL Testcontainers tests.
+- [Agent instructions](AGENTS.md): mandatory rules and verification workflow for automated contributors.
+
+$h2 Architecture summary
+
+- Runtime adapters depend on application; application depends on domain.
+- Domain does not depend on API, application, shared, or infrastructure modules.
+- Every use case receives `AuthenticatedCaller` and derives an explicit `TenantId`.
+- Repository and cache operations require tenant and fail closed.
+- Commands use `CommandServiceTemplate`; reads use `QueryServiceTemplate`.
+- Application operation/error-scene identifiers use `UseCaseOperation`; domain facts use `*Event`.
+- Flyway is the only schema initializer.
+- Aggregate `version` provides optimistic concurrency control.
+- `UserStatus.DELETED` is the only soft-delete representation.
+- Cache and event side effects execute after transaction commit.
+- Redis is optional and cannot change business correctness.
+- Trusted identity headers are disabled by default and restricted to dev/test profiles.
+
+$h2 Code landmarks
+
+Search these class names with `rg` because generated Java paths include the chosen package:
+
+- `Bootstrap`: application composition and entry point.
+- `UserController`: REST endpoints under `/api/v1/users`.
+- `SecurityConfig`: route authorization and trusted-header profile guard.
+- `AuthenticatedCallerMapper`: verified Spring Security principal to API context.
+- `UserServiceImpl`: explicit caller/tenant command and query orchestration.
+- `CommandServiceTemplate`, `QueryServiceTemplate`, `ServiceOperation`: use-case execution policy.
+- `AfterCommitExecutor`: post-commit cache and event effects.
+- `User`: aggregate behavior, reconstruction, and persistence synchronization.
+- `UserRepository`: tenant-scoped domain persistence port.
+- `UserRepositoryImpl`: MyBatis-Plus adapter and optimistic locking.
+- `UserPOConverter`: aggregate/PO mapping.
+- `V1__create_user_table.sql`: canonical initial Flyway migration.
+- `NoOpCacheService`, `RedisCacheService`: optional cache adapters.
+
+$h2 Verification
+
+- Fast suite: `sh ./mvnw test`
+- Docker/MySQL integration suite: `CI=true sh ./mvnw test`
+- Full build: `sh ./mvnw clean install`
+
+$h2 Security warning
+
+`X-Dev-User-Id` and `X-Dev-Tenant-Id` are local development/test credentials, not a production authentication protocol. Never allow untrusted clients or a public proxy to establish identity, tenant, authorities, or administrator state through headers or request bodies.

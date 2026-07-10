@@ -1,301 +1,136 @@
 package ${package}.domain.entity;
 
-import ${package}.api.enums.UserStatus;
 import ${package}.domain.event.UserCreatedEvent;
 import ${package}.domain.event.UserStatusChangedEvent;
 import ${package}.domain.exception.UserDomainException;
+import ${package}.domain.model.UserStatus;
+import ${package}.domain.valueobject.Email;
+import ${package}.domain.valueobject.PasswordHash;
+import ${package}.domain.valueobject.PhoneNumber;
+import ${package}.domain.valueobject.TenantId;
+import ${package}.domain.valueobject.UserId;
+import ${package}.domain.valueobject.Username;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * user entity unit test
- * @author hanfeng
- */
-@DisplayName(" user entity test ")
+@DisplayName("User aggregate")
 class UserTest {
 
-    @Test
-    @DisplayName(" create user - success ")
-    void createUser_Success() {
-        // When
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
+    private static final TenantId TENANT_ID = new TenantId(1L);
+    private static final PasswordHash PASSWORD_HASH =
+            PasswordHash.fromTrustedHash("$2a$10$abcdefghijklmnopqrstuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu");
 
-        // Then
-        assertNotNull(user);
+    @Test
+    void createsTenantOwnedUserFromTrustedHash() {
+        User user = newUser();
+
+        assertEquals(TENANT_ID, user.getTenantId());
         assertEquals("testuser", user.getUsernameValue());
         assertEquals("test@example.com", user.getEmailValue());
-        assertEquals("Test User", user.getRealName());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
-        assertTrue(user.isActive());
+        assertTrue(user.getDomainEvents().isEmpty());
 
-        // validate value object
-        assertNotNull(user.getUsername());
-        assertNotNull(user.getEmail());
-        assertEquals("testuser", user.getUsername().getValue());
-        assertEquals("test@example.com", user.getEmail().getValue());
+        user.onPersisted(new UserId(100L), 0L, user.getCreatedTime(), user.getUpdatedTime());
 
-        // validate domain event
-        assertEquals(1, user.getDomainEvents().size());
-        assertInstanceOf(UserCreatedEvent.class, user.getDomainEvents().get(0));
+        UserCreatedEvent event = (UserCreatedEvent) user.getDomainEvents().getFirst();
+        assertEquals(100L, event.getUserId());
+        assertEquals(1L, event.getTenantId());
+        assertEquals("100", event.getAggregateId());
     }
 
     @Test
-    @DisplayName(" create user - username is empty ")
-    void createUser_EmptyUsername() {
-        // When & Then
-        assertThrows(UserDomainException.class, () -> {
-            User.create("", "test@example.com", "password123", "Test User");
-        });
+    void rejectsMissingCreationValues() {
+        assertAll(
+                () -> assertThrows(UserDomainException.class, () -> User.createWithPasswordHash(
+                        null, new Username("testuser"), new Email("test@example.com"), PASSWORD_HASH, "Test User")),
+                () -> assertThrows(UserDomainException.class, () -> User.createWithPasswordHash(
+                        TENANT_ID, null, new Email("test@example.com"), PASSWORD_HASH, "Test User")),
+                () -> assertThrows(UserDomainException.class, () -> User.createWithPasswordHash(
+                        TENANT_ID, new Username("testuser"), null, PASSWORD_HASH, "Test User")),
+                () -> assertThrows(UserDomainException.class, () -> User.createWithPasswordHash(
+                        TENANT_ID, new Username("testuser"), new Email("test@example.com"), null, "Test User")),
+                () -> assertThrows(IllegalArgumentException.class,
+                        () -> PasswordHash.fromTrustedHash(" "))
+        );
     }
 
     @Test
-    @DisplayName(" create user - email is empty ")
-    void createUser_EmptyEmail() {
-        // When & Then
-        assertThrows(UserDomainException.class, () -> {
-            User.create("testuser", "", "password123", "Test User");
-        });
+    void createsUserWithE164PhoneNumber() {
+        PhoneNumber phoneNumber = new PhoneNumber("+8613800138000");
+        User user = User.createWithPasswordHash(
+                TENANT_ID,
+                new Username("testuser"),
+                new Email("test@example.com"),
+                phoneNumber,
+                PASSWORD_HASH,
+                "Test User");
+
+        assertEquals("+8613800138000", user.getPhoneNumberValue());
+        assertEquals("+861******8000", user.getMaskedPhoneNumber());
+        assertEquals("+861******8000", phoneNumber.toString());
+        assertThrows(IllegalArgumentException.class, () -> new PhoneNumber("13800138000"));
     }
 
     @Test
-    @DisplayName(" create user - password is empty ")
-    void createUser_EmptyPassword() {
-        // When & Then
-        assertThrows(UserDomainException.class, () -> {
-            User.create("testuser", "test@example.com", "", "Test User");
-        });
-    }
+    void changesStatusAndRaisesEvent() {
+        User user = persistedUser();
 
-    @Test
-    @DisplayName(" create user - username ")
-    void createUser_UsernameTooShort() {
-        // When & Then
-        assertThrows(UserDomainException.class, () -> {
-            User.create("ab", "test@example.com", "password123", "Test User");
-        });
-    }
+        user.changeStatus(UserStatus.LOCKED, "security review");
 
-    @Test
-    @DisplayName(" create user - password ")
-    void createUser_PasswordTooShort() {
-        // When & Then
-        assertThrows(UserDomainException.class, () -> {
-            User.create("testuser", "test@example.com", "123", "Test User");
-        });
-    }
-
-    @Test
-    @DisplayName(" create user - with phone number ")
-    void createUser_WithPhoneNumber() {
-        // When
-        User user = User.create("testuser", "test@example.com", "13800138000", "password123", "Test User");
-
-        // Then
-        assertNotNull(user);
-        assertEquals("testuser", user.getUsernameValue());
-        assertEquals("test@example.com", user.getEmailValue());
-        assertEquals("13800138000", user.getPhoneNumberValue());
-        assertEquals("138****8000", user.getMaskedPhoneNumber());
-        assertEquals("Test User", user.getRealName());
-        assertEquals(UserStatus.ACTIVE, user.getStatus());
-    }
-
-    @Test
-    @DisplayName(" user status - success ")
-    void changeStatus_Success() {
-        // Given
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
-        user.clearDomainEvents(); // clear create event
-
-        // When
-        user.changeStatus(UserStatus.LOCKED, "");
-
-        // Then
-        assertEquals(UserStatus.LOCKED, user.getStatus());
         assertTrue(user.isLocked());
-
-        // validate status event
-        assertEquals(1, user.getDomainEvents().size());
-        UserStatusChangedEvent event = (UserStatusChangedEvent) user.getDomainEvents().get(0);
+        UserStatusChangedEvent event = (UserStatusChangedEvent) user.getDomainEvents().getFirst();
         assertEquals(UserStatus.ACTIVE, event.getOldStatus());
         assertEquals(UserStatus.LOCKED, event.getNewStatus());
-        assertEquals("", event.getReason());
     }
 
     @Test
-    @DisplayName(" active user ")
-    void activate_Success() {
-        // Given
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
-        user.changeStatus(UserStatus.INACTIVE, " test ");
-        user.clearDomainEvents();
+    void onlyDeleteOperationCanEnterDeletedState() {
+        User user = persistedUser();
 
-        // When
-        user.activate();
+        assertThrows(UserDomainException.class,
+                () -> user.changeStatus(UserStatus.DELETED, "bypass delete policy"));
+        assertFalse(user.isDeleted());
 
-        // Then
-        assertEquals(UserStatus.ACTIVE, user.getStatus());
-        assertTrue(user.isActive());
-    }
-
-    @Test
-    @DisplayName(" locked user ")
-    void lock_Success() {
-        // Given
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
-        user.clearDomainEvents();
-
-        // When
-        user.lock("");
-
-        // Then
-        assertEquals(UserStatus.LOCKED, user.getStatus());
-        assertTrue(user.isLocked());
-    }
-
-    @Test
-    @DisplayName(" delete user ")
-    void delete_Success() {
-        // Given
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
-        user.clearDomainEvents();
-
-        // When
         user.delete();
-
-        // Then
-        assertEquals(UserStatus.DELETED, user.getStatus());
         assertTrue(user.isDeleted());
+        assertThrows(UserDomainException.class,
+                () -> user.changeStatus(UserStatus.ACTIVE, "reactivate"));
     }
 
     @Test
-    @DisplayName(" delete deleted of user - failure ")
-    void deleteDeletedUser_Fail() {
-        // Given
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
-        user.delete();
+    void changesContactDetails() {
+        User user = persistedUser();
 
-        // When & Then
-        assertThrows(UserDomainException.class, () -> {
-            user.changeStatus(UserStatus.ACTIVE, " new active ");
-        });
+        user.changeEmail("new@example.com");
+        user.changePhoneNumber("+8613900139000");
+
+        assertEquals("new@example.com", user.getEmailValue());
+        assertEquals("+861******9000", user.getMaskedPhoneNumber());
     }
 
     @Test
-    @DisplayName(" email - string ")
-    void changeEmail_String() {
-        // Given
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
+    void passwordHashIsExplicitlyRedacted() {
+        User user = newUser();
 
-        // When
-        user.changeEmail("newemail@example.com");
-
-        // Then
-        assertEquals("newemail@example.com", user.getEmailValue());
-        assertNotNull(user.getEmail());
-        assertEquals("newemail@example.com", user.getEmail().getValue());
+        assertEquals("[REDACTED]", user.getPasswordHash().toString());
+        assertFalse(user.toString().contains(PASSWORD_HASH.valueForPersistence()));
     }
 
-    @Test
-    @DisplayName(" phone number - string ")
-    void changePhoneNumber_String() {
-        // Given
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
-
-        // When
-        user.changePhoneNumber("13900139000");
-
-        // Then
-        assertEquals("13900139000", user.getPhoneNumberValue());
-        assertEquals("139****9000", user.getMaskedPhoneNumber());
-        assertNotNull(user.getPhoneNumber());
-        assertEquals("13900139000", user.getPhoneNumber().getValue());
+    private User newUser() {
+        return User.createWithPasswordHash(
+                TENANT_ID,
+                new Username("testuser"),
+                new Email("test@example.com"),
+                PASSWORD_HASH,
+                "Test User");
     }
 
-    @Test
-    @DisplayName(" administrator role ")
-    void adminRole_Management() {
-        // Given
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
-
-        // status administrator
-        assertFalse(user.isAdmin());
-
-        // When - administrator role
-        user.grantAdminRole();
-
-        // Then
-        assertTrue(user.isAdmin());
-
-        // When - administrator role
-        user.revokeAdminRole();
-
-        // Then
-        assertFalse(user.isAdmin());
-    }
-
-    @Test
-    @DisplayName("External User")
-    void externalUser_Management() {
-        // Given
-        User user = User.create("testuser", "test@example.com", "password123", "Test User");
-
-        // status External User
-        assertFalse(user.isExternalUser());
-
-        // When - as External User
-        user.markAsExternalUser();
-        user.changeExternalId("EXT_001");
-
-        // Then
-        assertTrue(user.isExternalUser());
-        assertEquals("EXT_001", user.getExternalId());
-    }
-
-    @Test
-    @DisplayName(" value object create user ")
-    void createUserWithValidatedParams_Success() {
-        // Given
-        var username = new ${package}.domain.valueobject.Username("testuser");
-        var email = new ${package}.domain.valueobject.Email("test@example.com");
-
-        // When - createWithValidatedParams method
-        User user = User.createWithValidatedParams(username, email, "encrypted_password_hash", "Test User");
-
-        // Then
-        assertNotNull(user);
-        assertEquals(username, user.getUsername());
-        assertEquals(email, user.getEmail());
-        assertEquals("testuser", user.getUsernameValue());
-        assertEquals("test@example.com", user.getEmailValue());
-        assertEquals("Test User", user.getRealName());
-        assertEquals(UserStatus.ACTIVE, user.getStatus());
-        assertEquals("encrypted_password_hash", user.getPassword()); // encrypted of password
-    }
-
-    @Test
-    @DisplayName(" value object create user - with phone number ")
-    void createUserWithValidatedParams_WithPhone_Success() {
-        // Given
-        var username = new ${package}.domain.valueobject.Username("testuser");
-        var email = new ${package}.domain.valueobject.Email("test@example.com");
-        var phoneNumber = new ${package}.domain.valueobject.PhoneNumber("13800138000");
-
-        // When
-        User user = User.createWithValidatedParams(username, email, phoneNumber, "encrypted_password_hash", "Test User");
-
-        // Then
-        assertNotNull(user);
-        assertEquals(username, user.getUsername());
-        assertEquals(email, user.getEmail());
-        assertEquals(phoneNumber, user.getPhoneNumber());
-        assertEquals("testuser", user.getUsernameValue());
-        assertEquals("test@example.com", user.getEmailValue());
-        assertEquals("13800138000", user.getPhoneNumberValue());
-        assertEquals("138****8000", user.getMaskedPhoneNumber());
-        assertEquals("Test User", user.getRealName());
-        assertEquals(UserStatus.ACTIVE, user.getStatus());
+    private User persistedUser() {
+        User user = newUser();
+        user.onPersisted(new UserId(100L), 0L, user.getCreatedTime(), user.getUpdatedTime());
+        user.clearDomainEvents();
+        return user;
     }
 }

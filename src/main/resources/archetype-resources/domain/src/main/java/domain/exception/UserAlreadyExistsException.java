@@ -7,10 +7,14 @@ package ${package}.domain.exception;
 public class UserAlreadyExistsException extends UserDomainException {
 
     public UserAlreadyExistsException(String username) {
-        super("Username already exists: " + username);
+        super(DomainError.ALREADY_EXISTS, "Username already exists");
     }
 
     public static UserAlreadyExistsException byEmail(String email) {
-        return new UserAlreadyExistsException("Email already exists: " + email);
+        return new UserAlreadyExistsException();
+    }
+
+    private UserAlreadyExistsException() {
+        super(DomainError.ALREADY_EXISTS, "Email already exists");
     }
 }

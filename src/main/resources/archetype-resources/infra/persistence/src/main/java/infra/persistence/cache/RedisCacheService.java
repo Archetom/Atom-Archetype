@@ -1,30 +1,25 @@
 package ${package}.infra.persistence.cache;
 
-import ${package}.domain.cache.CacheService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import ${package}.application.port.out.CacheStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
 
 @Slf4j
-@Component("redisCacheService")
-@ConditionalOnProperty(name = "spring.data.redis.host")
-public class RedisCacheService implements CacheService {
+@Component
+@ConditionalOnProperty(name = "atom.redis.enabled", havingValue = "true")
+public class RedisCacheService implements CacheStore {
 
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
-    public RedisCacheService(StringRedisTemplate redisTemplate) {
+    public RedisCacheService(StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
-        this.objectMapper = new ObjectMapper();
-        // Java 8
-        this.objectMapper.registerModule(new JavaTimeModule());
-        // disable copy as
-        this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -32,13 +27,13 @@ public class RedisCacheService implements CacheService {
         try {
             String value = redisTemplate.opsForValue().get(key);
             if (value == null) {
-                log.debug("Redis cache miss: {}", key);
+                log.debug("Redis cache miss");
                 return null;
             }
-            log.debug("Redis cache hit: {}", key);
+            log.debug("Redis cache hit");
             return objectMapper.readValue(value, type);
-        } catch (Exception e) {
-            log.error("Redis cache get failure: key={}", key, e);
+        } catch (Exception exception) {
+            log.error("Redis cache get failure: exceptionType={}", exception.getClass().getName());
             return null;
         }
     }
@@ -52,9 +47,9 @@ public class RedisCacheService implements CacheService {
             } else {
                 redisTemplate.opsForValue().set(key, json);
             }
-            log.debug("Redis cache: key={}, ttl={}", key, ttl);
-        } catch (Exception e) {
-            log.error("Redis cache failure: key={}", key, e);
+            log.debug("Redis cache write: ttl={}", ttl);
+        } catch (Exception exception) {
+            log.error("Redis cache write failure: exceptionType={}", exception.getClass().getName());
         }
     }
 
@@ -62,9 +57,9 @@ public class RedisCacheService implements CacheService {
     public void evict(String key) {
         try {
             redisTemplate.delete(key);
-            log.debug("Redis cache clear: {}", key);
-        } catch (Exception e) {
-            log.error("Redis cache clear failure: key={}", key, e);
+            log.debug("Redis cache entry cleared");
+        } catch (Exception exception) {
+            log.error("Redis cache clear failure: exceptionType={}", exception.getClass().getName());
         }
     }
 }

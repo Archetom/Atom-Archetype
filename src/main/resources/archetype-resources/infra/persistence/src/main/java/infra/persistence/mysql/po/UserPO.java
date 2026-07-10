@@ -6,12 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
-/**
- * user persistence object
- * @author hanfeng
- */
+/** Relational persistence representation of the User aggregate. */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
@@ -42,11 +40,11 @@ public class UserPO extends BasePO {
     @TableField("phone_number")
     private String phoneNumber;
 
-    /**
-     * password (encrypted)
-     */
+    /** One-way password hash stored in the legacy {@code password} column. */
     @TableField("password")
-    private String password;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private String passwordHash;
 
     /**
      * real name
@@ -66,15 +64,11 @@ public class UserPO extends BasePO {
     @TableField("external_id")
     private String externalId;
 
-    /**
-     * whether External User
-     */
+    /** Whether this record originated from an external system. */
     @TableField("is_external_user")
     private Boolean externalUser;
 
-    /**
-     * whether administrator
-     */
+    /** Whether domain deletion rules classify this user as an administrator. */
     @TableField("is_admin")
     private Boolean admin;
 }

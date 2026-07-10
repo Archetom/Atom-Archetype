@@ -1,7 +1,9 @@
 package ${package}.domain.event;
 
-import ${package}.api.enums.UserStatus;
+import ${package}.domain.model.UserStatus;
 import lombok.Getter;
+
+import java.util.Objects;
 
 /**
  * user status event
@@ -11,15 +13,18 @@ import lombok.Getter;
 public class UserStatusChangedEvent extends BaseDomainEvent {
 
     private final Long userId;
+    private final Long tenantId;
     private final UserStatus oldStatus;
     private final UserStatus newStatus;
     private final String reason;
 
-    public UserStatusChangedEvent(Long userId, UserStatus oldStatus, UserStatus newStatus, String reason) {
+    public UserStatusChangedEvent(Long userId, Long tenantId, UserStatus oldStatus,
+                                  UserStatus newStatus, String reason) {
         super();
-        this.userId = userId;
-        this.oldStatus = oldStatus;
-        this.newStatus = newStatus;
+        this.userId = Objects.requireNonNull(userId, "userId");
+        this.tenantId = Objects.requireNonNull(tenantId, "tenantId");
+        this.oldStatus = Objects.requireNonNull(oldStatus, "oldStatus");
+        this.newStatus = Objects.requireNonNull(newStatus, "newStatus");
         this.reason = reason;
     }
 
