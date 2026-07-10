@@ -2,9 +2,9 @@
 
 All notable architecture, compatibility, and security changes are documented here. Atom Archetype follows semantic versioning for generated-project contracts.
 
-## [Unreleased] — 2.0.0
+## [2.0.0] — 2026-07-10
 
-This is a breaking release and is currently available only as `2.0.0-SNAPSHOT` after a local `make install`.
+This is a breaking release of the generated-project architecture and public API contracts.
 
 ### Added
 

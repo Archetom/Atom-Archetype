@@ -1,0 +1,61 @@
+name: Release to Maven Central
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact non-SNAPSHOT version from pom.xml
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: maven-central-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish signed release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: maven-central
+
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Java, Maven Central, and GPG
+        uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Verify release coordinates and repository state
+        shell: bash
+        run: |
+          version="$(awk -F'[<>]' '/^[[:space:]]*<version>/{print $3; exit}' pom.xml)"
+          test "$version" = "${{ inputs.version }}"
+          case "$version" in
+            *-SNAPSHOT) echo "Refusing to publish a SNAPSHOT as a release."; exit 1 ;;
+          esac
+          git diff --check 4b825dc642cb6eb9a060e54bf8d69288fbee4904 HEAD -- .
+
+      - name: Publish and wait for Maven Central
+        timeout-minutes: 35
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: >-
+          ./mvnw -B -ntp clean deploy
+          -Dcentral.autoPublish=true
+          -Dcentral.waitUntil=published

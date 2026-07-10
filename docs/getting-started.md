@@ -1,6 +1,6 @@
 # Getting started
 
-This guide generates and runs the upcoming 2.0 architecture from the locally installed `io.github.archetom:atom-archetype:2.0.0-SNAPSHOT`. Maven Central `1.1.0` is the legacy Spring Boot 3.5 template and does not match this guide.
+This guide generates and runs `io.github.archetom:atom-archetype:2.0.0` from Maven Central. Version `1.1.0` is the legacy Spring Boot 3.5 template and does not match this guide.
 
 ## Prerequisites
 
@@ -17,22 +17,13 @@ Use JDK 21 and Maven 3.9 or newer. Docker is optional for domain unit tests, but
 
 ## Generate the project
 
-Install the current repository snapshot:
-
-```bash
-git clone https://github.com/Archetom/atom-archetype.git
-cd atom-archetype
-make install
-cd ..
-```
-
-Then generate with the exact installed version:
+Generate with the exact released version:
 
 ```bash
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.0.0-SNAPSHOT \
+  -DarchetypeVersion=2.0.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \

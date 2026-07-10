@@ -32,24 +32,15 @@ Use it when you want a practical DDD starting point that is fully owned by your 
 
 ### Release status
 
-The architecture documented here targets **2.0.0-SNAPSHOT** and is not yet published to Maven Central. Maven Central `1.1.0` is the legacy Spring Boot 3.5 architecture; it does not contain the security, tenancy, Flyway, or command/query changes described on this page.
+The current stable release is **2.0.0**. Maven Central `1.1.0` is the legacy Spring Boot 3.5 architecture; it does not contain the security, tenancy, Flyway, or command/query changes described on this page.
 
-Install the current snapshot locally first:
-
-```bash
-git clone https://github.com/Archetom/atom-archetype.git
-cd atom-archetype
-make install
-cd ..
-```
-
-### 1. Generate a project from the installed snapshot
+### 1. Generate a project from Maven Central
 
 ```bash
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.0.0-SNAPSHOT \
+  -DarchetypeVersion=2.0.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
@@ -151,7 +142,7 @@ These defaults establish a safe boundary, but generated sample authorization rul
 
 The verified deployment target is the JVM. GraalVM native-image support is intentionally not generated until it has a maintained compatibility test.
 
-The current generation command pins the locally installed `2.0.0-SNAPSHOT`. After `2.0.0` is published, replace it with the exact released version for reproducible generation. Existing generated projects are not rewritten automatically when the archetype changes—follow the [Upgrade guide](docs/upgrade-guide.md).
+The generation command pins the exact `2.0.0` release for reproducibility. Existing generated projects are not rewritten automatically when the archetype changes—follow the [Upgrade guide](docs/upgrade-guide.md).
 
 ## Documentation
 

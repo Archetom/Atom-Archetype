@@ -4,7 +4,7 @@
 
 Canonical repository: https://github.com/Archetom/atom-archetype
 Maven coordinates: io.github.archetom:atom-archetype
-Current documented architecture: 2.0.0-SNAPSHOT (install locally; not yet released)
+Current stable release: 2.0.0 (Maven Central)
 Legacy Maven Central release: 1.1.0 (Spring Boot 3.5 architecture)
 License: MIT
 
@@ -22,15 +22,13 @@ License: MIT
 - [Security policy](https://github.com/Archetom/atom-archetype/blob/main/SECURITY.md): supported versions and private vulnerability reporting.
 - [Agent instructions](https://github.com/Archetom/atom-archetype/blob/main/AGENTS.md): repository-specific editing and verification rules.
 
-## Current snapshot generation
-
-Run `make install` in the repository first, then:
+## Stable release generation
 
 ```bash
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.0.0-SNAPSHOT \
+  -DarchetypeVersion=2.0.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \

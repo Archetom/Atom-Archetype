@@ -2,7 +2,7 @@
 
 A Maven archetype creates source code once; it is not an in-place application updater. Changing the Atom Archetype version does not rewrite an existing generated project. Upgrade by generating a reference project, reviewing the delta, and applying changes intentionally to your codebase.
 
-This guide targets the breaking `2.0.0-SNAPSHOT` architecture. Maven Central `1.1.0` is the legacy Spring Boot 3.5 release. Install the current repository locally when evaluating the migration; after 2.0.0 is published, pin that exact release instead.
+This guide targets the breaking `2.0.0` architecture. Maven Central `1.1.0` is the legacy Spring Boot 3.5 release. Pin the exact `2.0.0` release when generating a migration reference project.
 
 ## Safe upgrade workflow
 
@@ -14,15 +14,13 @@ This guide targets the breaking `2.0.0-SNAPSHOT` architecture. Maven Central `1.
 6. Run unit, integration, tenant-isolation, authorization, and concurrency tests.
 7. Deploy in a reversible sequence and observe authentication failures, Flyway state, optimistic-lock conflicts, and post-commit delivery failures.
 
-Install and generate the 2.0 snapshot reference:
+Generate the 2.0 reference project:
 
 ```bash
-make install
-
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.0.0-SNAPSHOT \
+  -DarchetypeVersion=2.0.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service-reference \
   -Dpackage=com.example.orders \
