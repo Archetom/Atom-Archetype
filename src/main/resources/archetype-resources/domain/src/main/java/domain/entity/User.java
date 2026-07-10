@@ -1,48 +1,45 @@
 package ${package}.domain.entity;
 
-import ${package}.api.enums.UserStatus;
+import ${package}.domain.model.UserStatus;
 import ${package}.domain.aggregate.AggregateRoot;
 import ${package}.domain.event.UserCreatedEvent;
 import ${package}.domain.event.UserStatusChangedEvent;
 import ${package}.domain.exception.UserDomainException;
 import ${package}.domain.valueobject.Email;
+import ${package}.domain.valueobject.PasswordHash;
 import ${package}.domain.valueobject.PhoneNumber;
+import ${package}.domain.valueobject.TenantId;
 import ${package}.domain.valueobject.UserId;
 import ${package}.domain.valueobject.Username;
 import lombok.Getter;
-import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 
-/**
- * user aggregate root
- * @author hanfeng
- */
+/** Tenant-scoped User aggregate with explicit lifecycle behavior. */
 @Getter
-@EqualsAndHashCode(callSuper = true)
 public class User extends AggregateRoot<UserId> {
 
     private UserId id;
     private Username username;
     private Email email;
     private PhoneNumber phoneNumber;
-    private String password;
+    private PasswordHash passwordHash;
     private String realName;
     private UserStatus status;
-    private Long tenantId;
-    private String externalId; // external system ID
-    private boolean externalUser; // whether External User
-    private boolean admin; // whether administrator
+    private TenantId tenantId;
+    /** Optional external-system reference; it is not a unique identity key. */
+    private String externalId;
+    private boolean externalUser;
+    private boolean admin;
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
 
-    // without function - framework (MapStruct, JPA etc.)
+    /** Constructor reserved for mapping and persistence frameworks. */
     public User() {
-        // framework function, business validate
+        // Business code creates users through a validated factory.
     }
 
-    // ========== override Lombok generate of getter method class ==========
+    // ========== Value-object accessors ==========
 
     /**
      * get username value object
@@ -103,18 +100,16 @@ public class User extends AggregateRoot<UserId> {
         return phoneNumber != null ? phoneNumber.getMasked() : null;
     }
 
-    // ========== method (simple) ==========
-
     /**
-     * create user (simple method, used for test or simple)
+     * Creates an aggregate from validated identity values and a trusted one-way hash.
      */
-    public static User create(String username, String email, String password, String realName) {
-        validateCreateParams(username, email, password);
-
+    public static User createWithPasswordHash(TenantId tenantId, Username username, Email email,
+                                              PasswordHash passwordHash, String realName) {
         User user = new User();
-        user.username = new Username(username);
-        user.email = new Email(email);
-        user.password = password;
+        user.tenantId = requireTenantId(tenantId);
+        user.username = requireUsername(username);
+        user.email = requireEmail(email);
+        user.passwordHash = requirePasswordHash(passwordHash);
         user.realName = realName;
         user.status = UserStatus.ACTIVE;
         user.externalUser = false;
@@ -122,88 +117,55 @@ public class User extends AggregateRoot<UserId> {
         user.createdTime = LocalDateTime.now();
         user.updatedTime = LocalDateTime.now();
 
-        // add domain event
-        user.addDomainEvent(new UserCreatedEvent(user.getId() != null ? user.getId().getValue() : null, username, email));
-
         return user;
     }
 
     /**
-     * create user (with phone number, simple)
+     * Creates an aggregate with a validated E.164 phone number.
      */
-    public static User create(String username, String email, String phoneNumber, String password, String realName) {
-        User user = create(username, email, password, realName);
-        if (StringUtils.isNotBlank(phoneNumber)) {
-            user.phoneNumber = new PhoneNumber(phoneNumber);
-        }
-        return user;
-    }
-
-    /**
-     * internal method - used for already of parameter (UserFactory)
-     */
-    public static User createWithValidatedParams(Username username, Email email, String encryptedPassword, String realName) {
-        User user = new User();
-        user.username = username;
-        user.email = email;
-        user.password = encryptedPassword;
-        user.realName = realName;
-        user.status = UserStatus.ACTIVE;
-        user.externalUser = false;
-        user.admin = false;
-        user.createdTime = LocalDateTime.now();
-        user.updatedTime = LocalDateTime.now();
-
-        // add domain event
-        user.addDomainEvent(new UserCreatedEvent(
-                user.getId() != null ? user.getId().getValue() : null,
-                username.getValue(),
-                email.getValue()
-        ));
-
-        return user;
-    }
-
-    /**
-     * internal method - with phone number
-     */
-    public static User createWithValidatedParams(Username username, Email email, PhoneNumber phoneNumber,
-                                          String encryptedPassword, String realName) {
-        User user = createWithValidatedParams(username, email, encryptedPassword, realName);
+    public static User createWithPasswordHash(TenantId tenantId, Username username, Email email,
+                                              PhoneNumber phoneNumber, PasswordHash passwordHash,
+                                              String realName) {
+        User user = createWithPasswordHash(tenantId, username, email, passwordHash, realName);
         user.phoneNumber = phoneNumber;
         return user;
     }
 
-    /**
-     * reconstitute method - from layer reconstitute domain object (domain event)
-     */
+    /** Restore persisted state without raising new domain events. */
     public static User reconstitute(UserId id, Username username, Email email, PhoneNumber phoneNumber,
-                                     String password, String realName, UserStatus status,
-                                     Long tenantId, String externalId, boolean externalUser,
-                                     boolean admin, LocalDateTime createdTime, LocalDateTime updatedTime) {
+                                     PasswordHash passwordHash, String realName, UserStatus status,
+                                     TenantId tenantId, String externalId, boolean externalUser,
+                                     boolean admin, Long version,
+                                     LocalDateTime createdTime, LocalDateTime updatedTime) {
         User user = new User();
         user.id = id;
         user.username = username;
         user.email = email;
         user.phoneNumber = phoneNumber;
-        user.password = password;
+        user.passwordHash = requirePasswordHash(passwordHash);
         user.realName = realName;
         user.status = status;
-        user.tenantId = tenantId;
+        user.tenantId = requireTenantId(tenantId);
         user.externalId = externalId;
         user.externalUser = externalUser;
         user.admin = admin;
+        user.restoreVersion(version);
         user.createdTime = createdTime;
         user.updatedTime = updatedTime;
         return user;
     }
 
-    // ========== business method ==========
+    // ========== Business behavior ==========
 
-    /**
-     * update status
-     */
+    /** Change to a non-deleted status. */
     public void changeStatus(UserStatus newStatus, String reason) {
+        if (newStatus == UserStatus.DELETED) {
+            throw new UserDomainException("Use the delete operation to delete a user");
+        }
+        transitionTo(newStatus, reason);
+    }
+
+    private void transitionTo(UserStatus newStatus, String reason) {
         if (newStatus == null) {
             throw new UserDomainException("User status must not be empty");
         }
@@ -213,41 +175,71 @@ public class User extends AggregateRoot<UserId> {
         }
 
         if (this.status == newStatus) {
-            return; // status not, no need process
+            return;
+        }
+
+        if (this.id == null) {
+            throw new UserDomainException("User must be persisted before changing status");
         }
 
         UserStatus oldStatus = this.status;
         this.status = newStatus;
         this.updatedTime = LocalDateTime.now();
 
-        // add status event
-        addDomainEvent(new UserStatusChangedEvent(this.getId() != null ? this.getId().getValue() : null, oldStatus, newStatus, reason));
+        addDomainEvent(new UserStatusChangedEvent(
+                this.id.getValue(), this.tenantId.getValue(), oldStatus, newStatus, reason));
     }
 
     /**
-     * active user
+     * Applies database-generated state to this aggregate after a successful
+     * insert or update. A creation event is raised only after the ID exists.
      */
+    public void onPersisted(UserId persistedId, Long persistedVersion,
+                            LocalDateTime persistedCreatedTime,
+                            LocalDateTime persistedUpdatedTime) {
+        if (persistedId == null) {
+            throw new UserDomainException("Persisted user ID must not be empty");
+        }
+
+        boolean newlyPersisted = this.id == null;
+        if (!newlyPersisted && !this.id.sameValueAs(persistedId)) {
+            throw new UserDomainException("Persisted user ID cannot change");
+        }
+
+        this.id = persistedId;
+        restoreVersion(persistedVersion);
+        if (persistedCreatedTime != null) {
+            this.createdTime = persistedCreatedTime;
+        }
+        if (persistedUpdatedTime != null) {
+            this.updatedTime = persistedUpdatedTime;
+        }
+
+        if (newlyPersisted) {
+            addDomainEvent(new UserCreatedEvent(
+                    this.id.getValue(),
+                    this.tenantId.getValue(),
+                    this.username.getValue(),
+                    this.email.getValue()));
+        }
+    }
+
+    /** Activate the user. */
     public void activate() {
-        changeStatus(UserStatus.ACTIVE, " user active ");
+        changeStatus(UserStatus.ACTIVE, "user activated");
     }
 
-    /**
-     * locked user
-     */
+    /** Lock the user for the supplied business reason. */
     public void lock(String reason) {
         changeStatus(UserStatus.LOCKED, reason);
     }
 
-    /**
-     * delete user (soft delete)
-     */
+    /** Soft-delete the user through the deletion-specific transition. */
     public void delete() {
-        changeStatus(UserStatus.DELETED, " user delete ");
+        transitionTo(UserStatus.DELETED, "user deleted");
     }
 
-    /**
-     * email (value object)
-     */
+    /** Change the email using an already validated value object. */
     public void changeEmail(Email newEmail) {
         if (newEmail == null) {
             throw new UserDomainException("Email must not be empty");
@@ -259,9 +251,7 @@ public class User extends AggregateRoot<UserId> {
         }
     }
 
-    /**
-     * email (string)
-     */
+    /** Validate and change the email supplied as text. */
     public void changeEmail(String newEmail) {
         Email newEmailVO = new Email(newEmail);
         if (!newEmailVO.sameValueAs(this.email)) {
@@ -270,9 +260,7 @@ public class User extends AggregateRoot<UserId> {
         }
     }
 
-    /**
-     * phone number (value object)
-     */
+    /** Change the optional phone number using a validated value object. */
     public void changePhoneNumber(PhoneNumber newPhoneNumber) {
         if (newPhoneNumber != null && !newPhoneNumber.sameValueAs(this.phoneNumber)) {
             this.phoneNumber = newPhoneNumber;
@@ -280,106 +268,64 @@ public class User extends AggregateRoot<UserId> {
         }
     }
 
-    /**
-     * update phone number (string)
-     */
+    /** Validate and change the phone number supplied as E.164 text. */
     public void changePhoneNumber(String newPhoneNumber) {
         this.phoneNumber = new PhoneNumber(newPhoneNumber);
         this.updatedTime = LocalDateTime.now();
     }
 
-    /**
-     * set external system ID
-     */
-    public void changeExternalId(String externalId) {
-        this.externalId = externalId;
-    }
+    // ========== State queries ==========
 
-    /**
-     * set tenant ID
-     */
-    public void changeTenantId(Long tenantId) {
-        this.tenantId = tenantId;
-    }
-
-    /**
-     * as External User
-     */
-    public void markAsExternalUser() {
-        this.externalUser = true;
-    }
-
-    /**
-     * administrator role
-     */
-    public void grantAdminRole() {
-        this.admin = true;
-    }
-
-    /**
-     * administrator role
-     */
-    public void revokeAdminRole() {
-        this.admin = false;
-    }
-
-    // ========== status check method ==========
-
-    /**
-     * check user whether active
-     */
+    /** Return whether the user is active. */
     public boolean isActive() {
         return UserStatus.ACTIVE.equals(this.status);
     }
 
-    /**
-     * check user whether locked
-     */
+    /** Return whether the user is locked. */
     public boolean isLocked() {
         return UserStatus.LOCKED.equals(this.status);
     }
 
-    /**
-     * check user whether delete
-     */
+    /** Return whether the user is soft-deleted. */
     public boolean isDeleted() {
         return UserStatus.DELETED.equals(this.status);
     }
 
-    /**
-     * check whether as administrator
-     */
+    /** Return whether deletion rules classify this user as an administrator. */
     public boolean isAdmin() {
         return this.admin;
     }
 
-    /**
-     * check whether as External User
-     */
+    /** Return whether this record originated from an external system. */
     public boolean isExternalUser() {
         return this.externalUser;
     }
 
-    // ========== validate method (used for simple method) ==========
+    private static TenantId requireTenantId(TenantId tenantId) {
+        if (tenantId == null) {
+            throw new UserDomainException("Tenant ID must not be empty");
+        }
+        return tenantId;
+    }
 
-    /**
-     * validate create parameter (used for simple method)
-     */
-    private static void validateCreateParams(String username, String email, String password) {
-        if (StringUtils.isBlank(username)) {
+    private static Username requireUsername(Username username) {
+        if (username == null) {
             throw new UserDomainException("Username must not be empty");
         }
-        if (StringUtils.isBlank(email)) {
+        return username;
+    }
+
+    private static Email requireEmail(Email email) {
+        if (email == null) {
             throw new UserDomainException("Email must not be empty");
         }
-        if (StringUtils.isBlank(password)) {
-            throw new UserDomainException("Password must not be empty");
+        return email;
+    }
+
+    private static PasswordHash requirePasswordHash(PasswordHash passwordHash) {
+        if (passwordHash == null) {
+            throw new UserDomainException("Password hash must not be empty");
         }
-        if (username.length() < 3 || username.length() > 50) {
-            throw new UserDomainException("Username length must be between3-50 characters ");
-        }
-        if (password.length() < 6 || password.length() > 20) {
-            throw new UserDomainException("Password length must be between6-20 characters ");
-        }
+        return passwordHash;
     }
 }

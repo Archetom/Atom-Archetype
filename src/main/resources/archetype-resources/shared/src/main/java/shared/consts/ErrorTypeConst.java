@@ -1,10 +1,10 @@
 package ${package}.shared.consts;
 
-/**
- * error type
- * <> for standard error code No. 5 position </>
- */
-public class ErrorTypeConst {
+/** Error-type digits used by the public error-code format. */
+public final class ErrorTypeConst {
+
+    private ErrorTypeConst() {
+    }
 
     /**
      * system error
@@ -16,8 +16,6 @@ public class ErrorTypeConst {
      */
     public static final String BIZ = "1";
 
-    /**
-     * No. error
-     */
+    /** Third-party provider error. */
     public static final String THIRD_PARTY = "2";
 }

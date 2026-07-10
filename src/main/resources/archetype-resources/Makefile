@@ -1,21 +1,42 @@
-VERSION=1.0.0
+MVN ?= sh ./mvnw
+VERSION ?= ${version}
 
-default:install
+.PHONY: default clean compile test integration-test verify install package run infra-up infra-down clean-sample version
+
+default: verify
 
 clean:
-	@mvn clean
+	@$(MVN) clean
 
-install:clean
-	@mvn install -U -Dgpg.skip=true
+compile:
+	@$(MVN) compile
 
-deploy:clean
-	@mvn deploy
+test:
+	@CI=false $(MVN) test
 
-package:install
-	@mvn package -Dmaven.test.skip
+integration-test:
+	@CI=true $(MVN) test
 
-native:clean
-	@mvn native:compile -Pnative -DskipTests
+verify:
+	@CI=false $(MVN) verify
+
+install:
+	@CI=false $(MVN) clean install
+
+package:
+	@CI=false $(MVN) clean package
+
+run:
+	@$(MVN) -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+
+infra-up:
+	@docker compose up -d mysql redis
+
+infra-down:
+	@docker compose down
+
+clean-sample:
+	@bash clean.sh
 
 version:
-	@mvn versions:set -DgenerateBackupPoms=false -DnewVersion=$(VERSION)
+	@$(MVN) versions:set -DgenerateBackupPoms=false -DnewVersion=$(VERSION)

@@ -8,15 +8,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Pattern;
 
-/**
- * phone number value object
- * @author hanfeng
- */
+/** Validated E.164 phone number with safe display behavior. */
 @Value
 public class PhoneNumber implements ValueObject<PhoneNumber> {
 
     private static final Pattern PHONE_PATTERN = Pattern.compile(
-            "^1[3-9]\\d{9}$"
+            "^\\+[1-9]\\d{7,14}$"
     );
 
     String value;
@@ -26,7 +23,7 @@ public class PhoneNumber implements ValueObject<PhoneNumber> {
             throw new IllegalArgumentException("Phone number cannot be blank");
         }
         if (!PHONE_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException("Invalid phone number format: " + value);
+            throw new IllegalArgumentException("Phone number must use E.164 format");
         }
         this.value = value;
     }
@@ -36,18 +33,21 @@ public class PhoneNumber implements ValueObject<PhoneNumber> {
         return other != null && this.value.equals(other.value);
     }
 
-    /**
-     * get masked of phone number
-     */
+    /** Return a masked representation that retains only a short prefix and suffix. */
     public String getMasked() {
-        if (value.length() >= 11) {
-            return value.substring(0, 3) + "****" + value.substring(7);
+        if (value.length() > 8) {
+            int prefixLength = 4;
+            int suffixLength = 4;
+            int hiddenLength = value.length() - prefixLength - suffixLength;
+            return value.substring(0, prefixLength)
+                    + "*".repeat(hiddenLength)
+                    + value.substring(value.length() - suffixLength);
         }
-        return value;
+        return "[REDACTED]";
     }
 
     @Override
     public String toString() {
-        return value;
+        return getMasked();
     }
 }

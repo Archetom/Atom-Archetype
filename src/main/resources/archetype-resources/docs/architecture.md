@@ -1,137 +1,126 @@
-# 架构设计
+# Architecture and invariants
 
-## 设计理念
+This project uses Domain-Driven Design with explicit ports and adapters. The objective is not to maximize layers; it is to keep business rules testable and prevent HTTP, database, cache, or authentication details from silently becoming domain rules.
 
-Atom 脚手架采用 **DDD（领域驱动设计）+ 分层架构**，旨在为中大型 Java 项目提供清晰、可扩展的工程基础。
+## Dependency rule
 
-### 核心原则
-
-- **职责分离** - 每层专注自己的职责，降低耦合
-- **依赖倒置** - 高层模块不依赖低层模块
-- **开放封闭** - 对扩展开放，对修改封闭
-
-## 分层架构
-
-### 整体架构图
+Dependencies point toward the domain:
 
 ```text
-┌─────────────────┐
-│    Client/API   │
-└─────────┬───────┘
-          │
-┌─────────▼───────┐
-│     API Layer   │  ← 接口声明
-└─────────┬───────┘
-          │
-┌─────────▼───────┐
-│   Application   │  ← 业务编排
-└─────────┬───────┘
-          │
-┌─────────▼───────┐
-│      Domain     │  ← 核心业务
-└─────────┬───────┘
-          │
-┌─────────▼───────┐
-│  Infrastructure │  ← 基础设施
-└─────────────────┘
+infra/rest ───────┐
+infra/facade ─────┼──> application ──> domain
+infra/persistence ┘          │
+                             └──> api and shared
+
+infra/external ─────────────────────> application output ports
+infra/security ─────────────────────> domain security ports
+start ──────────────────────────────> all runtime adapters
 ```
 
-### 各层职责
+The important constraints are:
 
-| 层级 | 职责 | 主要组件 |
-|------|------|----------|
-| **API** | 对外接口声明 | DTO、Facade 接口 |
-| **Application** | 业务编排协调 | Service、Assembler、VO |
-| **Domain** | 核心业务逻辑 | Entity、Repository、DomainService |
-| **Infrastructure** | 技术实现 | Mapper、外部接口、消息队列 |
-| **Shared** | 通用组件 | 工具类、异常、常量 |
+- `domain` has no dependency on `api`, `application`, `shared`, or `infra`.
+- `application` orchestrates use cases but does not contain MyBatis, servlet, or Redis code.
+- Infrastructure modules implement inward-facing ports.
+- `start` is the composition root; it contains no business rules.
+- `shared` contains only small technical primitives. New domain concepts belong in `domain`.
 
-## 核心特性
+## Module map
 
-### 服务模板模式
+| Module | Owns | Must not own |
+| --- | --- | --- |
+| `api` | Public contracts and authenticated caller context | Domain behavior, persistence models |
+| `domain` | Aggregates, value objects, policies, domain services, events, repository ports | Spring MVC, SQL, Redis, API DTOs |
+| `application` | Use cases, authorization checks, transaction boundaries, output ports | HTTP parsing, mapper XML, vendor clients |
+| `shared` | Result/error primitives used across boundaries | User or tenant business behavior |
+| `infra/rest` | HTTP transport, authentication adapter, status mapping | Business decisions |
+| `infra/persistence` | PO mapping, MyBatis queries, Flyway, cache implementations | Caller discovery, use-case orchestration |
+| `infra/external` | Third-party output-port adapters | Application workflow |
+| `infra/security` | Password hashing and security technology implementation | Domain policy |
+| `infra/facade` | Public facade implementation and API/application mapping | Domain persistence |
+| `start` | Runtime assembly and end-to-end tests | Reusable business logic |
 
-所有业务操作通过 `ServiceTemplate` 统一处理：
-
-```java
-@Service
-public class UserService {
-    @Resource(name = "operatorServiceTemplate")
-    private ServiceTemplate serviceTemplate;
-    
-    public Result<UserVO> createUser(UserCreateRequest request) {
-        return serviceTemplate.execute(EventEnum.USER_CREATE, new ServiceCallback<UserVO>() {
-            @Override
-            public void checkParam() {
-                // 参数校验
-            }
-            
-            @Override
-            public UserVO process() {
-                // 核心业务逻辑
-                return userDomainService.createUser(request);
-            }
-        });
-    }
-}
-```
-
-### 责任链处理
-
-内置标准处理步骤：
-
-1. **参数校验** - 检查输入参数
-2. **上下文构建** - 准备执行环境
-3. **并发控制** - 幂等性检查
-4. **业务处理** - 核心逻辑执行
-5. **数据持久化** - 保存结果
-6. **后置处理** - 清理和通知
-
-### 统一异常处理
-
-```java
-// 业务异常
-throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "用户名不能为空");
-
-// 不可重试异常
-throw new AppUnRetryException(ErrorCodeEnum.USER_NOT_FOUND, "用户不存在");
-```
-
-## 依赖关系
+## Request flow
 
 ```text
-api ──────────┐
-              ▼
-application ──┼──► domain ──► shared
-              ▼
-infra ────────┘
+HTTP request
+  -> Spring Security verifies or rejects identity
+  -> AuthenticatedCallerMapper creates AuthenticatedCaller
+  -> UserFacade maps the public contract and delegates to the application
+  -> UserService selects CommandServiceTemplate or QueryServiceTemplate
+  -> application derives TenantId and checks authority
+  -> aggregate/domain service enforces business rules
+  -> tenant-scoped repository port persists or queries
+  -> facade maps the result to an API response
+  -> REST adapter maps stable errors to HTTP status codes
 ```
 
-**依赖规则**：
-- `domain` 不依赖任何其他业务层
-- `infra` 可以依赖 `domain`，但 `domain` 不能依赖 `infra`
-- `shared` 被所有层依赖，但不依赖任何业务层
+`AuthenticatedCaller` is explicit method input. There is no domain `ThreadLocal`, so identity and tenant ownership remain visible in tests, async code, and call graphs.
 
-## 扩展指南
+## Command and query policies
 
-### 新增业务功能
+`CommandServiceTemplate` is used for state changes. Its lifecycle is:
 
-1. **定义接口** - 在 `api` 层声明 DTO 和 Facade
-2. **实现服务** - 在 `application` 层编写 Service
-3. **领域建模** - 在 `domain` 层定义实体和业务规则
-4. **基础设施** - 在 `infra` 层实现数据访问
+```text
+validate -> prepare -> execute -> onSuccess
+```
 
-### 集成外部系统
+If a command catches an application or domain failure and converts it to a `Result`, the template marks the active transaction rollback-only.
 
-1. 在 `domain` 层定义接口
-2. 在 `infra/external` 层实现适配器
-3. 通过依赖注入使用
+`QueryServiceTemplate` uses the same type-safe `ServiceOperation` lifecycle without command rollback behavior. Do not use a command template for reads merely to reuse code.
 
-## 最佳实践
+## Aggregate persistence
 
-- ✅ 使用 ServiceTemplate 处理所有业务操作
-- ✅ 通过 Assembler/Converter 进行对象转换
-- ✅ 在 domain 层编写核心业务逻辑
-- ✅ 使用统一的异常和错误码
-- ❌ 不要在 Controller 中写业务逻辑
-- ❌ 不要让 domain 层依赖 infra 层
-- ❌ 不要直接暴露 PO 对象到接口层
+The `User` aggregate owns its state transitions. Infrastructure reconstructs it through `User.reconstitute`, which restores identity, timestamps, tenant, and optimistic-lock version without raising new domain events.
+
+Repository rules:
+
+- every method requires a non-null `TenantId`;
+- update predicates include tenant and aggregate identity;
+- the persisted aggregate version is checked by MyBatis-Plus optimistic locking;
+- zero updated rows are treated as a version conflict;
+- save returns and synchronizes the same aggregate instance so pending events are preserved;
+- physical delete is not part of the domain repository contract.
+
+`UserStatus.DELETED` is the only soft-delete mechanism. Visibility of deleted users is an explicit query policy, not a hidden global SQL rewrite.
+
+## Transactions, cache, and events
+
+The relational database is the source of truth. Cache writes, cache eviction, and event publication are post-commit side effects coordinated by `AfterCommitExecutor`.
+
+This prevents consumers from observing state that later rolls back. It does not provide durable event delivery: use a transactional outbox when an event must be delivered despite process failure after commit.
+
+Redis is optional and implements an application output port. Cache keys include tenant identity. Disabling Redis selects a no-op adapter and must not change authorization or query correctness.
+
+## Security invariants
+
+- Anonymous requests to application APIs are rejected.
+- Authorities are checked both in HTTP routing and at the application use-case boundary.
+- Tenant identity comes from verified authentication context, never from request data.
+- Production cannot install the trusted-header development adapter.
+- Request headers cannot grant authorities or administrator state.
+- Passwords, reset tokens, authentication credentials, and full request objects must not be logged.
+- Repository and cache calls without a tenant fail closed.
+
+See [configuration](configuration.md) for profile behavior and [usage guide](usage-guide.md) for adding a use case.
+
+## Database evolution
+
+Flyway is the only schema initialization mechanism. Migrations live under `infra/persistence/src/main/resources/db/migration` and use `V<version>__<description>.sql` names.
+
+- Never combine Flyway with `schema.sql` or container init scripts.
+- Never edit an applied migration.
+- Test every migration against an empty MySQL database and, when relevant, a copy of the previous schema.
+- Keep SQL columns, `UserPO`, converter mappings, mapper XML, and aggregate reconstruction in the same change.
+
+## Architecture checklist
+
+Before merging a change, verify:
+
+- Can the domain behavior be tested without Spring?
+- Is caller and tenant context explicit at every boundary?
+- Does a state change run inside a command transaction?
+- Are cache and event effects scheduled after commit?
+- Does persistence restore and check the aggregate version?
+- Is the database change represented by a new Flyway migration?
+- Did any new infrastructure type leak into `domain`?

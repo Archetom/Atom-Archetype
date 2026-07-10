@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 @Value
 public class Email implements ValueObject<Email> {
 
+    private static final int MAX_LENGTH = 254;
+
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$"
     );
@@ -21,8 +23,8 @@ public class Email implements ValueObject<Email> {
     String value;
 
     public Email(String value) {
-        if (value == null || !EMAIL_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException("Invalid email format: " + value);
+        if (value == null || value.length() > MAX_LENGTH || !EMAIL_PATTERN.matcher(value).matches()) {
+            throw new IllegalArgumentException("Invalid email format or length");
         }
         this.value = value;
     }

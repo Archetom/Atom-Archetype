@@ -3,6 +3,8 @@ package ${package}.domain.valueobject;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
+
 /**
  * value object
  * @author hanfeng
@@ -59,8 +61,8 @@ public class Address implements ValueObject<Address> {
                 this.country.equals(other.country) &&
                 this.province.equals(other.province) &&
                 this.city.equals(other.city) &&
-                StringUtils.equals(this.district, other.district) &&
-                StringUtils.equals(this.street, other.street) &&
-                StringUtils.equals(this.zipCode, other.zipCode);
+                Objects.equals(this.district, other.district) &&
+                Objects.equals(this.street, other.street) &&
+                Objects.equals(this.zipCode, other.zipCode);
     }
 }

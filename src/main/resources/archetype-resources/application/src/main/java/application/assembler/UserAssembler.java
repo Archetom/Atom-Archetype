@@ -4,6 +4,7 @@ import ${package}.api.dto.response.UserResponse;
 import ${package}.application.converter.UserConverter;
 import ${package}.application.vo.UserVO;
 import ${package}.domain.entity.User;
+import ${package}.domain.repository.PageResult;
 import ${package}.shared.util.PageUtil;
 import io.github.archetom.common.result.Pager;
 
@@ -53,13 +54,16 @@ public class UserAssembler {
     /**
      * Domain User Pager -> UserVO Pager
      */
-    public static Pager<UserVO> toVOPager(Pager<User> userPager) {
+    public static Pager<UserVO> toVOPager(PageResult<User> userPager) {
         if (userPager == null) {
             return null;
         }
 
-        Pager<UserVO> voPager = PageUtil.copy(userPager);
-        voPager.setObjectList(toVOList(userPager.getObjectList()));
+        Pager<UserVO> voPager = new Pager<>();
+        voPager.setPageNum(userPager.page());
+        voPager.setPageSize(userPager.size());
+        voPager.setTotalNum(userPager.total());
+        voPager.setObjectList(toVOList(userPager.items()));
         return voPager;
     }
 

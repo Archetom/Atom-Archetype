@@ -1,0 +1,93 @@
+package ${package}.infra.rest.security;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * Development and test adapter that converts trusted headers into an
+ * authenticated Spring Security principal.
+ *
+ * <p>The filter is installed only by {@code SecurityConfig} when a dev or test
+ * profile is active and {@code atom.security.trusted-header.enabled=true}.
+ * Authorities are supplied by server configuration; request headers can never
+ * grant roles or administrator privileges.</p>
+ */
+public final class TrustedHeaderAuthenticationFilter extends OncePerRequestFilter {
+
+    public static final String USER_ID_HEADER = "X-Dev-User-Id";
+    public static final String TENANT_ID_HEADER = "X-Dev-Tenant-Id";
+
+    private final List<GrantedAuthority> authorities;
+
+    public TrustedHeaderAuthenticationFilter(Collection<String> authorities) {
+        this.authorities = authorities == null
+                ? List.of()
+                : authorities.stream()
+                .filter(authority -> authority != null && !authority.isBlank())
+                .map(String::trim)
+                .distinct()
+                .map(SimpleGrantedAuthority::new)
+                .map(GrantedAuthority.class::cast)
+                .toList();
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        Authentication current = SecurityContextHolder.getContext().getAuthentication();
+        if (current != null && current.isAuthenticated()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String userIdHeader = request.getHeader(USER_ID_HEADER);
+        String tenantIdHeader = request.getHeader(TENANT_ID_HEADER);
+
+        if (userIdHeader == null && tenantIdHeader == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        try {
+            long userId = parsePositiveId(userIdHeader);
+            long tenantId = parsePositiveId(tenantIdHeader);
+            ActorPrincipal principal = new ActorPrincipal(userId, tenantId);
+            Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
+                    principal, null, authorities);
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
+        } catch (IllegalArgumentException exception) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid trusted-header credentials");
+            return;
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private long parsePositiveId(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Required trusted header is missing");
+        }
+
+        long id = Long.parseLong(value);
+        if (id <= 0) {
+            throw new IllegalArgumentException("Trusted-header IDs must be positive");
+        }
+        return id;
+    }
+}

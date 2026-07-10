@@ -2,13 +2,18 @@
 spring:
   application:
     name: ${artifactId}-test
-
-  # data source configuration (Testcontainers overridden dynamically)
+  # Redis is explicitly disabled for this profile, so avoid creating unused clients and health checks.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.DataRedisReactiveAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.health.DataRedisHealthContributorAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.health.DataRedisReactiveHealthContributorAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.observation.LettuceObservationAutoConfiguration
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    # URL and credentials are supplied by MySQL Testcontainers.
+    driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 5
       minimum-idle: 1
@@ -16,38 +21,17 @@ spring:
       idle-timeout: 300000
       max-lifetime: 900000
 
-  # Redis configuration (Testcontainers overridden dynamically)
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      database: 1 # use an isolated test database
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 5
-          max-idle: 3
-          min-idle: 1
-
-  # cache configuration
-  cache:
-    type: redis
-    redis:
-      time-to-live: 300000 # 5 minutes
-      cache-null-values: false
+# Keep the machine-readable contract in the integration-test surface.
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: false
 
 # MyBatis-Plus configuration
 mybatis-plus:
   configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # output during tests SQL
     map-underscore-to-camel-case: true
-  global-config:
-    db-config:
-      logic-delete-field: deletedTime
-      logic-delete-value: 'NOW()'
-      logic-not-delete-value: 'NULL'
-      id-type: auto
-    banner: false # disable banner
   mapper-locations: classpath*:mapper/**/*.xml
   type-aliases-package: ${package}.infra.persistence.mysql.po
 
@@ -60,23 +44,17 @@ task:
     keep-alive-seconds: 30
     thread-name-prefix: "test-task-"
 
-# WebClient configuration
-webclient:
-  connect-timeout: 5000
-  read-timeout: 5000
-  write-timeout: 5000
-
 # logging configuration
 logging:
   level:
-    root: INFO
-    ${package}: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.transaction: DEBUG
-    org.mybatis: DEBUG
-    com.baomidou.mybatisplus: DEBUG
-    org.springframework.data.redis: DEBUG
+    root: WARN
+    ${package}: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.springframework.transaction: WARN
+    org.mybatis: WARN
+    com.baomidou.mybatisplus: WARN
+    org.springframework.data.redis: WARN
     org.testcontainers: INFO
     com.github.dockerjava: WARN
   pattern:
@@ -91,62 +69,33 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health
   endpoint:
     health:
-      show-details: always
+      show-details: when-authorized
 
-# test-specific configuration
-test:
-  # database initialization
-  database:
-    init-mode: always
-    schema-locations: classpath:sql/schema-test.sql
-    data-locations: classpath:sql/data-test.sql
-
-  # external service Mock configuration
-  external:
-    mock-enabled: true
-    payment-service:
-      base-url: http://localhost:8089
-    notification-service:
-      base-url: http://localhost:8089
-
-  # test data configuration
-  data:
-    cleanup-enabled: true # whether clean test data
-    tenant-id: 999999 # test tenant ID
-    user-id: 888888 # Test UserID
-
-# security configuration (test environment)
-security:
-  enabled: false
+# Trusted-header authentication is explicitly enabled for integration tests.
+atom:
+  security:
+    trusted-header:
+      enabled: true
+      authorities: "users:read,users:write,users:delete"
+  redis:
+    enabled: false
 
 # transaction configuration
 spring.transaction:
   default-timeout: 30
   rollback-on-commit-failure: true
 
-# async configuration
-spring.task:
-  execution:
-    pool:
-      core-size: 2
-      max-size: 4
-      queue-capacity: 25
-      keep-alive: 30s
-    thread-name-prefix: "test-async-"
-
-# validation configuration
-spring.validation:
-  enabled: true
-
 # Jackson configuration
 spring.jackson:
   default-property-inclusion: NON_NULL
   serialization:
-    write-dates-as-timestamps: false
     fail-on-empty-beans: false
   deserialization:
     fail-on-unknown-properties: false
-  time-zone: GMT+8
+  datatype:
+    datetime:
+      write-dates-as-timestamps: false
+  time-zone: UTC

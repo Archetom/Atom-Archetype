@@ -1,11 +1,11 @@
 package ${package}.shared.consts;
 
 
-/**
- * error level
- * <> for standard error code No. 4 position </>
- */
-public class ErrorLevelConst {
+/** Severity digits used by the public error-code format. */
+public final class ErrorLevelConst {
+
+    private ErrorLevelConst() {
+    }
     /**
      * INFO
      */
@@ -21,9 +21,6 @@ public class ErrorLevelConst {
      */
     public static final String ERROR = "5";
 
-    /**
-     * FATAL
-     * <p> of error </p>
-     */
+    /** Fatal error. */
     public static final String FATAL = "7";
 }

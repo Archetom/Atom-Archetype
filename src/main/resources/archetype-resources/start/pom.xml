@@ -12,38 +12,45 @@
 
     <artifactId>${artifactId}</artifactId>
     <name>${artifactId}</name>
-    <description>Start</description>
+    <description>Spring Boot composition root and end-to-end integration tests</description>
 
     <properties>
-        <maven.deploy.skip>true</maven.deploy.skip>
+        <!-- Required for Surefire's late @{argLine} replacement. -->
+        <argLine/>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.archetom</groupId>
+            <artifactId>atom-common</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!-- Testcontainers -->
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>mysql</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.redis</groupId>
-            <artifactId>testcontainers-redis</artifactId>
+            <artifactId>testcontainers-mysql</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -54,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>${groupId}</groupId>
-            <artifactId>${rootArtifactId}-infra-messaging</artifactId>
+            <artifactId>${rootArtifactId}-infra-security</artifactId>
         </dependency>
         <dependency>
             <groupId>${groupId}</groupId>
@@ -73,6 +80,26 @@
     <build>
         <finalName>${project.name}</finalName>
         <plugins>
+            <!-- Resolve the Mockito artifact path used by the explicit Java agent below. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Java 21+ should not rely on Mockito dynamically attaching its own agent. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -javaagent:&#36;{org.mockito:mockito-core:jar}</argLine>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -83,20 +110,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.graalvm.buildtools</groupId>
-                <artifactId>native-maven-plugin</artifactId>
-                <configuration>
-                    <skip>false</skip>
-                    <buildArgs combine.children="append">
-                        <buildArg>--enable-url-protocols=http</buildArg>
-                    </buildArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-plugin</artifactId>
             </plugin>
         </plugins>
 

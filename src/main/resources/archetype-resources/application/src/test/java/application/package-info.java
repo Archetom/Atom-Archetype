@@ -1,7 +1,5 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-/**
- * Application Test.
- */
+/** Unit tests for application orchestration and transaction policies. */
 package ${package}.application;

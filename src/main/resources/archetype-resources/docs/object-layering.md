@@ -1,375 +1,136 @@
-# 对象分层规范
+# Object layering and naming
 
-## 概述
+Names in this project describe both meaning and architectural ownership. Avoid generic `Model`, `Data`, `Manager`, `Helper`, or `Util` names when a domain or boundary-specific term is available.
 
-本项目采用严格的对象分层设计，确保各层职责清晰，数据流向明确。
+## Object types
 
-## 对象类型定义
+| Suffix or type | Owner | Purpose | Example |
+| --- | --- | --- | --- |
+| `*Request` | `api` | Public input contract and transport validation | `UserCreateRequest` |
+| `*Response` | `api` | Public output contract | `UserResponse` |
+| `AuthenticatedCaller` | `api` | Verified actor, tenant, and authorities passed across the API boundary | `AuthenticatedCaller` |
+| `*VO` | `application` | Use-case output before public facade mapping | `UserVO` |
+| Aggregate/entity | `domain` | Identity, state, invariants, and behavior | `User` |
+| Value object | `domain` | Immutable validated concept | `TenantId`, `Email`, `Username` |
+| Domain enum | `domain` | Business state vocabulary | `UserStatus` |
+| `PageResult<T>` | `domain` | Framework-neutral repository page result | `PageResult<User>` |
+| `*PO` | `infra/persistence` | Relational persistence representation | `UserPO` |
+| Domain event | `domain` | Immutable fact raised by an aggregate | `UserCreatedEvent` |
 
-### Request/Response - 接口层对象
+Do not expose `UserPO` from infrastructure or use API Request/Response types inside the domain.
 
-**用途**: REST API 的输入输出对象  
-**位置**: `api/dto/request/`、`api/dto/response/`  
-**特点**: 面向外部接口，包含验证注解
+## Mapping path
 
-```java
-// UserCreateRequest.java
-@Data
-public class UserCreateRequest {
-    @NotBlank(message = "用户名不能为空")
-    @Size(min = 3, max = 20, message = "用户名长度必须在3-20之间")
-    private String username;
-    
-    @Email(message = "邮箱格式不正确")
-    private String email;
-}
-
-// UserResponse.java
-@Data
-public class UserResponse {
-    private Long id;
-    private String username;
-    private String email;
-    private String status;
-    private LocalDateTime createdTime;
-}
-```
-
-### DTO - 数据传输对象
-
-**用途**: 服务间、模块间数据传输  
-**位置**: `application/dto/`  
-**特点**: 纯数据载体，无业务逻辑
-
-```java
-// UserDTO.java
-@Data
-public class UserDTO {
-    private Long id;
-    private String username;
-    private String email;
-    private Integer status;
-    private LocalDateTime createdTime;
-}
-```
-
-### VO - 视图对象
-
-**用途**: 应用层内部数据展示  
-**位置**: `application/vo/`  
-**特点**: 面向业务展示，可包含计算字段
-
-```java
-// UserVO.java
-@Data
-public class UserVO {
-    private Long id;
-    private String username;
-    private String displayName;    // 计算字段
-    private String statusText;     // 状态文本
-    private String createdTimeText; // 格式化时间
-    
-    // 业务方法
-    public String getDisplayName() {
-        return StringUtils.isNotBlank(nickname) ? nickname : username;
-    }
-}
-```
-
-### Entity - 领域实体
-
-**用途**: 领域层核心业务对象  
-**位置**: `domain/entity/`  
-**特点**: 包含业务逻辑和规则
-
-```java
-// User.java
-@Data
-public class User {
-    private Long id;
-    private String username;
-    private String email;
-    private UserStatus status;
-    private LocalDateTime createdTime;
-    
-    // 业务方法
-    public void activate() {
-        if (this.status == UserStatus.DELETED) {
-            throw new AppException(ErrorCodeEnum.USER_DELETED, "已删除用户无法激活");
-        }
-        this.status = UserStatus.ACTIVE;
-    }
-    
-    public boolean isActive() {
-        return UserStatus.ACTIVE.equals(this.status);
-    }
-}
-```
-
-### PO - 持久化对象
-
-**用途**: 数据库表映射对象  
-**位置**: `infra/persistence/mysql/po/`  
-**特点**: 纯数据映射，包含数据库注解
-
-```java
-// UserPO.java
-@Data
-@EqualsAndHashCode(callSuper = true)
-@TableName("user")
-public class UserPO extends BasePO {
-    @TableId(type = IdType.AUTO)
-    private Long id;
-    
-    @TableField("username")
-    private String username;
-    
-    @TableField("email")
-    private String email;
-    
-    @TableField("status")
-    private Integer status;
-}
-```
-
-## 数据流转规范
-
-### 典型流转路径
+The normal flow is:
 
 ```text
-Request → DTO → Entity → PO → Database
-   ↓                              ↑
-Response ← VO ← Entity ← PO ← Database
+HTTP JSON
+  -> Request
+  -> application arguments and domain value objects
+  -> aggregate
+  -> PO
+  -> MySQL
+
+MySQL
+  -> PO
+  -> reconstituted aggregate
+  -> VO
+  -> Response
+  -> HTTP JSON
 ```
 
-### 转换示例
+Mapping ownership:
 
-```java
-// UserAssembler.java - 负责对象转换
-public class UserAssembler {
-    
-    // Request → DTO
-    public static UserDTO toDTO(UserCreateRequest request) {
-        UserDTO dto = new UserDTO();
-        dto.setUsername(request.getUsername());
-        dto.setEmail(request.getEmail());
-        return dto;
-    }
-    
-    // Entity → VO
-    public static UserVO toVO(User user) {
-        UserVO vo = new UserVO();
-        vo.setId(user.getId());
-        vo.setUsername(user.getUsername());
-        vo.setDisplayName(user.getDisplayName());
-        vo.setStatusText(user.getStatus().getDescription());
-        return vo;
-    }
-    
-    // VO → Response
-    public static UserResponse toResponse(UserVO vo) {
-        UserResponse response = new UserResponse();
-        BeanUtils.copyProperties(vo, response);
-        return response;
-    }
-}
+- the REST adapter binds JSON and creates `AuthenticatedCaller` from verified authentication;
+- the facade owns the public Request/Response boundary and invokes the mapping operations;
+- the application validates public input, creates domain value objects, and maps aggregate output to VO;
+- the facade maps the resulting VO to the public Response without exposing domain objects;
+- the persistence adapter maps aggregate to PO and calls `reconstitute` on reads.
 
-// UserConverter.java - Entity ↔ PO 转换
-public class UserConverter {
-    
-    // Entity → PO
-    public static UserPO toPO(User user) {
-        UserPO po = new UserPO();
-        po.setId(user.getId());
-        po.setUsername(user.getUsername());
-        po.setEmail(user.getEmail());
-        po.setStatus(user.getStatus().getCode());
-        return po;
-    }
-    
-    // PO → Entity
-    public static User toEntity(UserPO po) {
-        User user = new User();
-        user.setId(po.getId());
-        user.setUsername(po.getUsername());
-        user.setEmail(po.getEmail());
-        user.setStatus(UserStatus.fromCode(po.getStatus()));
-        user.setCreatedTime(po.getCreatedTime());
-        return user;
-    }
-}
+MapStruct may handle mechanical field mapping. Invariants, validation, defaults, identity assignment, version restoration, and event registration remain explicit code.
+
+## Aggregate creation and reconstruction
+
+Use clearly different methods:
+
+- `create...` or a domain factory creates new business state and may raise a creation event;
+- `reconstitute(...)` restores persisted state and must not raise events;
+- behavior methods such as `changeStatus`, `changeEmail`, or `delete` enforce transitions;
+- `onPersisted(...)` synchronizes generated identity, audit timestamps, and version after a successful write.
+
+Avoid public setters and Lombok `@Data` on aggregates. Equality should be based deliberately on aggregate identity or value-object value, not all mutable fields by accident.
+
+## Tenant and caller types
+
+`AuthenticatedCaller` belongs at the public/application boundary. `TenantId` belongs in the domain.
+
+```text
+verified security principal
+  -> AuthenticatedCaller
+  -> validated TenantId
+  -> repository/cache method argument
 ```
 
-## 分层使用规范
+Do not add tenant IDs to user-controlled request bodies for ordinary tenant-scoped operations. Do not recover tenant identity from ThreadLocal state inside a repository.
 
-### ✅ 正确使用
+## Naming conventions
 
-```java
-// Controller 层
-@RestController
-public class UserController {
-    
-    @PostMapping("/users")
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserCreateRequest request) {
-        // Request → Service
-        Result<UserVO> result = userService.createUser(request);
-        
-        // VO → Response
-        UserResponse response = UserAssembler.toResponse(result.getData());
-        return ResponseEntity.ok(response);
-    }
-}
+| Concern | Convention |
+| --- | --- |
+| Application write policy | `CommandServiceTemplate` |
+| Application read policy | `QueryServiceTemplate` |
+| Type-safe use-case lifecycle | `ServiceOperation<T>` |
+| Public interface | Business name without `I` prefix, for example `UserService` |
+| Implementation | `*Impl` only when it implements a meaningful interface |
+| Output port | Business capability, for example `CacheStore`, `PasswordHasher` |
+| Adapter | Technology plus capability when useful, for example `RedisCacheService` |
+| API mapping | `*Assembler` or explicit static mapper methods |
+| Persistence mapping | `*POConverter` |
+| Repository port | `*Repository` in domain |
+| Repository adapter | `*RepositoryImpl` in persistence infrastructure |
+| Configuration | `*Config` or `*Configuration`, one convention per package |
+| Exception | Specific failure, not a catch-all name |
+| Test | Class under test plus `Test`; integration intent visible in class name |
 
-// Service 层
-@Service
-public class UserService {
-    
-    public Result<UserVO> createUser(UserCreateRequest request) {
-        return serviceTemplate.execute(EventEnum.USER_CREATE, new ServiceCallback<UserVO>() {
-            @Override
-            public UserVO process() {
-                // Request → Entity
-                User user = userDomainService.createUser(request.getUsername(), request.getEmail());
-                
-                // Entity → VO
-                return UserAssembler.toVO(user);
-            }
-        });
-    }
-}
+Avoid the `Abstract*` prefix on concrete Spring beans. Avoid `DTO` when `Request`, `Response`, `VO`, or a domain concept communicates the role more precisely.
 
-// Repository 层
-@Repository
-public class UserRepositoryImpl implements UserRepository {
-    
-    @Override
-    public User save(User user) {
-        // Entity → PO
-        UserPO po = UserConverter.toPO(user);
-        userDao.save(po);
-        
-        // PO → Entity
-        return UserConverter.toEntity(po);
-    }
-}
-```
+## Error vocabulary
 
-### ❌ 错误使用
+- `DomainException` represents a stable domain failure with a domain error classification.
+- `ApplicationException` represents an application workflow failure that may be retried according to policy.
+- `NonRetryableApplicationException` represents a stable application rejection.
+- infrastructure exceptions are translated at the adapter boundary or by a dedicated mapper.
+- public error responses expose a stable code and safe message, never an arbitrary internal exception message.
 
-```java
-// ❌ 直接暴露 PO 到 Controller
-@GetMapping("/users/{id}")
-public UserPO getUser(@PathVariable Long id) {
-    return userDao.getById(id);  // 错误：暴露数据库对象
-}
+Names should describe the cause, such as `UserNotFoundException`, `UserAlreadyExistsException`, or `AggregateVersionConflictException`.
 
-// ❌ 在 Domain 层使用 Request/Response
-public class UserDomainService {
-    public UserResponse createUser(UserCreateRequest request) {  // 错误：领域层不应依赖接口层对象
-        // ...
-    }
-}
+## Persistence naming
 
-// ❌ 混用不同层的对象
-@Service
-public class UserService {
-    public UserPO createUser(UserCreateRequest request) {  // 错误：Service 不应返回 PO
-        // ...
-    }
-}
-```
+Java uses camelCase and SQL uses snake_case:
 
-## 对象映射工具
+| Java | SQL |
+| --- | --- |
+| `tenantId` | `tenant_id` |
+| `phoneNumber` | `phone_number` |
+| `externalUser` | `is_external_user` |
+| `createdTime` | `created_time` |
+| `updatedTime` | `updated_time` |
 
-### MapStruct 配置
+The optimistic-lock field is named `version` in every layer. Soft deletion uses domain `status=DELETED`; there is no `deleted_time` field.
 
-```java
-@Mapper(componentModel = "spring")
-public interface UserMapper {
-    
-    @Mapping(target = "statusText", source = "status", qualifiedByName = "statusToText")
-    UserVO toVO(User user);
-    
-    @Named("statusToText")
-    default String statusToText(UserStatus status) {
-        return status != null ? status.getDescription() : "";
-    }
-    
-    List<UserVO> toVOList(List<User> users);
-}
-```
+## Collection and absence rules
 
-### 手动映射最佳实践
+- Repository single-result queries return `Optional<T>`.
+- Repository collections return an empty list, not null.
+- `PageResult<T>` stays framework-neutral inside the domain boundary.
+- Convert to the public `Pager<T>` only outside the domain.
+- Validate required inputs at the closest trusted boundary and again in domain value objects for domain invariants.
 
-```java
-public class UserAssembler {
-    
-    public static UserVO toVO(User user) {
-        if (user == null) {
-            return null;
-        }
-        
-        UserVO vo = new UserVO();
-        vo.setId(user.getId());
-        vo.setUsername(user.getUsername());
-        vo.setEmail(user.getEmail());
-        
-        // 处理枚举转换
-        if (user.getStatus() != null) {
-            vo.setStatusText(user.getStatus().getDescription());
-        }
-        
-        // 处理时间格式化
-        if (user.getCreatedTime() != null) {
-            vo.setCreatedTimeText(user.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        }
-        
-        return vo;
-    }
-    
-    public static List<UserVO> toVOList(List<User> users) {
-        return users.stream()
-                .map(UserAssembler::toVO)
-                .collect(Collectors.toList());
-    }
-}
-```
+## Review checklist
 
-## 常见问题
-
-### Q: 什么时候使用 DTO，什么时候使用 VO？
-
-A:
-- **DTO**: 跨服务、跨模块传输数据时使用
-- **VO**: 应用层内部业务处理和数据展示时使用
-
-### Q: 可以跨层使用对象吗？
-
-A: 不建议。每层应该使用自己的对象类型，通过转换器进行映射。
-
-### Q: 如何处理复杂的对象转换？
-
-A:
-1. 简单映射：使用 BeanUtils.copyProperties()
-2. 复杂映射：使用 MapStruct 或手写 Assembler
-3. 业务转换：在 Assembler 中添加业务逻辑
-
-### Q: 分页对象如何处理？
-
-A: 使用泛型分页对象，在不同层进行数据转换：
-
-```java
-// 查询 PO 分页
-Page<UserPO> poPage = userDao.selectPage(page, wrapper);
-
-// 转换为 Entity 分页
-Pager<User> entityPager = PageUtil.toPager(poPage);
-List<User> users = poPage.getRecords().stream()
-    .map(UserConverter::toEntity)
-    .collect(Collectors.toList());
-entityPager.setData(users);
-
-// 转换为 VO 分页
-Pager<UserVO> voPage = PageUtil.copy(entityPager);
-voPage.setData(UserAssembler.toVOList(users));
-```
+- Does the name reveal the object's owner and purpose?
+- Did an API or persistence type leak into the domain?
+- Is caller/tenant context explicit rather than hidden?
+- Does reconstruction avoid validation side effects and new events?
+- Are all PO fields mapped in both directions, including version and audit timestamps?
+- Is a new suffix being introduced when an existing convention already fits?

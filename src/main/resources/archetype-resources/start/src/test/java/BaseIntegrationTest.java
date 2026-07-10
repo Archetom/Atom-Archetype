@@ -1,15 +1,10 @@
 package ${package};
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -17,12 +12,10 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -32,67 +25,52 @@ import java.time.Duration;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * integration test class (scaffold, support MySQL + Redis Testcontainers,)
+ * Integration test scaffold backed by MySQL Testcontainers.
  *
  * <ul>
- * <li>Testcontainers MySQL + Redis</li>
- * <li> to Spring Boot test configuration </li>
- * <li>MockMvc & RestTemplate test HTTP</li>
- * <li> database /Redis convenience encapsulate </li>
- * <li> full transaction & data clean </li>
- * <li> support complex class JSON column </li>
- * <li> can define container, support </li>
+ * <li>MySQL managed by Testcontainers</li>
+ * <li>dynamic Spring Boot datasource configuration</li>
+ * <li>MockMvc HTTP helpers</li>
+ * <li>real transaction commits and explicit database cleanup</li>
  * </ul>
  */
 @SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         classes = {${package}.Bootstrap.class}
         )
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Testcontainers
-@Transactional
 public abstract class BaseIntegrationTest {
 
-    // ======= Testcontainers container configuration (can in class define) =======
+    // ======= Shared Testcontainers configuration =======
 
-    @Container
-    protected static MySQLContainer<?> mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
+    protected static final MySQLContainer MYSQL = new MySQLContainer(DockerImageName.parse("mysql:8.4.10"))
             .withDatabaseName("test_db")
             .withUsername("test_user")
             .withPassword("test_password")
-            .withInitScript("sql/init-test-data.sql") // optional, scaffold can remove
             .withStartupTimeout(Duration.ofMinutes(2));
 
-    @Container
-    protected static GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-            .withExposedPorts(6379)
-            .withStartupTimeout(Duration.ofMinutes(1));
+    static {
+        // One JVM-wide container keeps Spring's cached DataSource valid across test classes.
+        // Testcontainers' resource reaper stops it when the test JVM exits.
+        MYSQL.start();
+    }
 
-    /** get MySQL test container, can used for define / */
-    protected static MySQLContainer<?> mysqlContainer() { return mysql; }
-
-    /** get Redis test container, can used for define / */
-    protected static GenericContainer<?> redisContainer() { return redis; }
+    /** Return the shared MySQL test container for advanced assertions. */
+    protected static MySQLContainer mysqlContainer() { return MYSQL; }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         // MySQL configuration
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-        registry.add("spring.datasource.driver-class-name", mysql::getDriverClassName);
-        // Redis configuration
-        registry.add("spring.data.redis.host", redis::getHost);
-        registry.add("spring.data.redis.port", redis::getFirstMappedPort);
-        // test configuration
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-        registry.add("logging.level.org.springframework.web", () -> "DEBUG");
-        registry.add("logging.level.${package}", () -> "DEBUG");
+        registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
+        registry.add("spring.datasource.username", MYSQL::getUsername);
+        registry.add("spring.datasource.password", MYSQL::getPassword);
+        registry.add("spring.datasource.driver-class-name", MYSQL::getDriverClassName);
+        registry.add("atom.redis.enabled", () -> "false");
+        registry.add("spring.flyway.enabled", () -> "true");
     }
 
     // ======= =======
@@ -100,65 +78,47 @@ public abstract class BaseIntegrationTest {
     protected MockMvc mockMvc;
 
     @Autowired(required = false)
-    protected TestRestTemplate restTemplate;
-
-    @Autowired(required = false)
     protected ObjectMapper objectMapper;
 
     @Autowired(required = false)
     protected DataSource dataSource;
 
-    @Autowired(required = false)
-    protected StringRedisTemplate redisTemplate;
-
-    @LocalServerPort
-    protected int port;
-
     // ======= =======
     @BeforeEach
     void setUpIntegration() {
-        clearRedisData();
         initTestData();
     }
 
     @AfterEach
     void tearDownIntegration() {
         clearTestData();
-        clearRedisData();
     }
 
     // ======= HTTP request utility =======
     protected ResultActions performGet(String url, Object... params) throws Exception {
-        return mockMvc.perform(get(url, params).contentType(MediaType.APPLICATION_JSON)).andDo(print());
+        return mockMvc.perform(withTestActor(get(url, params).contentType(MediaType.APPLICATION_JSON)));
     }
 
     protected ResultActions performGetWithParams(String url, Map<String, String> params) throws Exception {
         MockHttpServletRequestBuilder request = get(url);
         params.forEach(request::param);
-        return mockMvc.perform(request.contentType(MediaType.APPLICATION_JSON)).andDo(print());
+        return mockMvc.perform(withTestActor(request.contentType(MediaType.APPLICATION_JSON)));
     }
 
     protected ResultActions performPost(String url, Object requestBody) throws Exception {
-        return mockMvc.perform(post(url)
+        return mockMvc.perform(withTestActor(post(url)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(toJson(requestBody))).andDo(print());
+                .content(toJson(requestBody))));
     }
 
     protected ResultActions performPut(String url, Object requestBody) throws Exception {
-        return mockMvc.perform(put(url)
+        return mockMvc.perform(withTestActor(put(url)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(toJson(requestBody))).andDo(print());
+                .content(toJson(requestBody))));
     }
 
     protected ResultActions performDelete(String url, Object... params) throws Exception {
-        return mockMvc.perform(delete(url, params).contentType(MediaType.APPLICATION_JSON)).andDo(print());
-    }
-
-    protected ResultActions performPostWithAuth(String url, Object requestBody, String token) throws Exception {
-        return mockMvc.perform(post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + token)
-                .content(toJson(requestBody))).andDo(print());
+        return mockMvc.perform(withTestActor(delete(url, params).contentType(MediaType.APPLICATION_JSON)));
     }
 
     // ======= response utility =======
@@ -166,18 +126,8 @@ public abstract class BaseIntegrationTest {
         return resultActions.andExpect(status().isOk());
     }
 
-    protected ResultActions assertBusinessError(ResultActions resultActions, String expectedErrorCode) throws Exception {
-        return resultActions
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.errCode").value(expectedErrorCode));
-    }
-
     protected ResultActions assertValidationError(ResultActions resultActions) throws Exception {
-        return resultActions.andExpect(status().isUnprocessableEntity());
-    }
-
-    protected ResultActions assertResponseData(ResultActions resultActions, String jsonPath, Object expectedValue) throws Exception {
-        return resultActions.andExpect(jsonPath(jsonPath).value(expectedValue));
+        return resultActions.andExpect(status().isBadRequest());
     }
 
     // ======= database utility =======
@@ -193,41 +143,6 @@ public abstract class BaseIntegrationTest {
 
     protected void truncateTable(String tableName) {
         executeSql("TRUNCATE TABLE " + tableName);
-    }
-
-    protected void insertTestData(String tableName, Map<String, Object> data) {
-        StringBuilder sql = new StringBuilder("INSERT INTO ").append(tableName).append(" (");
-        StringBuilder values = new StringBuilder(" VALUES (");
-        data.forEach((key, value) -> {
-            sql.append(key).append(",");
-            values.append(value instanceof String ? "'" + value + "'" : value).append(",");
-        });
-        sql.setLength(sql.length() - 1);
-        values.setLength(values.length() - 1);
-        sql.append(")").append(values).append(")");
-        executeSql(sql.toString());
-    }
-
-    // ======= Redis utility =======
-    protected void setRedisValue(String key, String value) {
-        if (redisTemplate != null) redisTemplate.opsForValue().set(key, value);
-    }
-
-    protected void setRedisValue(String key, String value, Duration timeout) {
-        if (redisTemplate != null) redisTemplate.opsForValue().set(key, value, timeout);
-    }
-
-    protected String getRedisValue(String key) {
-        return redisTemplate != null ? redisTemplate.opsForValue().get(key) : null;
-    }
-
-    /** security Redis data, without Redis skip */
-    protected void clearRedisData() {
-        try {
-            if (redisTemplate != null && redisTemplate.getConnectionFactory() != null) {
-                redisTemplate.getConnectionFactory().getConnection().flushAll();
-            }
-        } catch (Exception ignored) {}
     }
 
     // ======= JSON utility =======
@@ -258,33 +173,18 @@ public abstract class BaseIntegrationTest {
         }
     }
 
-    // ======= test data (can override) =======
+    // ======= Test data hooks =======
     protected void initTestData() {
-        // class can override
+        // Subclasses may override.
     }
 
     protected void clearTestData() {
-        // class can override
+        // Subclasses may override.
     }
 
-    // ======= convenience utility method =======
-    /** etc. async */
-    protected void waitForAsyncOperation(Duration timeout) {
-        try {
-            Thread.sleep(timeout.toMillis());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interrupted while waiting", e);
-        }
-    }
-
-    /** get full URL */
-    protected String getFullUrl(String path) {
-        return "http://localhost:" + port + path;
-    }
-
-    /** set Test User context (sample, actual business) */
-    protected void setTestUserContext(String userId, String tenantId) {
-        // can ThreadLocal or security context set simulate user
+    protected MockHttpServletRequestBuilder withTestActor(MockHttpServletRequestBuilder request) {
+        return request
+                .header("X-Dev-User-Id", "888888")
+                .header("X-Dev-Tenant-Id", "999999");
     }
 }

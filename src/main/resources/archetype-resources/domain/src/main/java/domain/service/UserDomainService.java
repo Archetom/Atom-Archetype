@@ -2,51 +2,26 @@ package ${package}.domain.service;
 
 import ${package}.domain.entity.User;
 import ${package}.domain.valueobject.Email;
+import ${package}.domain.valueobject.PasswordHash;
+import ${package}.domain.valueobject.TenantId;
 import ${package}.domain.valueobject.Username;
 
-/**
- * user domain service interface
- * @author hanfeng
- */
+/** Domain operations that coordinate user identity and deletion policies. */
 public interface UserDomainService {
 
-    /**
-     * check username whether can
-     */
-    boolean isUsernameAvailable(Username username);
+    /** Return whether a username is available inside the tenant. */
+    boolean isUsernameAvailable(TenantId tenantId, Username username);
 
-    /**
-     * check email whether can
-     */
-    boolean isEmailAvailable(Email email);
+    /** Return whether an email address is available inside the tenant. */
+    boolean isEmailAvailable(TenantId tenantId, Email email);
 
-    /**
-     * validate user create rule
-     */
-    void validateUserCreation(String username, String email);
+    /** Validate tenant-scoped uniqueness required for user creation. */
+    void validateUserCreation(TenantId tenantId, Username username, Email email);
 
-    /**
-     * password
-     */
-    String encryptPassword(String plainPassword);
+    /** Hash plaintext through the configured security output port. */
+    PasswordHash encryptPassword(String plainPassword);
 
-    /**
-     * validate password
-     */
-    boolean validatePassword(String plainPassword, String encryptedPassword);
-
-    /**
-     * check user whether can delete
-     */
+    /** Return whether domain rules permit deleting the user. */
     boolean canDeleteUser(User user);
 
-    /**
-     * generate user default password
-     */
-    String generateDefaultPassword();
-
-    /**
-     * check user permission
-     */
-    boolean hasPermission(User user, String permission);
 }

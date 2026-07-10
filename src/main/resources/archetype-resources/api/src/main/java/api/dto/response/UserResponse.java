@@ -8,10 +8,7 @@ import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 
-/**
- * user response
- * @author hanfeng
- */
+/** Public, tenant-safe User representation with masked contact data. */
 @Data
 @Accessors(chain = true)
 public class UserResponse {

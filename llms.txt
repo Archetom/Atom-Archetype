@@ -1,0 +1,62 @@
+# Atom Archetype
+
+> Atom Archetype is a Maven archetype that generates Java 21 and Spring Boot 4 multi-module applications with Domain-Driven Design, explicit tenant context, secure HTTP defaults, MyBatis-Plus, Flyway, and optional Redis.
+
+Canonical repository: https://github.com/Archetom/atom-archetype
+Maven coordinates: io.github.archetom:atom-archetype
+Current documented architecture: 2.0.0-SNAPSHOT (install locally; not yet released)
+Legacy Maven Central release: 1.1.0 (Spring Boot 3.5 architecture)
+License: MIT
+
+## Start here
+
+- [English README](https://github.com/Archetom/atom-archetype/blob/main/README.md): value proposition, stable generation command, architecture summary, security defaults, and compatibility.
+- [Chinese README](https://github.com/Archetom/atom-archetype/blob/main/README.zh-CN.md): Simplified Chinese project overview and quick start.
+- [Getting started](https://github.com/Archetom/atom-archetype/blob/main/docs/getting-started.md): prerequisites, generation, local infrastructure, startup, testing, and production authentication.
+- [Architecture](https://github.com/Archetom/atom-archetype/blob/main/docs/architecture.md): module boundaries, request flow, tenant isolation, transactions, events, persistence, and cache ports.
+- [Naming conventions](https://github.com/Archetom/atom-archetype/blob/main/docs/naming-conventions.md): canonical names for API, domain, application, persistence, errors, and use-case events.
+- [Upgrade guide](https://github.com/Archetom/atom-archetype/blob/main/docs/upgrade-guide.md): safe migration from the legacy 1.1.0 architecture to 2.0.
+- [Release checklist](https://github.com/Archetom/atom-archetype/blob/main/docs/releasing.md): signing, Central validation, explicit Portal publication, tags, and post-release versioning.
+- [Troubleshooting](https://github.com/Archetom/atom-archetype/blob/main/docs/troubleshooting.md): Maven, Java, profiles, 401/403, tenant, Flyway, Redis, Testcontainers, and Velocity issues.
+- [Changelog](https://github.com/Archetom/atom-archetype/blob/main/CHANGELOG.md): release status and breaking changes.
+- [Security policy](https://github.com/Archetom/atom-archetype/blob/main/SECURITY.md): supported versions and private vulnerability reporting.
+- [Agent instructions](https://github.com/Archetom/atom-archetype/blob/main/AGENTS.md): repository-specific editing and verification rules.
+
+## Current snapshot generation
+
+Run `make install` in the repository first, then:
+
+```bash
+mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+  -DarchetypeGroupId=io.github.archetom \
+  -DarchetypeArtifactId=atom-archetype \
+  -DarchetypeVersion=2.0.0-SNAPSHOT \
+  -DgroupId=com.example.orders \
+  -DartifactId=orders-service \
+  -Dpackage=com.example.orders \
+  -Dversion=1.0.0-SNAPSHOT
+```
+
+## Key architecture facts
+
+- Generated modules: api, domain, shared, application, infra/external, infra/security, infra/persistence, infra/rest, infra/facade, and start.
+- Domain is framework-neutral and never depends on application, API, shared, or infrastructure modules.
+- Application use cases receive AuthenticatedCaller and pass a required TenantId to repositories and tenant-scoped caches.
+- CommandServiceTemplate and QueryServiceTemplate execute typed ServiceOperation lifecycles.
+- Domain errors map to application errors; current names are ApplicationException, NonRetryableApplicationException, and UseCaseOperation.
+- Flyway migrations are the only schema source. MyBatis-Plus implements repository adapters and optimistic locking.
+- Cache/event side effects use AfterCommitExecutor. In-process events are not a durable outbox.
+- Redis is disabled by default; NoOpCacheService preserves behavior without Redis.
+- Business APIs are fail-closed. Trusted X-Dev-* identity headers are available only in explicitly enabled dev/test profiles and never grant client-supplied roles.
+
+## Maintainer constraints
+
+- Template code is under src/main/resources/archetype-resources/ and contains intentional Velocity variables such as ${package}, ${artifactId}, ${rootArtifactId}, and ${version}.
+- Use #set( $dollar = '$' ) plus ${dollar}{ENV_VAR} when a filtered template must emit a literal Spring ${ENV_VAR} placeholder.
+- Update src/main/resources/META-INF/maven/archetype-metadata.xml when adding files or modules that are not covered by an existing file set.
+- Update clean.sh when adding, removing, or renaming removable sample files.
+- After a template change, run make install, make demo, compile the generated project with `sh ./mvnw`, and run `CI=true sh ./mvnw test` when Docker is available.
+
+## Optional generated-project documentation
+
+- The generated project also contains a docs/ directory with application-oriented architecture, configuration, object-layering, usage, and testing guidance. Root repository documentation is authoritative for maintaining and upgrading the archetype itself.

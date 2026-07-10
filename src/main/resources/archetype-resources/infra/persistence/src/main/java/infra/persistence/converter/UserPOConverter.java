@@ -1,9 +1,11 @@
 package ${package}.infra.persistence.converter;
 
-import ${package}.api.enums.UserStatus;
 import ${package}.domain.entity.User;
+import ${package}.domain.model.UserStatus;
 import ${package}.domain.valueobject.Email;
+import ${package}.domain.valueobject.PasswordHash;
 import ${package}.domain.valueobject.PhoneNumber;
+import ${package}.domain.valueobject.TenantId;
 import ${package}.domain.valueobject.UserId;
 import ${package}.domain.valueobject.Username;
 import ${package}.infra.persistence.mysql.po.UserPO;
@@ -14,16 +16,11 @@ import org.mapstruct.Mapping;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * user PO convert
- * @author hanfeng
- */
+/** Explicit conversion between User aggregates and relational persistence objects. */
 @Mapper(componentModel = "spring")
 public abstract class UserPOConverter {
 
-    /**
-     * UserPO -> User (reconstitute method reconstitute domain object)
-     */
+    /** Reconstitute a User without raising new domain events. */
     public User toDomain(UserPO userPO) {
         if (userPO == null) {
             return null;
@@ -34,13 +31,14 @@ public abstract class UserPOConverter {
                 stringToUsername(userPO.getUsername()),
                 stringToEmail(userPO.getEmail()),
                 stringToPhoneNumber(userPO.getPhoneNumber()),
-                userPO.getPassword(),
+                stringToPasswordHash(userPO.getPasswordHash()),
                 userPO.getRealName(),
                 codeToStatus(userPO.getStatus()),
-                userPO.getTenantId(),
+                longToTenantId(userPO.getTenantId()),
                 userPO.getExternalId(),
                 Boolean.TRUE.equals(userPO.getExternalUser()),
                 Boolean.TRUE.equals(userPO.getAdmin()),
+                userPO.getVersion(),
                 userPO.getCreatedTime(),
                 userPO.getUpdatedTime()
         );
@@ -57,12 +55,12 @@ public abstract class UserPOConverter {
     @Mapping(target = "externalUser", source = "externalUser")
     @Mapping(target = "admin", source = "admin")
     @Mapping(target = "externalId", source = "externalId")
-    @Mapping(target = "password", source = "password")
+    @Mapping(target = "passwordHash", expression = "java(passwordHashToString(user.getPasswordHash()))")
     @Mapping(target = "realName", source = "realName")
-    @Mapping(target = "tenantId", source = "tenantId")
+    @Mapping(target = "tenantId", expression = "java(tenantIdToLong(user.getTenantId()))")
     @Mapping(target = "createdTime", source = "createdTime")
     @Mapping(target = "updatedTime", source = "updatedTime")
-    @Mapping(target = "deletedTime", ignore = true)
+    @Mapping(target = "version", source = "version")
     public abstract UserPO toPO(User user);
 
     /**
@@ -80,7 +78,7 @@ public abstract class UserPOConverter {
      */
     public abstract List<UserPO> toPOList(List<User> users);
 
-    // ========== convert method ==========
+    // ========== Value conversions ==========
 
     /**
      * Long -> UserId
@@ -94,6 +92,22 @@ public abstract class UserPOConverter {
      */
     protected Long userIdToLong(UserId userId) {
         return userId != null ? userId.getValue() : null;
+    }
+
+    protected TenantId longToTenantId(Long tenantId) {
+        return tenantId != null ? new TenantId(tenantId) : null;
+    }
+
+    protected Long tenantIdToLong(TenantId tenantId) {
+        return tenantId != null ? tenantId.getValue() : null;
+    }
+
+    protected PasswordHash stringToPasswordHash(String passwordHash) {
+        return passwordHash != null ? PasswordHash.fromTrustedHash(passwordHash) : null;
+    }
+
+    protected String passwordHashToString(PasswordHash passwordHash) {
+        return passwordHash != null ? passwordHash.valueForPersistence() : null;
     }
 
     /**

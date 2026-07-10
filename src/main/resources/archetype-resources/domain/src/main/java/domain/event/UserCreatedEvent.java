@@ -2,22 +2,23 @@ package ${package}.domain.event;
 
 import lombok.Getter;
 
-/**
- * user create event
- * @author hanfeng
- */
+import java.util.Objects;
+
+/** Domain fact raised after a new user receives its persisted identity. */
 @Getter
 public class UserCreatedEvent extends BaseDomainEvent {
 
     private final Long userId;
+    private final Long tenantId;
     private final String username;
     private final String email;
 
-    public UserCreatedEvent(Long userId, String username, String email) {
+    public UserCreatedEvent(Long userId, Long tenantId, String username, String email) {
         super();
-        this.userId = userId;
-        this.username = username;
-        this.email = email;
+        this.userId = Objects.requireNonNull(userId, "userId");
+        this.tenantId = Objects.requireNonNull(tenantId, "tenantId");
+        this.username = Objects.requireNonNull(username, "username");
+        this.email = Objects.requireNonNull(email, "email");
     }
 
     @Override

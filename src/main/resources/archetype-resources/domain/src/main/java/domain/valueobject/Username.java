@@ -21,7 +21,8 @@ public class Username implements ValueObject<Username> {
             throw new IllegalArgumentException("Username must not be empty");
         }
         if (!USERNAME_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException("Username can only contain letters, digits and underscores, length 3-50 position ");
+            throw new IllegalArgumentException(
+                    "Username must contain 3-50 letters, digits, or underscores");
         }
         this.value = value;
     }

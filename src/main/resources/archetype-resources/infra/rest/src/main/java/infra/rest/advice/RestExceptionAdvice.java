@@ -1,59 +1,111 @@
 package ${package}.infra.rest.advice;
 
-import ${package}.shared.util.ResultUtil;
+import ${package}.application.exception.DomainExceptionMapper;
+import ${package}.domain.exception.DomainException;
 import ${package}.infra.rest.util.ErrorResultWrapUtil;
 import ${package}.infra.rest.util.ResponseEntityUtil;
+import ${package}.shared.enums.ApplicationErrorCode;
+import ${package}.shared.exception.ApplicationException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
- * exception process
- *
- * @author laiyongguo
+ * Maps transport, application, and domain exceptions to stable HTTP error responses.
  */
 @Slf4j
 @RestControllerAdvice
 public class RestExceptionAdvice {
 
-    @Value("${spring.application.name}")
-    private String appName;
+    private final String appName;
 
-    /**
-     * error process
-     *
-     * @param exception error message
-     * @return error message
-     */
+    public RestExceptionAdvice(@Value("${spring.application.name}") String appName) {
+        this.appName = appName;
+    }
+
+    /** Maps request-body validation failures to a safe parameter error. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> validationBodyException(MethodArgumentNotValidException exception) {
         return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResultValidation(exception, appName));
     }
 
-    /**
-     * parameter class convert error
-     *
-     * @param exception error
-     * @return error message
-     */
+    /** Maps malformed request bodies without logging their potentially sensitive contents. */
     @ExceptionHandler(HttpMessageConversionException.class)
     public ResponseEntity<?> parameterTypeException(HttpMessageConversionException exception) {
-        log.error("{}App parameter validation, parameter failure {}", exception.getCause().getLocalizedMessage(), exception);
+        log.warn("Request body conversion failed: exceptionType={}", exception.getClass().getName());
         return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResultValidation(exception, appName));
     }
 
-    /**
-     * exception
-     *
-     * @param exception RuntimeException
-     * @return ResponseEntity
-     */
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> runtimeException(RuntimeException exception) {
-        return ResponseEntityUtil.assembleResponse(ResultUtil.genErrorResult(exception, appName));
+    /** Maps request-parameter binding and constraint failures. */
+    @ExceptionHandler({
+            ConstraintViolationException.class,
+            MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class
+    })
+    public ResponseEntity<?> requestParameterException(Exception exception) {
+        log.warn("Request parameter validation failed: {}", exception.getClass().getSimpleName());
+        return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
+                ApplicationErrorCode.PARAMETER_INVALID, "Request parameters are invalid", appName));
+    }
+
+    /** Maps explicit boundary authorization rejection to HTTP 403. */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> accessDeniedException(AccessDeniedException exception) {
+        log.warn("Request access denied: exceptionType={}", exception.getClass().getName());
+        return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
+                ApplicationErrorCode.ACCESS_DENIED,
+                ApplicationErrorCode.ACCESS_DENIED.getDescription(), appName));
+    }
+
+    /** Maps invalid value-object and boundary arguments without exposing rejected values. */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> illegalArgumentException(IllegalArgumentException exception) {
+        log.warn("Request argument rejected: exceptionType={}", exception.getClass().getName());
+        return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
+                ApplicationErrorCode.PARAMETER_INVALID,
+                ApplicationErrorCode.PARAMETER_INVALID.getDescription(), appName));
+    }
+
+    /** Preserves explicit codes for domain rules, missing resources, and duplicates. */
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<?> domainException(DomainException exception) {
+        ApplicationErrorCode errorCode = DomainExceptionMapper.toApplicationCode(exception);
+        log.warn("Domain request rejected: error={}", exception.getError());
+        return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
+                errorCode, exception.getMessage(), appName));
+    }
+
+    /** Maps an expected application-layer rejection. */
+    @ExceptionHandler(ApplicationException.class)
+    public ResponseEntity<?> applicationException(ApplicationException exception) {
+        log.warn("Application request rejected: code={}", exception.getErrorCode());
+        return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
+                exception.getErrorCode(), exception.getMessage(), appName));
+    }
+
+    /** Maps an optimistic-lock conflict without logging SQL or entity contents. */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<?> optimisticLockingException(OptimisticLockingFailureException exception) {
+        log.warn("Optimistic locking conflict: exceptionType={}", exception.getClass().getName());
+        return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
+                ApplicationErrorCode.VERSION_CONFLICT,
+                ApplicationErrorCode.VERSION_CONFLICT.getDescription(), appName));
+    }
+
+    /** Maps an unexpected failure without exposing its message or cause. */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> unexpectedException(Exception exception) {
+        log.error("Unexpected request failure: exceptionType={}", exception.getClass().getName());
+        return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
+                ApplicationErrorCode.UNKNOWN, null, appName));
     }
 }

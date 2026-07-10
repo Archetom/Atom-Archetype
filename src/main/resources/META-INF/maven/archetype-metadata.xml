@@ -13,7 +13,6 @@
         <fileSet filtered="true" encoding="UTF-8">
             <directory/>
             <includes>
-                <include>README.md</include>
                 <include>__gitignore__</include>
                 <include>lombok.config</include>
                 <include>Makefile</include>
@@ -21,21 +20,29 @@
                 <include>conf/*</include>
             </includes>
         </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+            <directory/>
+            <includes>
+                <include>README.md</include>
+                <include>README.zh-CN.md</include>
+                <include>llms.txt</include>
+                <include>LICENSE</include>
+            </includes>
+        </fileSet>
+        <!-- Keep scripts and wrapper configuration unfiltered: ${...} expressions are not Velocity here. -->
         <fileSet filtered="false" encoding="UTF-8">
             <directory/>
             <includes>
                 <include>clean.sh</include>
+                <include>AGENTS.md</include>
+                <include>mvnw</include>
+                <include>mvnw.cmd</include>
+                <include>.mvn/wrapper/maven-wrapper.properties</include>
             </includes>
         </fileSet>
         <!-- add docs directory -->
         <fileSet filtered="false" encoding="UTF-8">
             <directory>docs</directory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-        </fileSet>
-        <fileSet filtered="false" encoding="UTF-8">
-            <directory>docker</directory>
             <includes>
                 <include>**/*</include>
             </includes>
@@ -58,12 +65,6 @@
             <fileSets>
                 <fileSet filtered="true" packaged="true" encoding="UTF-8">
                     <directory>src/main/java</directory>
-                    <includes>
-                        <include>**/*.java</include>
-                    </includes>
-                </fileSet>
-                <fileSet filtered="true" packaged="true" encoding="UTF-8">
-                    <directory>src/test/java</directory>
                     <includes>
                         <include>**/*.java</include>
                     </includes>
@@ -118,17 +119,14 @@
                 </fileSet>
             </fileSets>
         </module>
-        <!-- infra-messaging -->
-        <module id="${rootArtifactId}-infra-messaging" dir="infra/messaging" name="${rootArtifactId}-infra-messaging">
+        <!-- infra-security -->
+        <module id="${rootArtifactId}-infra-security" dir="infra/security" name="${rootArtifactId}-infra-security">
             <fileSets>
                 <fileSet filtered="true" packaged="true" encoding="UTF-8">
                     <directory>src/main/java</directory>
                     <includes>
                         <include>**/*.java</include>
                     </includes>
-                </fileSet>
-                <fileSet filtered="true" encoding="UTF-8">
-                    <directory>src/main/resources</directory>
                 </fileSet>
             </fileSets>
         </module>
@@ -137,6 +135,12 @@
             <fileSets>
                 <fileSet filtered="true" packaged="true" encoding="UTF-8">
                     <directory>src/main/java</directory>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                </fileSet>
+                <fileSet filtered="true" packaged="true" encoding="UTF-8">
+                    <directory>src/test/java</directory>
                     <includes>
                         <include>**/*.java</include>
                     </includes>
@@ -151,6 +155,12 @@
             <fileSets>
                 <fileSet filtered="true" packaged="true" encoding="UTF-8">
                     <directory>src/main/java</directory>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                </fileSet>
+                <fileSet filtered="true" packaged="true" encoding="UTF-8">
+                    <directory>src/test/java</directory>
                     <includes>
                         <include>**/*.java</include>
                     </includes>

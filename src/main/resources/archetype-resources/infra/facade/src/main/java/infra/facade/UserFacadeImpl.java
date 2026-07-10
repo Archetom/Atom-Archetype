@@ -3,6 +3,7 @@
 #set( $symbol_escape = '\' )
 package ${package}.infra.facade;
 
+import ${package}.api.context.AuthenticatedCaller;
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
 import ${package}.api.dto.response.UserResponse;
@@ -28,8 +29,8 @@ public class UserFacadeImpl implements UserFacade {
     private final UserService userService;
 
     @Override
-    public Result<UserResponse> createUser(UserCreateRequest request) {
-        Result<UserVO> result = userService.createUser(request);
+    public Result<UserResponse> createUser(AuthenticatedCaller caller, UserCreateRequest request) {
+        Result<UserVO> result = userService.createUser(caller, request);
 
         if (!result.isSuccess()) {
             Result<UserResponse> errorResult = new Result<>();
@@ -47,8 +48,8 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public Result<UserResponse> getUserById(Long userId) {
-        Result<UserVO> result = userService.getUserById(userId);
+    public Result<UserResponse> getUserById(AuthenticatedCaller caller, Long userId) {
+        Result<UserVO> result = userService.getUserById(caller, userId);
 
         if (!result.isSuccess()) {
             Result<UserResponse> errorResult = new Result<>();
@@ -66,8 +67,8 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public Result<Pager<UserResponse>> queryUsers(UserQueryRequest request) {
-        Result<Pager<UserVO>> result = userService.queryUsers(request);
+    public Result<Pager<UserResponse>> queryUsers(AuthenticatedCaller caller, UserQueryRequest request) {
+        Result<Pager<UserVO>> result = userService.queryUsers(caller, request);
 
         if (!result.isSuccess()) {
             Result<Pager<UserResponse>> errorResult = new Result<>();
@@ -85,12 +86,12 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public Result<Void> updateUserStatus(Long userId, String status) {
-        return userService.updateUserStatus(userId, status);
+    public Result<Void> updateUserStatus(AuthenticatedCaller caller, Long userId, String status) {
+        return userService.updateUserStatus(caller, userId, status);
     }
 
     @Override
-    public Result<Void> deleteUser(Long userId) {
-        return userService.deleteUser(userId);
+    public Result<Void> deleteUser(AuthenticatedCaller caller, Long userId) {
+        return userService.deleteUser(caller, userId);
     }
 }

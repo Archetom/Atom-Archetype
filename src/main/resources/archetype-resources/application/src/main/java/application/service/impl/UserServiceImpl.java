@@ -1,215 +1,191 @@
 package ${package}.application.service.impl;
 
+import ${package}.api.context.AuthenticatedCaller;
+import ${package}.api.dto.request.QueryRequest;
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
-import ${package}.api.enums.UserStatus;
 import ${package}.application.assembler.UserAssembler;
 import ${package}.application.service.UserService;
-import ${package}.application.service.template.AbstractOperatorServiceTemplate;
-import ${package}.application.service.template.AbstractQueryServiceTemplate;
+import ${package}.application.service.template.CommandServiceTemplate;
+import ${package}.application.service.template.QueryServiceTemplate;
+import ${package}.application.service.template.ServiceOperation;
+import ${package}.application.transaction.AfterCommitExecutor;
 import ${package}.application.vo.UserVO;
 import ${package}.domain.entity.User;
 import ${package}.domain.event.DomainEventPublisher;
+import ${package}.domain.event.DomainEvent;
 import ${package}.domain.exception.UserNotFoundException;
 import ${package}.domain.factory.UserFactory;
+import ${package}.domain.model.UserStatus;
+import ${package}.domain.repository.PageResult;
 import ${package}.domain.repository.UserRepository;
 import ${package}.domain.service.UserDomainService;
+import ${package}.domain.valueobject.TenantId;
 import ${package}.domain.valueobject.UserId;
-import ${package}.shared.enums.ErrorCodeEnum;
-import ${package}.shared.enums.EventEnum;
-import ${package}.shared.exception.AppException;
-import ${package}.shared.lock.DistributedLock;
-import ${package}.shared.template.ServiceCallback;
+import ${package}.shared.enums.ApplicationErrorCode;
+import ${package}.shared.enums.UseCaseOperation;
+import ${package}.shared.exception.NonRetryableApplicationException;
 import io.github.archetom.common.result.Pager;
 import io.github.archetom.common.result.Result;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
+import java.util.List;
 
 /**
- * user application service implementation
- * @author hanfeng
+ * User use cases with explicit caller and tenant context.
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserDomainService userDomainService;
     private final DomainEventPublisher domainEventPublisher;
-    private final AbstractOperatorServiceTemplate operatorTemplate;
-    private final AbstractQueryServiceTemplate queryTemplate;
+    private final CommandServiceTemplate commandTemplate;
+    private final QueryServiceTemplate queryTemplate;
     private final UserCacheService userCacheService;
-    private final DistributedLock distributedLock;
     private final UserFactory userFactory;
-
-    public UserServiceImpl(UserRepository userRepository,
-                           UserDomainService userDomainService,
-                           DomainEventPublisher domainEventPublisher,
-                           AbstractOperatorServiceTemplate operatorTemplate,
-                           AbstractQueryServiceTemplate queryTemplate,
-                           UserCacheService userCacheService,
-                           @Qualifier("redisDistributedLock") DistributedLock distributedLock,
-                           UserFactory userFactory) {
-        this.userRepository = userRepository;
-        this.userDomainService = userDomainService;
-        this.domainEventPublisher = domainEventPublisher;
-        this.operatorTemplate = operatorTemplate;
-        this.queryTemplate = queryTemplate;
-        this.userCacheService = userCacheService;
-        this.distributedLock = distributedLock;
-        this.userFactory = userFactory;
-    }
+    private final AfterCommitExecutor afterCommitExecutor;
 
     @Override
     @Transactional
-    public Result<UserVO> createUser(UserCreateRequest request) {
-        return operatorTemplate.execute(EventEnum.NOT_SUPPORT_EVENT, new ServiceCallback<UserVO>() {
+    public Result<UserVO> createUser(AuthenticatedCaller caller, UserCreateRequest request) {
+        return commandTemplate.execute(UseCaseOperation.USER_CREATE, new ServiceOperation<UserVO>() {
+            private TenantId tenantId;
             private User user;
-            private UserVO userVO;
-            private String lockKey;
 
             @Override
-            public void checkParam() {
+            public void validate() {
+                tenantId = requireCaller(caller, "users:write");
                 if (request == null) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "Request parameters must not be empty");
+                    throw new NonRetryableApplicationException(ApplicationErrorCode.PARAMETER_INVALID,
+                            "Request parameters must not be empty");
                 }
             }
 
             @Override
-            public void buildContext() {
-                // distributed lock create user
-                lockKey = "user:create:" + request.getUsername();
-                if (!distributedLock.tryLock(lockKey, Duration.ofSeconds(10))) {
-                    throw new AppException(ErrorCodeEnum.MAIN_TRANS_CONTROL_EXP, "User creation is in progress, Please try again later");
-                }
-
+            public void prepare() {
                 try {
-                    // create user entity
                     if (request.getPhoneNumber() != null) {
                         user = userFactory.createUserWithPhone(
+                                tenantId,
                                 request.getUsername(),
                                 request.getEmail(),
                                 request.getPhoneNumber(),
                                 request.getPassword(),
-                                request.getRealName()
-                        );
+                                request.getRealName());
                     } else {
                         user = userFactory.createStandardUser(
+                                tenantId,
                                 request.getUsername(),
                                 request.getEmail(),
                                 request.getPassword(),
-                                request.getRealName()
-                        );
+                                request.getRealName());
                     }
-                } catch (Exception e) {
-                    distributedLock.unlock(lockKey);
-                    throw e;
+                } catch (IllegalArgumentException exception) {
+                    throw new NonRetryableApplicationException(
+                            ApplicationErrorCode.PARAMETER_INVALID,
+                            "User data is invalid",
+                            exception);
                 }
             }
 
             @Override
-            public UserVO process() {
-                try {
-                    // save user
-                    user = userRepository.save(user);
-
-                    // convert as VO
-                    userVO = UserAssembler.toVO(user);
-
-                    return userVO;
-                } finally {
-                    distributedLock.unlock(lockKey);
-                }
+            public UserVO execute() {
+                user = userRepository.save(tenantId, user);
+                return UserAssembler.toVO(user);
             }
 
             @Override
-            public void after() {
-                // cache user
-                userCacheService.cacheUser(userVO);
-                if (user.getId() != null) {
-                    userCacheService.cacheUsernameMapping(user.getUsernameValue(), user.getId().getValue());
-                }
-
-                // publish domain event
-                if (user.hasDomainEvents()) {
-                    domainEventPublisher.publishAll(user.getDomainEvents());
-                    user.clearDomainEvents();
-                }
-
-                log.info("User created successfully, user ID: {}, username: {}",
+            public void onSuccess(UserVO userVO) {
+                List<DomainEvent> events = user.pullDomainEvents();
+                User persistedUser = user;
+                afterCommitExecutor.execute(() -> {
+                    userCacheService.cacheUser(tenantId, userVO);
+                    userCacheService.cacheUsernameMapping(
+                            tenantId, persistedUser.getUsernameValue(), persistedUser.getId());
+                    domainEventPublisher.publishAll(events);
+                });
+                log.info("User created: userId={}, tenantId={}",
                         user.getId() != null ? user.getId().getValue() : null,
-                        user.getUsernameValue());
+                        tenantId.getValue());
             }
         });
     }
 
     @Override
-    public Result<UserVO> getUserById(Long userId) {
-        return queryTemplate.execute(EventEnum.NOT_SUPPORT_EVENT, new ServiceCallback<UserVO>() {
+    public Result<UserVO> getUserById(AuthenticatedCaller caller, Long userId) {
+        return queryTemplate.execute(UseCaseOperation.USER_GET, new ServiceOperation<UserVO>() {
+            private TenantId tenantId;
+            private UserId id;
+
             @Override
-            public void checkParam() {
-                if (userId == null || userId <= 0) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, " user ID must not be empty or in etc. in 0");
-                }
+            public void validate() {
+                tenantId = requireCaller(caller, "users:read");
+                id = requireUserId(userId);
             }
 
             @Override
-            public UserVO process() {
-                // first from cache get
-                UserVO cachedUser = userCacheService.getCachedUser(userId);
+            public UserVO execute() {
+                UserVO cachedUser = userCacheService.getCachedUser(tenantId, id);
                 if (cachedUser != null) {
+                    if (UserStatus.DELETED.getCode().equals(cachedUser.getStatus())) {
+                        userCacheService.evictUser(tenantId, id);
+                        throw new UserNotFoundException(userId);
+                    }
                     return cachedUser;
                 }
 
-                // cache miss, from database get
-                User user = userRepository.findById(new UserId(userId))
-                        .orElseThrow(() -> new UserNotFoundException(userId));
-
+                User user = findVisibleUser(tenantId, id, userId);
                 UserVO userVO = UserAssembler.toVO(user);
-
-                // cache user
-                userCacheService.cacheUser(userVO);
-
+                userCacheService.cacheUser(tenantId, userVO);
                 return userVO;
             }
         });
     }
 
     @Override
-    public Result<Pager<UserVO>> queryUsers(UserQueryRequest request) {
-        return queryTemplate.execute(EventEnum.NOT_SUPPORT_EVENT, new ServiceCallback<Pager<UserVO>>() {
+    public Result<Pager<UserVO>> queryUsers(AuthenticatedCaller caller, UserQueryRequest request) {
+        return queryTemplate.execute(UseCaseOperation.USER_QUERY, new ServiceOperation<Pager<UserVO>>() {
+            private TenantId tenantId;
+            private UserStatus status;
+
             @Override
-            public void checkParam() {
+            public void validate() {
+                tenantId = requireCaller(caller, "users:read");
                 if (request == null) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "Query request must not be empty");
+                    throw new NonRetryableApplicationException(ApplicationErrorCode.PARAMETER_INVALID,
+                            "Query request must not be empty");
                 }
-                if (request.getPage() == null || request.getPage() < 1) {
-                    request.setPage(1);
+                if (request.getPage() == null) {
+                    request.setPage(QueryRequest.DEFAULT_PAGE);
+                } else if (request.getPage() < 1 || request.getPage() > QueryRequest.MAX_PAGE) {
+                    throw new NonRetryableApplicationException(ApplicationErrorCode.PARAMETER_INVALID,
+                            "Page is outside the supported range");
                 }
-                if (request.getSize() == null || request.getSize() < 1) {
-                    request.setSize(20);
+                if (request.getSize() == null) {
+                    request.setSize(QueryRequest.DEFAULT_SIZE);
+                } else if (request.getSize() < 1 || request.getSize() > QueryRequest.MAX_SIZE) {
+                    throw new NonRetryableApplicationException(ApplicationErrorCode.PARAMETER_INVALID,
+                            "Page size is outside the supported range");
                 }
+                status = request.getStatus() == null
+                        ? null : requireUserStatus(request.getStatus());
             }
 
             @Override
-            public Pager<UserVO> process() {
-                UserStatus status = null;
-                if (request.getStatus() != null) {
-                    status = UserStatus.fromCode(request.getStatus());
-                }
-
-                Pager<User> userPager = userRepository.findUsers(
+            public Pager<UserVO> execute() {
+                PageResult<User> userPager = userRepository.findUsers(
+                        tenantId,
                         request.getUsername(),
                         request.getEmail(),
                         status,
                         request.getPage(),
-                        request.getSize()
-                );
-
+                        request.getSize());
                 return UserAssembler.toVOPager(userPager);
             }
         });
@@ -217,126 +193,128 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Result<Void> updateUserStatus(Long userId, String status) {
-        return operatorTemplate.execute(EventEnum.NOT_SUPPORT_EVENT, new ServiceCallback<Void>() {
+    public Result<Void> updateUserStatus(AuthenticatedCaller caller, Long userId, String status) {
+        return commandTemplate.execute(UseCaseOperation.USER_STATUS_UPDATE, new ServiceOperation<Void>() {
+            private TenantId tenantId;
+            private UserId id;
             private User user;
-            private String lockKey;
+            private UserStatus newStatus;
 
             @Override
-            public void checkParam() {
-                if (userId == null || userId <= 0) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, " user ID must not be empty or in etc. in 0");
-                }
+            public void validate() {
+                tenantId = requireCaller(caller, "users:write");
+                id = requireUserId(userId);
                 if (status == null) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, "Status must not be empty");
+                    throw new NonRetryableApplicationException(
+                            ApplicationErrorCode.PARAMETER_INVALID, "Status must not be empty");
+                }
+                newStatus = requireUserStatus(status);
+                if (newStatus == UserStatus.DELETED) {
+                    throw new NonRetryableApplicationException(
+                            ApplicationErrorCode.OPERATION_NOT_ALLOWED,
+                            "Use the delete operation to delete a user");
                 }
             }
 
             @Override
-            public void buildContext() {
-                // distributed lock
-                lockKey = "user:update:" + userId;
-                if (!distributedLock.tryLock(lockKey, Duration.ofSeconds(5))) {
-                    throw new AppException(ErrorCodeEnum.MAIN_TRANS_CONTROL_EXP, "User status update is in progress, Please try again later");
-                }
-
-                try {
-                    user = userRepository.findById(new UserId(userId))
-                            .orElseThrow(() -> new UserNotFoundException(userId));
-                } catch (Exception e) {
-                    distributedLock.unlock(lockKey);
-                    throw e;
-                }
+            public void prepare() {
+                user = findVisibleUser(tenantId, id, userId);
             }
 
             @Override
-            public Void process() {
-                try {
-                    UserStatus newStatus = UserStatus.fromCode(status);
-                    user.changeStatus(newStatus, " administrator ");
-                    userRepository.save(user);
-                    return null;
-                } finally {
-                    distributedLock.unlock(lockKey);
-                }
+            public Void execute() {
+                user.changeStatus(newStatus, "status changed by actor " + caller.actorId());
+                user = userRepository.save(tenantId, user);
+                return null;
             }
 
             @Override
-            public void after() {
-                // clear cache
-                userCacheService.evictUser(userId);
-
-                // publish domain event
-                if (user.hasDomainEvents()) {
-                    domainEventPublisher.publishAll(user.getDomainEvents());
-                    user.clearDomainEvents();
-                }
-
-                log.info("User status updated successfully, user ID: {}, new status: {}", userId, status);
+            public void onSuccess(Void ignored) {
+                List<DomainEvent> events = user.pullDomainEvents();
+                afterCommitExecutor.execute(() -> {
+                    userCacheService.evictUser(tenantId, id);
+                    domainEventPublisher.publishAll(events);
+                });
+                log.info("User status updated: userId={}, tenantId={}", userId, tenantId.getValue());
             }
         });
     }
 
     @Override
     @Transactional
-    public Result<Void> deleteUser(Long userId) {
-        return operatorTemplate.execute(EventEnum.NOT_SUPPORT_EVENT, new ServiceCallback<Void>() {
+    public Result<Void> deleteUser(AuthenticatedCaller caller, Long userId) {
+        return commandTemplate.execute(UseCaseOperation.USER_DELETE, new ServiceOperation<Void>() {
+            private TenantId tenantId;
+            private UserId id;
             private User user;
-            private String lockKey;
 
             @Override
-            public void checkParam() {
-                if (userId == null || userId <= 0) {
-                    throw new AppException(ErrorCodeEnum.PARAM_CHECK_EXP, " user ID must not be empty or in etc. in 0");
-                }
+            public void validate() {
+                tenantId = requireCaller(caller, "users:delete");
+                id = requireUserId(userId);
             }
 
             @Override
-            public void buildContext() {
-                // distributed lock delete
-                lockKey = "user:delete:" + userId;
-                if (!distributedLock.tryLock(lockKey, Duration.ofSeconds(5))) {
-                    throw new AppException(ErrorCodeEnum.MAIN_TRANS_CONTROL_EXP, "User deletion is in progress, Please try again later");
-                }
-
-                try {
-                    user = userRepository.findById(new UserId(userId))
-                            .orElseThrow(() -> new UserNotFoundException(userId));
-                } catch (Exception e) {
-                    distributedLock.unlock(lockKey);
-                    throw e;
-                }
+            public void prepare() {
+                user = findVisibleUser(tenantId, id, userId);
             }
 
             @Override
-            public Void process() {
-                try {
-                    // check whether can delete
-                    if (!userDomainService.canDeleteUser(user)) {
-                        throw new AppException(ErrorCodeEnum.NOT_SUPPORT_OPERATE_EXP, "This user cannot be deleted");
-                    }
-
-                    user.delete();
-                    userRepository.save(user);
-                    return null;
-                } finally {
-                    distributedLock.unlock(lockKey);
+            public Void execute() {
+                if (!userDomainService.canDeleteUser(user)) {
+                    throw new NonRetryableApplicationException(ApplicationErrorCode.OPERATION_NOT_ALLOWED,
+                            "This user cannot be deleted");
                 }
+                user.delete();
+                user = userRepository.save(tenantId, user);
+                return null;
             }
 
             @Override
-            public void after() {
-                // clear cache
-                userCacheService.evictUser(userId);
-
-                // publish domain event
-                if (user.hasDomainEvents()) {
-                    domainEventPublisher.publishAll(user.getDomainEvents());
-                    user.clearDomainEvents();
-                }
-
-                log.info("User deleted successfully, user ID: {}", userId);
+            public void onSuccess(Void ignored) {
+                List<DomainEvent> events = user.pullDomainEvents();
+                afterCommitExecutor.execute(() -> {
+                    userCacheService.evictUser(tenantId, id);
+                    domainEventPublisher.publishAll(events);
+                });
+                log.info("User deleted: userId={}, tenantId={}", userId, tenantId.getValue());
             }
         });
     }
+
+    private TenantId requireCaller(AuthenticatedCaller caller, String authority) {
+        if (caller == null) {
+            throw new NonRetryableApplicationException(ApplicationErrorCode.AUTHENTICATION_REQUIRED,
+                    "Authenticated caller is required");
+        }
+        if (!caller.hasAuthority(authority)) {
+            throw new NonRetryableApplicationException(ApplicationErrorCode.ACCESS_DENIED,
+                    "Caller does not have the required authority");
+        }
+        return new TenantId(caller.tenantId());
+    }
+
+    private UserId requireUserId(Long userId) {
+        if (userId == null || userId <= 0) {
+            throw new NonRetryableApplicationException(
+                    ApplicationErrorCode.PARAMETER_INVALID, "User ID must be positive");
+        }
+        return new UserId(userId);
+    }
+
+    private UserStatus requireUserStatus(String status) {
+        try {
+            return UserStatus.fromCode(status);
+        } catch (IllegalArgumentException exception) {
+            throw new NonRetryableApplicationException(
+                    ApplicationErrorCode.PARAMETER_INVALID, "Unknown user status");
+        }
+    }
+
+    private User findVisibleUser(TenantId tenantId, UserId id, Long rawUserId) {
+        return userRepository.findById(tenantId, id)
+                .filter(user -> !user.isDeleted())
+                .orElseThrow(() -> new UserNotFoundException(rawUserId));
+    }
+
 }

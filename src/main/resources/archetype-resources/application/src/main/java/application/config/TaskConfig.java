@@ -1,17 +1,18 @@
 package ${package}.application.config;
 
-import  ${package}.application.properties.TaskExecutorProperties;
+import ${package}.application.properties.TaskExecutorProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * thread pool configuration, support yml parameter
- * author: hanfeng
+ * Configures the executor used by application event listeners.
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
+@EnableAsync
 @EnableConfigurationProperties(TaskExecutorProperties.class)
 public class TaskConfig {
 
@@ -23,8 +24,6 @@ public class TaskConfig {
         executor.setQueueCapacity(props.getQueueCapacity());
         executor.setKeepAliveSeconds(props.getKeepAliveSeconds());
         executor.setThreadNamePrefix(props.getThreadNamePrefix());
-        executor.setTaskDecorator(new ContextCopyTaskDecorator());
-        executor.initialize();
         return executor;
     }
 }

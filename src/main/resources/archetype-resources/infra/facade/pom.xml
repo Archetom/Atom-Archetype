@@ -12,17 +12,34 @@
 
     <artifactId>${artifactId}</artifactId>
     <name>${artifactId}</name>
-    <description>Infrastructure Facade</description>
-
-    <properties>
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
+    <description>Adapter implementations for the public facade contracts</description>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.archetom</groupId>
+            <artifactId>atom-common</artifactId>
+        </dependency>
+
         <!-- Project Module -->
         <dependency>
             <groupId>${groupId}</groupId>
             <artifactId>${rootArtifactId}-application</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${groupId}</groupId>
+            <artifactId>${rootArtifactId}-api</artifactId>
         </dependency>
     </dependencies>
 </project>

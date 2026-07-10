@@ -9,16 +9,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * user Mapper
- * @author hanfeng
- */
+/** MyBatis mapper for tenant-scoped User persistence. */
 @Mapper
 public interface UserMapper extends BaseMapper<UserPO> {
 
-    /**
-     * paged query user (support tenant)
-     */
+    /** Query a bounded page with an explicit tenant predicate. */
     IPage<UserPO> selectUserPage(
             Page<UserPO> page,
             @Param("username") String username,

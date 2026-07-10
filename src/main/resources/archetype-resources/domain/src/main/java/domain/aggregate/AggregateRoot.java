@@ -1,8 +1,6 @@
 package ${package}.domain.aggregate;
 
 import ${package}.domain.event.DomainEvent;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,10 +11,8 @@ import java.util.List;
  */
 public abstract class AggregateRoot<ID> {
 
-    @Getter
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
-    @Getter
     private Long version = 0L;
 
     /**
@@ -29,6 +25,15 @@ public abstract class AggregateRoot<ID> {
      */
     public List<DomainEvent> getDomainEvents() {
         return Collections.unmodifiableList(domainEvents);
+    }
+
+    /**
+     * Atomically copies and clears pending events for post-commit dispatch.
+     */
+    public List<DomainEvent> pullDomainEvents() {
+        List<DomainEvent> events = List.copyOf(domainEvents);
+        domainEvents.clear();
+        return events;
     }
 
     /**
@@ -61,10 +66,14 @@ public abstract class AggregateRoot<ID> {
         return !domainEvents.isEmpty();
     }
 
+    public Long getVersion() {
+        return version;
+    }
+
     /**
-     * (used for)
+     * Restores the persistence version without creating a domain event.
      */
-    public void incrementVersion() {
-        this.version++;
+    protected void restoreVersion(Long version) {
+        this.version = version == null ? 0L : version;
     }
 }

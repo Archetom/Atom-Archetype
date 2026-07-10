@@ -1,95 +1,86 @@
-#set( $symbol_pound = '#' )
-#set( $symbol_dollar = '$' )
-#set( $symbol_escape = '\' )
 package ${package}.application.service.impl;
 
+import ${package}.application.port.out.CacheStore;
 import ${package}.application.vo.UserVO;
-import ${package}.domain.cache.CacheService;
+import ${package}.domain.valueobject.TenantId;
+import ${package}.domain.valueobject.UserId;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
 /**
- * user cache service
- * @author hanfeng
+ * Tenant-scoped user cache facade.
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserCacheService {
 
-    private final CacheService cacheService;
-
-    private static final String USER_CACHE_PREFIX = "user:";
     private static final Duration USER_CACHE_TTL = Duration.ofMinutes(30);
 
-    public UserCacheService(@Qualifier("redisCacheService") CacheService cacheService) {
-        this.cacheService = cacheService;
-    }
+    private final CacheStore cacheStore;
 
-    /**
-     * cache user
-     */
-    public void cacheUser(UserVO user) {
-        if (user != null && user.getId() != null) {
-            String cacheKey = USER_CACHE_PREFIX + user.getId();
-            cacheService.put(cacheKey, user, USER_CACHE_TTL);
-            log.debug(" cache user: userId={}", user.getId());
+    public void cacheUser(TenantId tenantId, UserVO user) {
+        requireTenantId(tenantId);
+        if (user == null || user.getId() == null) {
+            return;
         }
+        if (!tenantId.getValue().equals(user.getTenantId())) {
+            throw new IllegalArgumentException("Cached user tenant does not match cache tenant");
+        }
+        cacheStore.put(userKey(tenantId, new UserId(user.getId())), user, USER_CACHE_TTL);
     }
 
-    /**
-     * get cache of user
-     */
-    public UserVO getCachedUser(Long userId) {
+    public UserVO getCachedUser(TenantId tenantId, UserId userId) {
+        requireTenantId(tenantId);
         if (userId == null) {
             return null;
         }
-
-        String cacheKey = USER_CACHE_PREFIX + userId;
-        UserVO user = cacheService.get(cacheKey, UserVO.class);
-
-        if (user != null) {
-            log.debug(" hit user cache: userId={}", userId);
-        } else {
-            log.debug(" miss user cache: userId={}", userId);
+        String key = userKey(tenantId, userId);
+        UserVO user = cacheStore.get(key, UserVO.class);
+        if (user != null && !tenantId.getValue().equals(user.getTenantId())) {
+            cacheStore.evict(key);
+            log.warn("Rejected user cache entry with mismatched tenant: userId={}", userId.getValue());
+            return null;
         }
-
         return user;
     }
 
-    /**
-     * clear user cache
-     */
-    public void evictUser(Long userId) {
+    public void evictUser(TenantId tenantId, UserId userId) {
+        requireTenantId(tenantId);
         if (userId != null) {
-            String cacheKey = USER_CACHE_PREFIX + userId;
-            cacheService.evict(cacheKey);
-            log.debug(" clear user cache: userId={}", userId);
+            cacheStore.evict(userKey(tenantId, userId));
         }
     }
 
-    /**
-     * cache username to ID of mapping
-     */
-    public void cacheUsernameMapping(String username, Long userId) {
+    public void cacheUsernameMapping(TenantId tenantId, String username, UserId userId) {
+        requireTenantId(tenantId);
         if (username != null && userId != null) {
-            String cacheKey = "username:" + username;
-            cacheService.put(cacheKey, userId, USER_CACHE_TTL);
-            log.debug(" cache username mapping: username={}, userId={}", username, userId);
+            cacheStore.put(usernameKey(tenantId, username), userId.getValue(), USER_CACHE_TTL);
         }
     }
 
-    /**
-     * get username for of user ID
-     */
-    public Long getCachedUserIdByUsername(String username) {
+    public Long getCachedUserIdByUsername(TenantId tenantId, String username) {
+        requireTenantId(tenantId);
         if (username == null) {
             return null;
         }
+        return cacheStore.get(usernameKey(tenantId, username), Long.class);
+    }
 
-        String cacheKey = "username:" + username;
-        return cacheService.get(cacheKey, Long.class);
+    private String userKey(TenantId tenantId, UserId userId) {
+        return "tenant:%d:user:%d".formatted(tenantId.getValue(), userId.getValue());
+    }
+
+    private String usernameKey(TenantId tenantId, String username) {
+        return "tenant:%d:username:%s".formatted(tenantId.getValue(), username);
+    }
+
+    private void requireTenantId(TenantId tenantId) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("tenantId must not be null");
+        }
     }
 }

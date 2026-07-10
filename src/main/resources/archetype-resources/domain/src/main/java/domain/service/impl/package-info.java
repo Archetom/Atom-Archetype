@@ -1,18 +1,5 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-/**
- * domain service implementation package.
- * <p>
- * domain service interface of implementation class.
- * </p>
- * <p>
- * Implementations of domain service interfaces.
- * </p>
- * <pre>
- * public class UserDomainServiceImpl implements UserDomainService {
- *     public boolean isUserActive(Long userId) { ... }
- * }
- * </pre>
- */
+/** Implementations of domain services that coordinate multiple domain concepts. */
 package ${package}.domain.service.impl;
