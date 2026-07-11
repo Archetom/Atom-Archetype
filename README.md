@@ -1,40 +1,40 @@
-# Atom Archetype — DDD Maven Archetype for Spring Boot 4 and Java 21
+# Atom Archetype — 面向 Spring Boot 4 与 Java 25 的 DDD Maven Archetype
 
-[![Maven Central legacy release](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg?label=Maven%20Central%20legacy)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
+[![Maven Central 旧版](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg?label=Maven%20Central%20legacy)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
 [![CI](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml/badge.svg)](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml)
-[![Java 21](https://img.shields.io/badge/Java-21-007396.svg)](https://openjdk.org/projects/jdk/21/)
+[![Java 25](https://img.shields.io/badge/Java-25-007396.svg)](https://openjdk.org/projects/jdk/25/)
 [![Spring Boot 4.1](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F.svg)](https://spring.io/projects/spring-boot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-English | [简体中文](README.zh-CN.md)
+简体中文 | [English](README.en.md)
 
-Atom Archetype is a Maven archetype for generating production-oriented, multi-module Java applications with Domain-Driven Design (DDD), Spring Boot 4, and Java 21. It provides explicit dependency boundaries, tenant-aware application contracts, MyBatis-Plus persistence, Flyway migrations, secure HTTP defaults, and optional Redis caching without hiding the generated code behind a framework runtime.
+Atom Archetype 是一个用于生成多模块 Java 应用的 Maven Archetype，面向领域驱动设计（DDD）、Spring Boot 4 和 Java 25。它提供明确的依赖边界、显式的调用者与租户上下文、MyBatis-Plus 持久化、Flyway 数据库迁移、安全的 HTTP 默认行为，以及可选的 Redis 缓存。
 
-Use it when you want a practical DDD starting point that is fully owned by your team after generation—not a library that controls your domain model.
+生成后的项目是团队完全拥有的普通 Maven 工程，不依赖隐藏的运行时框架，也不会把领域模型锁定在生成器中。
 
-## Why Atom Archetype
+## 为什么选择 Atom Archetype
 
-- **Clear DDD boundaries:** a framework-neutral domain module, application use cases and output ports, and replaceable infrastructure adapters.
-- **Secure by default:** business APIs reject anonymous access; trusted identity headers are restricted to explicitly enabled `dev` and `test` profiles.
-- **Tenant-safe contracts:** authenticated caller and tenant identifiers are explicit, and persistence/cache access is tenant-scoped.
-- **Reliable persistence baseline:** MyBatis-Plus, a single Flyway schema source, optimistic locking, and MySQL Testcontainers coverage.
-- **Transaction-aware side effects:** cache changes and in-process domain-event publication run after a successful commit.
-- **Optional infrastructure:** Redis is disabled by default and replaced by a no-op cache adapter, so it is not required for application correctness or startup.
-- **Generated, readable code:** the result is an ordinary Maven reactor that can be changed, simplified, or extended without generator lock-in.
+- **清晰的 DDD 边界：** 领域模块保持框架中立；应用层承载用例和输出端口；基础设施通过适配器实现端口。
+- **默认安全：** 业务 API 拒绝匿名访问；受信身份 Header 只能在显式启用的 `dev`、`test` 环境使用。
+- **租户边界显式：** 已认证调用者和租户 ID 是用例契约的一部分，仓储与缓存均按租户隔离。
+- **可靠的持久化基线：** MyBatis-Plus、唯一的 Flyway schema 来源、乐观锁和 MySQL Testcontainers 测试。
+- **事务感知的副作用：** 缓存更新和进程内领域事件在数据库事务成功提交后执行。
+- **基础设施可选：** Redis 默认关闭，并由 no-op 缓存适配器替代；应用正确性和启动不依赖 Redis。
+- **代码可读、可替换：** 生成的是标准 Maven Reactor，团队可以自由裁剪或替换任何实现。
 
-## Quick start
+## 快速开始
 
-### Requirements
+### 环境要求
 
-- JDK 21
-- Maven 3.9 or newer
-- Docker with Docker Compose v2 for the local MySQL service and integration tests
+- `main` 开发线使用 JDK 25；稳定版 2.0.0 的编译目标为 Java 21
+- Maven 3.9 或更高版本；仓库内置 Wrapper 固定使用 Maven 3.9.16
+- Docker 与 Docker Compose v2，用于本地 MySQL 和集成测试
 
-### Release status
+### 发布状态
 
-The current stable release is **2.0.0**. Maven Central `1.1.0` is the legacy Spring Boot 3.5 architecture; it does not contain the security, tenancy, Flyway, or command/query changes described on this page.
+当前稳定版本是 **2.0.0**。Maven Central 上的 `1.1.0` 是 Spring Boot 3.5 旧架构，不包含本文描述的安全、租户、Flyway 与命令/查询模板改造。
 
-### 1. Generate a project from Maven Central
+### 1. 从 Maven Central 生成项目
 
 ```bash
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
@@ -47,7 +47,7 @@ mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -Dversion=1.0.0-SNAPSHOT
 ```
 
-### 2. Start MySQL and build
+### 2. 启动 MySQL 并构建
 
 ```bash
 cd orders-service
@@ -55,9 +55,9 @@ docker compose up -d mysql
 sh ./mvnw clean install
 ```
 
-Flyway creates and validates the schema when the application starts. Redis is optional; do not start it unless you enable the Redis feature.
+应用启动时由 Flyway 创建并校验数据库结构。Redis 是可选能力，未开启 Redis 功能时无需启动。
 
-### 3. Run in explicit development mode
+### 3. 显式使用开发环境启动
 
 ```bash
 SPRING_PROFILES_ACTIVE=dev \
@@ -65,13 +65,13 @@ ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
 sh ./mvnw -f start/pom.xml spring-boot:run
 ```
 
-Check the public health endpoint:
+验证公开健康检查：
 
 ```bash
 curl http://localhost:8080/actuator/health
 ```
 
-Call a protected sample endpoint with the development-only identity headers:
+使用仅限开发环境的身份 Header 调用受保护接口：
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/users \
@@ -86,95 +86,95 @@ curl -X POST http://localhost:8080/api/v1/users \
   }'
 ```
 
-See [Getting started](docs/getting-started.md) for Redis, testing, production configuration, and authentication integration.
+Redis、测试、生产配置和身份系统接入说明见 [快速上手](docs/getting-started.md)。
 
-## Generated architecture
+## 生成后的架构
 
 ```text
-REST / Facade adapters
+REST / Facade 适配器
           │
           ▼
-   Application use cases ─────► output ports
-          │                         ▲
-          ▼                         │ implemented by
- Framework-neutral domain     Persistence / external adapters
+      应用用例 ─────────────► 输出端口
+          │                     ▲
+          ▼                     │ 由适配器实现
+    框架中立的领域层       持久化 / 外部系统适配器
 
-                 start = composition root
+                 start = 组合根
 ```
 
-| Module | Responsibility |
+| 模块 | 职责 |
 |---|---|
-| `api` | Public request/response contracts, facade interfaces, authenticated caller context |
-| `domain` | Aggregates, value objects, domain events, policies, repository/service ports |
-| `shared` | Framework-neutral result and error conventions |
-| `application` | Use-case orchestration, command/query templates, transaction hooks, output ports |
-| `infra/rest` | Spring MVC controllers, Spring Security, OpenAPI, HTTP error mapping |
-| `infra/persistence` | MyBatis-Plus repositories, Flyway migrations, optional Redis adapters |
-| `infra/external` | Third-party adapters implementing application output ports |
-| `infra/security` | Password hashing and other security technology adapters |
-| `infra/facade` | Implementations of published facade contracts |
-| `start` | Spring Boot entry point and runtime assembly |
+| `api` | 对外请求/响应、Facade 接口、已认证调用者上下文 |
+| `domain` | 聚合、值对象、领域事件、策略、仓储和领域服务端口 |
+| `shared` | 框架中立的结果与错误约定 |
+| `application` | 用例编排、命令/查询模板、事务钩子、输出端口 |
+| `infra/rest` | Spring MVC、Spring Security、OpenAPI、HTTP 错误映射 |
+| `infra/persistence` | MyBatis-Plus、Flyway、可选 Redis 适配器 |
+| `infra/external` | 实现应用层输出端口的第三方系统适配器 |
+| `infra/security` | 密码哈希等安全技术适配器 |
+| `infra/facade` | 已发布 Facade 契约的实现 |
+| `start` | Spring Boot 启动入口与运行时装配 |
 
-The critical rule is simple: **the domain never depends on infrastructure**. See [Architecture](docs/architecture.md) for the complete dependency and transaction model.
+核心规则是：**领域层永远不依赖基础设施层**。完整依赖和事务模型见 [架构设计](docs/architecture.md)。
 
-## Security defaults
+## 安全默认行为
 
-- `/api/**` requires authentication; user endpoints also require `users:read`, `users:write`, or `users:delete`.
-- `/actuator/health` is anonymous. OpenAPI/Swagger endpoints are anonymous when enabled, but production disables them by default.
-- `X-Dev-User-Id` and `X-Dev-Tenant-Id` are accepted only when a `dev` or `test` profile is active and trusted-header authentication is explicitly enabled.
-- Production configuration disables trusted headers. Integrate your IdP through Spring Security and map the verified principal to `AuthenticatedCaller`.
-- Production datasource URL, username, and password have no insecure defaults.
-- Redis is off by default; enabling it is an explicit operational choice.
+- `/api/**` 必须认证；用户接口还分别要求 `users:read`、`users:write` 或 `users:delete`。
+- `/actuator/health` 允许匿名访问。OpenAPI/Swagger 端点启用时允许匿名访问，但生产环境默认关闭。
+- 只有在 `dev` 或 `test` profile 生效且显式开启受信 Header 时，才接收 `X-Dev-User-Id` 与 `X-Dev-Tenant-Id`。
+- 生产配置禁止受信 Header。生产系统应通过 Spring Security 接入自己的 IdP，并把已验证 principal 映射为 `AuthenticatedCaller`。
+- 生产数据库 URL、用户名和密码没有不安全默认值。
+- Redis 默认关闭，开启 Redis 是显式的运维决策。
 
-These defaults establish a safe boundary, but generated sample authorization rules and domain policies must still be adapted to your product.
+这些默认值建立了安全边界，但示例权限和领域策略仍需按真实产品需求调整。
 
-## Compatibility
+## 兼容性
 
-| Component | `main` development baseline |
+| 组件 | `main` 开发基线 |
 |---|---|
-| Java | 21 |
+| Java | `main` 使用 25；稳定版 2.0.0 的编译目标为 21 |
 | Spring Boot | 4.1.x |
-| Maven | 3.9+ recommended |
-| MySQL | 9.7.1 LTS on `main`; the stable 2.0.0 release uses 8.4.10 LTS |
-| Redis | 8.8.0 optional on `main`; the stable 2.0.0 release uses 7.4.9 |
+| Maven | 3.9+；内置 Wrapper 固定使用 3.9.16 |
+| MySQL | `main` 使用 9.7.1 LTS；稳定版 2.0.0 使用 8.4.10 LTS |
+| Redis | `main` 可选使用 8.8.0；稳定版 2.0.0 使用 7.4.9 |
 | MyBatis-Plus | 3.5.16 |
 | SpringDoc OpenAPI | 3.0.3 |
 
-The verified deployment target is the JVM. GraalVM native-image support is intentionally not generated until it has a maintained compatibility test.
+当前验证目标是 JVM 部署。GraalVM native-image 尚未进入持续兼容测试，因此模板不会默认生成相关配置。
 
-When upgrading an existing generated project's MySQL data volume, reach MySQL 8.4 LTS before moving to 9.7 LTS. Do not point the new image at a data directory created by an older non-LTS release.
+升级已有生成项目的 MySQL 数据卷时，必须先升级到 MySQL 8.4 LTS，再迁移到 9.7 LTS；不要让新镜像直接读取由更早非 LTS 版本创建的数据目录。
 
-The generation command pins the exact `2.0.0` release for reproducibility. Existing generated projects are not rewritten automatically when the archetype changes—follow the [Upgrade guide](docs/upgrade-guide.md).
+当前生成命令固定使用精确的 `2.0.0` 正式版本，以保证生成过程可复现。Archetype 升级不会自动改写已经生成的项目，请参考 [升级指南](docs/upgrade-guide.md)。
 
-## Documentation
+## 文档入口
 
-- [Getting started](docs/getting-started.md)
-- [Architecture and dependency rules](docs/architecture.md)
-- [Naming conventions](docs/naming-conventions.md)
-- [Upgrade guide](docs/upgrade-guide.md)
-- [Release checklist](docs/releasing.md)
-- [Troubleshooting](docs/troubleshooting.md)
-- [Changelog](CHANGELOG.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)
-- [AI/LLM project index](llms.txt)
+- [快速上手](docs/getting-started.md)
+- [架构与依赖规则](docs/architecture.md)
+- [命名规范](docs/naming-conventions.md)
+- [升级指南](docs/upgrade-guide.md)
+- [发布检查清单](docs/releasing.md)
+- [故障排查](docs/troubleshooting.md)
+- [变更记录](CHANGELOG.md)
+- [贡献指南](CONTRIBUTING.md)
+- [安全策略](SECURITY.md)
+- [AI/LLM 项目索引](llms.txt)
 
-## Maintaining the archetype
+## 维护 Archetype
 
-Template sources live in `src/main/resources/archetype-resources/`; Maven archetype metadata lives in `src/main/resources/META-INF/maven/archetype-metadata.xml`.
+模板位于 `src/main/resources/archetype-resources/`，Archetype 元数据位于 `src/main/resources/META-INF/maven/archetype-metadata.xml`。
 
 ```bash
 make install
 make demo
 cd ~/Downloads/atom-demo
 sh ./mvnw compile
-CI=true sh ./mvnw test   # requires Docker
+CI=true sh ./mvnw test   # 需要 Docker
 ```
 
-After every template change, verify both archetype generation and the generated reactor. Read [AGENTS.md](AGENTS.md) before changing Velocity-filtered templates.
+每次修改模板后，都要同时验证 Archetype 生成过程和生成后的 Maven Reactor。修改 Velocity 模板前请先阅读 [AGENTS.md](AGENTS.md)。
 
-Issues and pull requests are welcome at the [GitHub repository](https://github.com/Archetom/atom-archetype).
+欢迎在 [GitHub 仓库](https://github.com/Archetom/atom-archetype) 提交 Issue 和 Pull Request。
 
-## License
+## 许可证
 
 [MIT](LICENSE)

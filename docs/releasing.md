@@ -7,7 +7,7 @@ Atom Archetype publishes through the Sonatype Central Portal. The protected `Rel
 - a Central Portal account authorized for `io.github.archetom`;
 - Maven server credentials under server ID `central` in the user or CI settings;
 - a signing key available to GnuPG and its full fingerprint supplied as `GPG_KEYNAME` when more than one key exists;
-- Java 21 and the repository Maven wrapper;
+- Java 25 and the repository Maven wrapper;
 - a clean Git worktree on the intended release commit.
 
 Never store Central tokens, GPG private keys, or passphrases in the repository.

@@ -14,7 +14,7 @@
     <packaging>pom</packaging>
     <version>${version}</version>
     <name>${rootArtifactId}</name>
-    <description>${rootArtifactId}: Java 21 and Spring Boot 4.1 application with Domain-Driven Design boundaries</description>
+    <description>${rootArtifactId}: Java 25 and Spring Boot 4.1 application with Domain-Driven Design boundaries</description>
 
     <licenses>
         <license>
@@ -38,18 +38,22 @@
     </modules>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <maven.minimum.version>3.9.0</maven.minimum.version>
         <project.build.outputTimestamp>2026-07-10T00:00:00Z</project.build.outputTimestamp>
 
         <!-- Common -->
         <atom.common.version>1.0.0</atom.common.version>
 
+        <!-- Maven Plugin -->
+        <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
+
         <!-- Database -->
         <mybatis.plus.version>3.5.16</mybatis.plus.version>
 
         <!-- MapStruct -->
         <mapstruct.version>1.6.3</mapstruct.version>
+        <lombok.mapstruct.binding.version>0.2.0</lombok.mapstruct.binding.version>
 
         <!-- SpringDoc -->
         <springdoc.version>3.0.3</springdoc.version>
@@ -165,6 +169,11 @@
                                 <version>${lombok.version}</version>
                             </path>
                             <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>${lombok.mapstruct.binding.version}</version>
+                            </path>
+                            <path>
                                 <groupId>org.mapstruct</groupId>
                                 <artifactId>mapstruct-processor</artifactId>
                                 <version>${mapstruct.version}</version>
@@ -182,7 +191,7 @@
                         <execution>
                             <phase>compile</phase>
                             <goals>
-                                <goal>jar</goal>
+                                <goal>jar-no-fork</goal>
                             </goals>
                         </execution>
                     </executions>
@@ -200,7 +209,7 @@
                                 <rules>
                                     <dependencyConvergence/>
                                     <requireJavaVersion>
-                                        <version>${java.version}</version>
+                                        <version>[${java.version},)</version>
                                     </requireJavaVersion>
                                     <requireMavenVersion>
                                         <version>[${maven.minimum.version},)</version>

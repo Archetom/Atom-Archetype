@@ -1,6 +1,6 @@
 # Atom Archetype
 
-> Atom Archetype is a Maven archetype that generates Java 21 and Spring Boot 4 multi-module applications with Domain-Driven Design, explicit tenant context, secure HTTP defaults, MyBatis-Plus, Flyway, and optional Redis.
+> Atom Archetype is a Maven archetype that generates Java 25 and Spring Boot 4 multi-module applications with Domain-Driven Design, explicit tenant context, secure HTTP defaults, MyBatis-Plus, Flyway, and optional Redis.
 
 Canonical repository: https://github.com/Archetom/atom-archetype
 Maven coordinates: io.github.archetom:atom-archetype
@@ -10,8 +10,8 @@ License: MIT
 
 ## Start here
 
-- [English README](https://github.com/Archetom/atom-archetype/blob/main/README.md): value proposition, stable generation command, architecture summary, security defaults, and compatibility.
-- [Chinese README](https://github.com/Archetom/atom-archetype/blob/main/README.zh-CN.md): Simplified Chinese project overview and quick start.
+- [Chinese README](https://github.com/Archetom/atom-archetype/blob/main/README.md): Simplified Chinese project overview and quick start.
+- [English README](https://github.com/Archetom/atom-archetype/blob/main/README.en.md): value proposition, stable generation command, architecture summary, security defaults, and compatibility.
 - [Getting started](https://github.com/Archetom/atom-archetype/blob/main/docs/getting-started.md): prerequisites, generation, local infrastructure, startup, testing, and production authentication.
 - [Architecture](https://github.com/Archetom/atom-archetype/blob/main/docs/architecture.md): module boundaries, request flow, tenant isolation, transactions, events, persistence, and cache ports.
 - [Naming conventions](https://github.com/Archetom/atom-archetype/blob/main/docs/naming-conventions.md): canonical names for API, domain, application, persistence, errors, and use-case events.

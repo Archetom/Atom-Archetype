@@ -24,11 +24,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Set up Java 21
+      - name: Set up Java 25
         uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '25'
+          check-latest: true
           cache: maven
           cache-dependency-path: |
             .mvn/wrapper/maven-wrapper.properties
@@ -144,7 +145,7 @@ jobs:
           fi
           test ! -e docs/api-reference.md
           if grep -R -n -E 'api-reference|/api/v1/users|users:(read|write|delete)' \
-              README.md README.zh-CN.md AGENTS.md llms.txt infra/rest/src/main/java conf; then
+              README.md README.en.md AGENTS.md llms.txt infra/rest/src/main/java conf; then
             echo "User-specific runtime configuration remains after clean-sample."
             exit 1
           fi

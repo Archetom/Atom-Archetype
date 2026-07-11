@@ -24,7 +24,7 @@
             <directory/>
             <includes>
                 <include>README.md</include>
-                <include>README.zh-CN.md</include>
+                <include>README.en.md</include>
                 <include>llms.txt</include>
                 <include>LICENSE</include>
             </includes>

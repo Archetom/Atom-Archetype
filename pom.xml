@@ -8,7 +8,7 @@
     <packaging>maven-archetype</packaging>
 
     <name>Atom :: Archetype</name>
-    <description>A Maven archetype for generating Java 21 and Spring Boot 4 multi-module applications with Domain-Driven Design patterns.</description>
+    <description>A Maven archetype for generating Java 25 and Spring Boot 4 multi-module applications with Domain-Driven Design patterns.</description>
     <url>https://github.com/Archetom/atom-archetype</url>
 
     <licenses>
@@ -37,10 +37,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.build.outputTimestamp>2026-07-10T05:12:49Z</project.build.outputTimestamp>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
+        <maven.minimum.version>3.9.0</maven.minimum.version>
 
         <!-- Maven Plugin -->
         <maven.archetype.packaging.version>3.4.1</maven.archetype.packaging.version>
+        <maven.clean.plugin.version>3.5.0</maven.clean.plugin.version>
+        <maven.resources.plugin.version>3.5.0</maven.resources.plugin.version>
+        <maven.enforcer.plugin.version>3.6.3</maven.enforcer.plugin.version>
         <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
         <maven.jar.plugin.version>3.5.0</maven.jar.plugin.version>
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
@@ -69,6 +73,39 @@
         </extensions>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>${maven.clean.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven.resources.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven.enforcer.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-toolchain</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[${java.version},)</version>
+                                </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <version>[${maven.minimum.version},)</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
