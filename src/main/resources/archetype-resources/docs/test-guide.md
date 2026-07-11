@@ -1,16 +1,16 @@
 # Testing guide
 
-Tests follow the architecture: domain behavior is tested without Spring, application orchestration uses test doubles, adapters are tested at their boundary, and a small MySQL Testcontainers suite verifies the assembled application.
+Test domain behavior without Spring, application orchestration through ports, adapters at their boundaries, and the assembled application against MySQL.
 
 ## Commands
 
-Run all fast tests:
+Run fast tests:
 
 ```bash
 sh ./mvnw test
 ```
 
-Run one module while building its dependencies:
+Run one module and its dependencies:
 
 ```bash
 sh ./mvnw -pl domain -am test
@@ -19,30 +19,32 @@ sh ./mvnw -pl infra/persistence -am test
 sh ./mvnw -pl infra/rest -am test
 ```
 
-Run the Docker-backed integration suite:
+Run Docker-backed integration tests:
 
 ```bash
 CI=true sh ./mvnw test
 ```
 
-The `CI=true` switch enables the generated integration test classes. Docker must be available. Testcontainers starts MySQL 9.7.1 LTS; Redis remains disabled because cache correctness is covered through its port and no-op adapter.
+`CI=true` enables the generated integration test classes. Docker must be available. Testcontainers starts MySQL 9.7.1 LTS; Redis remains disabled.
 
 ## Test layers
 
 | Layer | Test focus | Typical dependencies |
 | --- | --- | --- |
 | Domain | Value validation, aggregate transitions, policies, events | JUnit and assertions only |
-| Application | Authority checks, tenant propagation, orchestration, after-commit scheduling | Mocks or small fakes for ports |
-| Persistence converter | Full PO/aggregate round trip including version and timestamps | MapStruct mapper instance |
-| REST | Error code/status mapping, authentication rejection, safe messages | Spring MVC/Security test support |
-| Start integration | Flyway, MySQL queries, tenant isolation, optimistic locking, complete HTTP flow | Spring Boot, MockMvc, Testcontainers |
-| Architecture | Forbidden imports across domain, API, shared, application, and infrastructure boundaries | JUnit source inspection and Maven Enforcer |
+| Application | Authority checks, tenant propagation, orchestration, post-commit scheduling | Mocks or small port fakes |
+| Persistence converter | Full PO/aggregate round trip, version, timestamps | MapStruct mapper instance |
+| REST | Error/status mapping, authentication rejection, safe messages | Spring MVC and Security test support |
+| Start integration | Flyway, MySQL, tenant isolation, locking, HTTP flow | Spring Boot, MockMvc, Testcontainers |
+| Architecture | Forbidden dependencies across modules | JUnit source inspection and Maven Enforcer |
 
-Prefer the lowest layer that can prove the behavior.
+Use the lowest layer that proves the behavior.
 
-## Domain tests
+## Representative tests
 
-Create aggregates through factories or public creation methods and invoke behavior methods directly:
+### Domain
+
+Create aggregates through their public factories and invoke behavior directly:
 
 ```java
 @Test
@@ -56,110 +58,47 @@ void delete_active_user_changes_status_and_records_event() {
 }
 ```
 
-Domain tests should not use Spring annotations, databases, HTTP, or mocks of domain objects. Test valid transitions, invalid transitions, boundary values, equality, and event payloads.
+Reconstitution tests also verify that persisted `version` is restored without new domain events. Domain tests do not use Spring, databases, HTTP, or mocked domain objects.
 
-Reconstitution tests must verify that loading persisted state restores `version` and does not raise new events.
+### Application
 
-## Application tests
+Test through output ports. Verify that an invalid caller or missing authority is rejected before repository access, and that the caller's `TenantId` reaches every repository and cache call.
 
-Mock output ports at the application boundary, not internal methods. Important cases include:
+For commands, verify that a converted failure marks the transaction rollback-only. Post-commit work runs after commit and does not run after rollback; capture aggregate events before clearing them. `AfterCommitExecutorTest` is the reference for commit and no-transaction behavior.
 
-- null or malformed caller is rejected before repository access;
-- missing authority is rejected;
-- `TenantId` derived from the caller is passed to every repository/cache call;
-- cache keys differ across tenants;
-- a cache miss queries the repository;
-- a command failure marks the active transaction rollback-only;
-- after-commit actions do not run on rollback;
-- an event list is captured before the aggregate clears it.
+### Persistence
 
-Use `AfterCommitExecutorTest` as the pattern for commit and no-transaction behavior. Do not assert only that a method was invoked; assert timing relative to transaction completion.
+`UserPOConverterTest` covers every persisted field in both directions, including tenant, password hash, flags, optimistic-lock version, audit timestamps, and reconstruction without events. It also verifies that `toString` does not expose the password hash. Extend it whenever `UserPO`, mapper XML, or a migration changes.
 
-## Persistence tests
+### Integration
 
-`UserPOConverterTest` should cover every persisted field:
+`BaseIntegrationTest` supplies the `test` profile, MySQL Testcontainers properties, Flyway initialization, MockMvc identity helpers, and explicit database cleanup. Integration tests are not wrapped in one rollback transaction because real commits are needed for post-commit effects and optimistic locking.
 
-- ID and tenant;
-- username, email, and phone;
-- password hash and real name, without exposing the hash through `toString`;
-- status and external flags;
-- optimistic-lock version;
-- created and updated timestamps;
-- reconstruction with no domain events.
+Representative integration coverage includes:
 
-Whenever `UserPO`, mapper XML, or a migration changes, extend this round-trip test.
+- migration and PO round trips against an empty MySQL database;
+- tenant isolation in repositories and cache keys;
+- optimistic-lock and unique-key conflicts mapped to `409`;
+- soft deletion through `status=DELETED` without physical row removal;
+- authentication, capability separation, validation, and safe error responses;
+- Redis-disabled health and generated OpenAPI metadata.
 
-## Integration tests
+### Trusted-header authentication
 
-`BaseIntegrationTest` provides:
+The `test` profile enables the trusted-header adapter. Requests use positive numeric `X-Dev-User-Id` and `X-Dev-Tenant-Id` values.
 
-- Spring Boot with the `test` profile;
-- MySQL Testcontainers properties;
-- Flyway schema initialization;
-- MockMvc helpers that add test actor and tenant headers;
-- explicit database cleanup.
-
-Integration tests intentionally do not wrap the whole test in a rollback transaction. Real commits are required to verify `AfterCommitExecutor`, cache/event timing, and optimistic locking.
-
-The generated suite should retain these scenarios:
-
-1. Flyway creates `t_user` and records migration history.
-2. A PO round trip retains every mapped column.
-3. Two copies of one aggregate cannot both update from the same version.
-4. A user in tenant A is invisible to tenant B.
-5. Cache lookups are tenant scoped.
-6. Soft deletion persists `status=DELETED` and does not physically remove the row.
-7. Anonymous API calls return 401.
-8. Invalid request data returns 400.
-9. Missing resources return 404 and version conflicts return 409.
-10. Internal failures do not expose exception messages.
-11. A caller with `users:write` cannot delete through the status endpoint.
-12. Concurrent unique-key conflicts return 409 rather than 500.
-13. Redis-disabled health remains UP without a Redis server.
-14. `/v3/api-docs` publishes the generated project name and version.
-
-## Authentication tests
-
-The test profile explicitly enables the trusted-header adapter. Tests use positive numeric values for both:
-
-```text
-X-Dev-User-Id
-X-Dev-Tenant-Id
-```
-
-Add negative cases for:
-
-- neither header present;
-- only one header present;
-- zero, negative, or non-numeric values;
-- missing authority;
-- attempted authority or administrator escalation through a header;
-- trusted-header property combined with the `prod` profile.
-
-Do not treat the development adapter as a substitute for testing the production authentication integration.
-
-## Reliable test practices
-
-- Use unique values or explicit cleanup; do not depend on execution order.
-- Avoid `Thread.sleep`; use synchronization primitives, transaction hooks, or Awaitility-style polling when asynchronous behavior is intentional.
-- Do not use a second schema initializer. Flyway owns schema creation in every environment.
-- Do not mock value objects or aggregates.
-- Assert tenant and version predicates, not only returned data.
-- Keep passwords and tokens out of assertion failure messages and captured logs.
-- Keep Docker images pinned to a supported version.
+Cover missing, incomplete, and invalid header pairs; missing authority; attempted authority or administrator escalation; and trusted headers combined with `prod`. Keep credentials out of assertion output and captured logs. These tests do not replace tests for the production authentication integration.
 
 ## Change-to-test map
 
 | Change | Minimum verification |
 | --- | --- |
 | Aggregate or value object | Domain unit test |
-| Application command/query | Application test with caller, tenant, success, and failure |
-| Cache behavior | Tenant-key and fallback tests |
+| Application command/query | Caller, tenant, success, and failure application tests |
+| Cache behavior | Tenant-key and database fallback tests |
 | PO or converter | Complete round-trip test |
 | Mapper query | MySQL integration test |
-| Flyway migration | Empty-database migration integration test |
+| Flyway migration | Empty-database migration test |
 | Security route | Anonymous, allowed, and forbidden HTTP tests |
 | Error mapping | Exact status, stable code, and safe message test |
 | Transactional side effect | Commit and rollback tests |
-
-Before release, both `sh ./mvnw test` and `CI=true sh ./mvnw test` must pass from a freshly generated project.

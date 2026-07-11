@@ -1,23 +1,22 @@
 # Upgrade guide
 
-A Maven archetype creates source code once; it is not an in-place application updater. Changing the Atom Archetype version does not rewrite an existing generated project. Upgrade by generating a reference project, reviewing the delta, and applying changes intentionally to your codebase.
+A Maven archetype generates source code once. It does not update an existing project. Generate a reference project from the target revision, compare it with the application, and apply the required changes.
 
-This guide targets the breaking `2.0.0` architecture. Maven Central `1.1.0` is the legacy Spring Boot 3.5 release. Pin the exact `2.0.0` release when generating a migration reference project.
+## Available versions
 
-## Safe upgrade workflow
+| Source | Status | Java | Notes |
+|---|---|---|---|
+| Maven Central `1.1.0` | Published release | Legacy baseline | Spring Boot 3.5 architecture |
+| Git tag `v2.0.0` | Release tag; not published to Maven Central | 21 | First release of the 2.x architecture |
+| `main` / `2.1.0-SNAPSHOT` | Current development line | 25 | Spring Boot 4.1 and the latest template changes |
 
-1. Commit or otherwise back up the application being upgraded.
-2. Read the release notes and this guide before changing runtime dependencies.
-3. Generate a reference project with the same group/package conventions but a different artifact ID.
-4. Compare parent/module POMs, configuration, migrations, architecture contracts, and tests—not the sample business data alone.
-5. Apply database migrations with a copy of production-like data.
-6. Run unit, integration, tenant-isolation, authorization, and concurrency tests.
-7. Deploy in a reversible sequence and observe authentication failures, Flyway state, optimistic-lock conflicts, and post-commit delivery failures.
-
-Generate the 2.0 reference project:
+Install the selected revision locally before generating a reference project. For the `v2.0.0` tag:
 
 ```bash
-mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+./mvnw clean install -Dgpg.skip=true
+
+cd ..
+./Atom-Archetype/mvnw -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
   -DarchetypeVersion=2.0.0 \
@@ -27,50 +26,46 @@ mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -Dversion=1.0.0-SNAPSHOT
 ```
 
-## Moving from the 1.1.0 legacy architecture
+## Major changes from `1.1.0`
 
-The exact delta depends on when the original project was generated. Review each area below rather than applying a blind directory copy.
+| Area | `1.1.0` | 2.x architecture |
+|---|---|---|
+| Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `v2.0.0`, JDK 25 on `main` |
+| Caller context | Domain `UserContextHolder` | Explicit API `AuthenticatedCaller` |
+| Tenant scope | Header/ThreadLocal-derived | Validated `TenantId` passed to repositories and caches |
+| Development identity | `X-User-Id`, `X-Tenant-Id`, `X-Admin` | `X-Dev-User-Id`, `X-Dev-Tenant-Id`; dev/test only and explicitly enabled |
+| HTTP security | Legacy permissive paths | Authentication and per-operation authorities |
+| Profiles | `dev` activated implicitly | `SPRING_PROFILES_ACTIVE` is required |
+| Schema | Multiple SQL initialization paths | Flyway migrations only |
+| Persistence | Legacy entity mapping | PO conversion, aggregate reconstitution, optimistic-lock version |
+| Redis | Infrastructure assumed available | Optional adapter selected by `atom.redis.enabled` |
+| Operations | Callback templates | `CommandServiceTemplate`, `QueryServiceTemplate`, `ServiceOperation<T>` |
+| Side effects | May run inside the transaction | Registered through `AfterCommitExecutor` |
 
-### Java and Spring Boot 4
+## Migration checklist
 
-- The exact 2.0.0 migration reference targets JDK 21; raise compilation and runtime to JDK 25 when adopting the current `main` development line.
-- Upgrade to the Spring Boot 4 parent and Boot-managed dependency set as one change.
-- Replace broad/legacy starters with the Boot 4 modules used by the reference project, such as `spring-boot-starter-webmvc`, `spring-boot-starter-webclient`, `spring-boot-starter-jackson`, and `spring-boot-starter-flyway`.
-- Use the Boot 4 MyBatis-Plus starter and compatible SpringDoc version.
-- Review Jackson 3 imports and custom modules; Boot 4 code can use `tools.jackson.*` rather than Jackson 2's `com.fasterxml.jackson.*` APIs.
-- Keep test-only dependencies in `test` scope and update Testcontainers artifact names to the current modules.
+### 1. Update the build
 
-Do not mix the old Boot BOM with a few manually upgraded Boot 4 starters. First make dependency management coherent, then resolve source-level changes.
+- Upgrade the Spring Boot parent and Boot-managed dependencies together.
+- Use the Boot 4 starters and compatible MyBatis-Plus and SpringDoc versions from the reference project.
+- Review Jackson 3 imports and custom modules.
+- Keep test-only dependencies in `test` scope.
+- Use JDK 21 for the `v2.0.0` tag or JDK 25 for current `main`.
 
-### Explicit authenticated caller and tenant
+Do not combine the old Boot BOM with individually upgraded Boot 4 artifacts.
 
-Older templates populated a domain `UserContextHolder` from client-provided `X-User-Id`, `X-Tenant-Id`, and `X-Admin` headers. The current design removes that ThreadLocal boundary.
+### 2. Replace caller and tenant handling
 
-- Add `AuthenticatedCaller` to API/use-case contracts.
+- Add `AuthenticatedCaller` to API and use-case contracts.
 - Introduce a validated `TenantId` value object.
-- Pass tenant scope explicitly to repositories and caches.
-- Make every SQL tenant predicate unconditional.
-- Map only a verified Spring Security principal into `AuthenticatedCaller`.
-- Never accept roles or administrator state from client-controlled headers.
+- Pass `TenantId` to every repository and cache operation.
+- Apply tenant predicates unconditionally in SQL.
+- Map only a verified Spring Security principal to `AuthenticatedCaller`.
+- Remove the domain ThreadLocal and any null-tenant overloads.
 
-For local development, the replacement headers are `X-Dev-User-Id` and `X-Dev-Tenant-Id`; they work only in `dev`/`test` with `atom.security.trusted-header.enabled=true`.
+Client-controlled headers must not supply authorities or administrator state. The `X-Dev-*` adapter remains restricted to `dev` or `test`, requires `atom.security.trusted-header.enabled=true`, and is unavailable under `prod`.
 
-This is an intentional source compatibility break. Do not keep a null-tenant overload as a compatibility shortcut.
-
-### Security configuration
-
-The current HTTP boundary is fail-closed:
-
-- business APIs require authentication and authorities;
-- trusted-header authentication is disabled by default and unavailable under `prod`;
-- production database credentials have no fallback values;
-- health is anonymous; OpenAPI endpoints are anonymous only when enabled and are disabled by the production profile by default.
-
-Before production rollout, configure the selected IdP and verify 401 (missing/invalid credential) separately from 403 (authenticated but insufficient authority). If the application uses cookie/session authentication instead of a stateless bearer or mTLS model, revisit CSRF rather than copying the stateless API setting unchanged.
-
-### Domain and application naming
-
-Use the current names consistently:
+### 3. Update names and operation templates
 
 | Older name | Current name |
 |---|---|
@@ -85,66 +80,42 @@ Use the current names consistently:
 | domain `CacheService` | application output port `CacheStore` |
 | shared `DistributedLock` | application output port `DistributedLock` |
 
-The current `ServiceOperation` lifecycle is `validate → prepare → execute → onSuccess`. Do not re-create persistence and concurrency phases as empty ceremonial hooks.
+The operation lifecycle is `validate → prepare → execute → onSuccess`. Use command templates for state changes and query templates for reads.
 
-### Flyway and database schema
+### 4. Migrate the database
 
-The current template treats Flyway migrations in `infra/persistence/src/main/resources/db/migration` as the only schema source.
+Before enabling Flyway on an existing database:
 
-Before enabling Flyway on an existing production database:
+1. Compare the live schema with the reference `V1` migration.
+2. Create a baseline and forward-migration plan; do not rerun a create-table migration against existing tables.
+3. Add and backfill `tenant_id` before applying `NOT NULL`.
+4. Add and backfill the optimistic-lock `version` column.
+5. Resolve duplicate data before creating tenant-scoped unique indexes.
+6. Remove competing `schema.sql`, Docker init SQL, and test schema sources after Flyway coverage is in place.
 
-1. compare the live schema with the reference `V1` migration;
-2. create an appropriate baseline/migration plan rather than rerunning a create-table migration;
-3. add and backfill `tenant_id` before making it `NOT NULL`;
-4. add/backfill the optimistic-lock `version` column;
-5. create tenant-scoped unique indexes only after duplicate data is resolved;
-6. remove competing `schema.sql`, Docker init SQL, or test schemas after migration coverage exists.
+Do not edit a Flyway migration that has run in a shared environment. Add a new versioned migration.
 
-Never edit a Flyway migration that has already run in a shared environment. Add a new versioned migration.
+Restore the persisted version during aggregate reconstitution. Include tenant and version in update conditions, and map a zero-row update to `AggregateVersionConflictException`.
 
-### Optimistic locking and deletion
+### 5. Update Redis and side effects
 
-- Restore persistence version during aggregate reconstitution.
-- Include tenant and version in update conditions.
-- Treat an update count of zero as `AggregateVersionConflictException` and map it to an appropriate conflict response.
-- Reload and retry only if the whole use case is safe to repeat.
-- Choose one deletion model. The reference uses domain status and deliberately omits a second `deleted_time` mechanism.
+Start with `atom.redis.enabled=false`. When Redis is enabled, include tenant ID in cache keys and verify serializers against Boot 4 and Jackson 3.
 
-### Cache, Redis, and locks
+Move cache changes and in-process event publication to `AfterCommitExecutor`. Use a transactional outbox for effects that must survive process failure or cross service boundaries.
 
-Set `atom.redis.enabled=false` initially. The no-op cache must preserve behavior while the Redis adapter is disabled.
-
-When enabling Redis:
-
-- migrate cache keys to include tenant ID;
-- accept a cold-cache deployment or expire old global keys;
-- verify serializers against Boot 4/Jackson 3;
-- keep database uniqueness and optimistic locking as the consistency authority;
-- use an owner-specific `LockHandle` if distributed coordination is genuinely required.
-
-Do not make application startup depend on an optional Redis bean.
-
-### Transactions and events
-
-Move cache writes/evictions and in-process event publication to `AfterCommitExecutor`. This prevents external effects for a transaction that rolls back.
-
-After-commit callbacks are still not durable. Introduce a transactional outbox before relying on the event path for cross-service delivery, billing, email guarantees, or other effects that cannot be lost.
-
-## Configuration changes
+### 6. Update configuration
 
 | Concern | Older behavior | Current behavior |
 |---|---|---|
 | Active profile | `dev` activated implicitly | Set `SPRING_PROFILES_ACTIVE` explicitly |
-| Development identity | General `X-User-Id`/`X-Tenant-Id` headers | `X-Dev-*`, dev/test profile plus explicit enable flag |
+| Development identity | General `X-User-Id`/`X-Tenant-Id` headers | `X-Dev-*`, dev/test profile, explicit enable flag |
 | Administrator role | Could be read from `X-Admin` | Never accepted from a request header |
-| Redis | Presence of Redis host implicitly created required beans | `atom.redis.enabled`, no-op cache when false |
-| Production database | Local/root fallbacks | Required environment values, fail-fast |
+| Redis | Redis host implicitly created required beans | `atom.redis.enabled`; no-op cache when false |
+| Production database | Local/root fallbacks | Required environment values |
 | Schema initialization | Multiple SQL files | Flyway only |
 | Health details | Always visible | Visible only when authorized |
 
-Review secrets management separately; configuration placeholders are not a secret store.
-
-## Verification checklist
+## Verify the upgrade
 
 ```bash
 sh ./mvnw clean install
@@ -152,17 +123,6 @@ CI=true sh ./mvnw test
 sh ./mvnw dependency:tree
 ```
 
-Also verify:
+Verify authentication (401), authorization (403), tenant isolation, tenant-scoped uniqueness, optimistic-lock conflicts, rollback behavior, Redis-disabled startup, and Flyway validation against production-like data.
 
-- anonymous business request → 401;
-- valid identity without authority → 403;
-- tenant A cannot read or modify tenant B;
-- duplicate username/email is scoped by tenant;
-- stale version update is rejected;
-- failed transaction publishes no event and writes no cache;
-- application starts with Redis disabled;
-- Flyway validates the production-like schema.
-
-## Rollback considerations
-
-Source rollback is straightforward; database and identity-contract rollback may not be. Prefer backward-compatible additive migrations, deploy schema before code when required, and do not remove old columns until the new version has been stable. Cache keys can usually be abandoned safely, but authentication/header compatibility should have an explicit cutover window at trusted boundaries—not a permanent insecure fallback.
+Use additive database migrations where rollback compatibility is required. Remove old columns and identity contracts only after the new version is stable.

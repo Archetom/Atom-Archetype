@@ -1,4 +1,4 @@
-# Atom Archetype — 面向 Spring Boot 4 与 Java 25 的 DDD Maven Archetype
+# Atom Archetype
 
 [![Maven Central 旧版](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg?label=Maven%20Central%20legacy)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
 [![CI](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml/badge.svg)](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml)
@@ -8,160 +8,103 @@
 
 简体中文 | [English](README.en.md)
 
-Atom Archetype 是一个用于生成多模块 Java 应用的 Maven Archetype，面向领域驱动设计（DDD）、Spring Boot 4 和 Java 25。它提供明确的依赖边界、显式的调用者与租户上下文、MyBatis-Plus 持久化、Flyway 数据库迁移、安全的 HTTP 默认行为，以及可选的 Redis 缓存。
+Atom Archetype 是一个基于 Java 25 和 Spring Boot 4.1 的 Maven Archetype，用于生成采用领域驱动设计（DDD）的多模块项目。
 
-生成后的项目是团队完全拥有的普通 Maven 工程，不依赖隐藏的运行时框架，也不会把领域模型锁定在生成器中。
+生成结果是标准 Maven 工程。领域、应用和基础设施模块之间的依赖边界已经配置好，示例代码可以直接修改或删除。
 
-## 为什么选择 Atom Archetype
+## 版本说明
 
-- **清晰的 DDD 边界：** 领域模块保持框架中立；应用层承载用例和输出端口；基础设施通过适配器实现端口。
-- **默认安全：** 业务 API 拒绝匿名访问；受信身份 Header 只能在显式启用的 `dev`、`test` 环境使用。
-- **租户边界显式：** 已认证调用者和租户 ID 是用例契约的一部分，仓储与缓存均按租户隔离。
-- **可靠的持久化基线：** MyBatis-Plus、唯一的 Flyway schema 来源、乐观锁和 MySQL Testcontainers 测试。
-- **事务感知的副作用：** 缓存更新和进程内领域事件在数据库事务成功提交后执行。
-- **基础设施可选：** Redis 默认关闭，并由 no-op 缓存适配器替代；应用正确性和启动不依赖 Redis。
-- **代码可读、可替换：** 生成的是标准 Maven Reactor，团队可以自由裁剪或替换任何实现。
+- `main` 当前版本为 `2.1.0-SNAPSHOT`，开发和生成项目均使用 JDK 25。
+- [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) 是当前分层架构的稳定 Git 标签，编译目标为 Java 21。
+- Maven Central 目前只有 `1.1.0`，它属于 Spring Boot 3.5 旧架构。
+
+以下快速开始基于 `main`，需要先将 `2.1.0-SNAPSHOT` 安装到本地 Maven 仓库。
 
 ## 快速开始
 
-### 环境要求
+需要 JDK 25、Docker 和 Docker Compose v2。仓库及生成项目均提供 Maven Wrapper 3.9.16；如果使用系统 Maven，请使用 3.9 或更高版本。
 
-- `main` 开发线使用 JDK 25；稳定版 2.0.0 的编译目标为 Java 21
-- Maven 3.9 或更高版本；仓库内置 Wrapper 固定使用 Maven 3.9.16
-- Docker 与 Docker Compose v2，用于本地 MySQL 和集成测试
-
-### 发布状态
-
-当前稳定版本是 **2.0.0**。Maven Central 上的 `1.1.0` 是 Spring Boot 3.5 旧架构，不包含本文描述的安全、租户、Flyway 与命令/查询模板改造。
-
-### 1. 从 Maven Central 生成项目
+### 1. 安装 Archetype
 
 ```bash
-mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+git clone https://github.com/Archetom/Atom-Archetype.git
+cd Atom-Archetype
+./mvnw clean install -Dgpg.skip=true
+```
+
+### 2. 生成项目
+
+```bash
+cd ..
+./Atom-Archetype/mvnw -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.0.0 \
+  -DarchetypeVersion=2.1.0-SNAPSHOT \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
   -Dversion=1.0.0-SNAPSHOT
 ```
 
-### 2. 启动 MySQL 并构建
+### 3. 构建并运行
 
 ```bash
 cd orders-service
 docker compose up -d mysql
 sh ./mvnw clean install
-```
 
-应用启动时由 Flyway 创建并校验数据库结构。Redis 是可选能力，未开启 Redis 功能时无需启动。
-
-### 3. 显式使用开发环境启动
-
-```bash
-SPRING_PROFILES_ACTIVE=dev \
 ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
-sh ./mvnw -f start/pom.xml spring-boot:run
+  sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-验证公开健康检查：
+应用启动后可检查健康端点：
 
 ```bash
 curl http://localhost:8080/actuator/health
 ```
 
-使用仅限开发环境的身份 Header 调用受保护接口：
+开发身份请求头、Redis 和生产配置见[快速上手](docs/getting-started.md)。
 
-```bash
-curl -X POST http://localhost:8080/api/v1/users \
-  -H 'Content-Type: application/json' \
-  -H 'X-Dev-User-Id: 1001' \
-  -H 'X-Dev-Tenant-Id: 42' \
-  -d '{
-    "username": "alice_01",
-    "email": "alice@example.com",
-    "password": "correct-horse-battery-staple",
-    "realName": "Alice"
-  }'
-```
+## 生成内容
 
-Redis、测试、生产配置和身份系统接入说明见 [快速上手](docs/getting-started.md)。
+- `domain`、`application`、`api` 与基础设施模块之间的依赖边界。
+- 显式的 `AuthenticatedCaller` 和 `TenantId`，仓储与缓存按租户访问。
+- MyBatis-Plus 3.5.16、Flyway 和 MySQL 9.7.1 LTS。
+- Spring Security、SpringDoc OpenAPI 3.0.3 和统一的 HTTP 错误映射。
+- 默认关闭的 Redis 8.8.0 缓存适配器，以及对应的空实现。
+- 命令/查询服务模板、事务提交后回调和 Testcontainers 集成测试。
 
-## 生成后的架构
+业务 API 默认需要认证。开发身份请求头仅适用于显式启用的 `dev`、`test` 环境；生产环境应接入自己的身份系统。
 
-```text
-REST / Facade 适配器
-          │
-          ▼
-      应用用例 ─────────────► 输出端口
-          │                     ▲
-          ▼                     │ 由适配器实现
-    框架中立的领域层       持久化 / 外部系统适配器
-
-                 start = 组合根
-```
+## 项目结构
 
 | 模块 | 职责 |
 |---|---|
-| `api` | 对外请求/响应、Facade 接口、已认证调用者上下文 |
-| `domain` | 聚合、值对象、领域事件、策略、仓储和领域服务端口 |
-| `shared` | 框架中立的结果与错误约定 |
-| `application` | 用例编排、命令/查询模板、事务钩子、输出端口 |
-| `infra/rest` | Spring MVC、Spring Security、OpenAPI、HTTP 错误映射 |
-| `infra/persistence` | MyBatis-Plus、Flyway、可选 Redis 适配器 |
-| `infra/external` | 实现应用层输出端口的第三方系统适配器 |
-| `infra/security` | 密码哈希等安全技术适配器 |
-| `infra/facade` | 已发布 Facade 契约的实现 |
-| `start` | Spring Boot 启动入口与运行时装配 |
+| `api` | 对外请求、响应、Facade 契约和调用者上下文 |
+| `domain` | 聚合、值对象、领域事件、仓储与领域服务端口 |
+| `shared` | 框架中立的结果与错误类型 |
+| `application` | 用例编排、命令/查询模板、事务回调和输出端口 |
+| `infra/rest` | Spring MVC、Spring Security、OpenAPI 和错误映射 |
+| `infra/persistence` | MyBatis-Plus、Flyway 和缓存适配器 |
+| `infra/external` | 第三方系统适配器 |
+| `infra/security` | 密码哈希等安全适配器 |
+| `infra/facade` | Facade 契约实现 |
+| `start` | Spring Boot 启动入口和运行时装配 |
 
-核心规则是：**领域层永远不依赖基础设施层**。完整依赖和事务模型见 [架构设计](docs/architecture.md)。
+`domain` 不依赖 `application`、`api`、`shared` 或任何 `infra` 模块。完整规则见[架构设计](docs/architecture.md)。
 
-## 安全默认行为
-
-- `/api/**` 必须认证；用户接口还分别要求 `users:read`、`users:write` 或 `users:delete`。
-- `/actuator/health` 允许匿名访问。OpenAPI/Swagger 端点启用时允许匿名访问，但生产环境默认关闭。
-- 只有在 `dev` 或 `test` profile 生效且显式开启受信 Header 时，才接收 `X-Dev-User-Id` 与 `X-Dev-Tenant-Id`。
-- 生产配置禁止受信 Header。生产系统应通过 Spring Security 接入自己的 IdP，并把已验证 principal 映射为 `AuthenticatedCaller`。
-- 生产数据库 URL、用户名和密码没有不安全默认值。
-- Redis 默认关闭，开启 Redis 是显式的运维决策。
-
-这些默认值建立了安全边界，但示例权限和领域策略仍需按真实产品需求调整。
-
-## 兼容性
-
-| 组件 | `main` 开发基线 |
-|---|---|
-| Java | `main` 使用 25；稳定版 2.0.0 的编译目标为 21 |
-| Spring Boot | 4.1.x |
-| Maven | 3.9+；内置 Wrapper 固定使用 3.9.16 |
-| MySQL | `main` 使用 9.7.1 LTS；稳定版 2.0.0 使用 8.4.10 LTS |
-| Redis | `main` 可选使用 8.8.0；稳定版 2.0.0 使用 7.4.9 |
-| MyBatis-Plus | 3.5.16 |
-| SpringDoc OpenAPI | 3.0.3 |
-
-当前验证目标是 JVM 部署。GraalVM native-image 尚未进入持续兼容测试，因此模板不会默认生成相关配置。
-
-升级已有生成项目的 MySQL 数据卷时，必须先升级到 MySQL 8.4 LTS，再迁移到 9.7 LTS；不要让新镜像直接读取由更早非 LTS 版本创建的数据目录。
-
-当前生成命令固定使用精确的 `2.0.0` 正式版本，以保证生成过程可复现。Archetype 升级不会自动改写已经生成的项目，请参考 [升级指南](docs/upgrade-guide.md)。
-
-## 文档入口
+## 文档
 
 - [快速上手](docs/getting-started.md)
 - [架构与依赖规则](docs/architecture.md)
 - [命名规范](docs/naming-conventions.md)
 - [升级指南](docs/upgrade-guide.md)
-- [发布检查清单](docs/releasing.md)
 - [故障排查](docs/troubleshooting.md)
 - [变更记录](CHANGELOG.md)
-- [贡献指南](CONTRIBUTING.md)
-- [安全策略](SECURITY.md)
-- [AI/LLM 项目索引](llms.txt)
 
-## 维护 Archetype
+## 开发
 
-模板位于 `src/main/resources/archetype-resources/`，Archetype 元数据位于 `src/main/resources/META-INF/maven/archetype-metadata.xml`。
+模板位于 `src/main/resources/archetype-resources/`，元数据位于 `src/main/resources/META-INF/maven/archetype-metadata.xml`。
 
 ```bash
 make install
@@ -171,9 +114,11 @@ sh ./mvnw compile
 CI=true sh ./mvnw test   # 需要 Docker
 ```
 
-每次修改模板后，都要同时验证 Archetype 生成过程和生成后的 Maven Reactor。修改 Velocity 模板前请先阅读 [AGENTS.md](AGENTS.md)。
+修改模板后需要同时验证 Archetype 生成过程和生成后的 Maven Reactor。
 
-欢迎在 [GitHub 仓库](https://github.com/Archetom/atom-archetype) 提交 Issue 和 Pull Request。
+## 贡献
+
+提交改动前请阅读[贡献指南](CONTRIBUTING.md)和[安全策略](SECURITY.md)。Issue 和 Pull Request 可以直接提交到本仓库。
 
 ## 许可证
 

@@ -1,36 +1,36 @@
 # Release checklist
 
-Atom Archetype publishes through the Sonatype Central Portal. The protected `Release to Maven Central` workflow automatically uploads, validates, publishes, and waits for the public deployment. Local `make deploy` keeps manual Portal approval as a recovery path.
+Atom Archetype publishes through the Sonatype Central Portal. The `Release to Maven Central` workflow publishes releases; `make deploy` is the manual recovery path.
 
 ## Prerequisites
 
-- a Central Portal account authorized for `io.github.archetom`;
-- Maven server credentials under server ID `central` in the user or CI settings;
-- a signing key available to GnuPG and its full fingerprint supplied as `GPG_KEYNAME` when more than one key exists;
+- Central Portal access for `io.github.archetom`;
+- Maven credentials under server ID `central`;
+- a GnuPG signing key and, when needed, its full fingerprint in `GPG_KEYNAME`;
 - Java 25 and the repository Maven wrapper;
-- a clean Git worktree on the intended release commit.
+- a clean worktree on the release commit.
 
-Never store Central tokens, GPG private keys, or passphrases in the repository.
+Do not store Central tokens, GPG private keys, or passphrases in the repository.
 
-The GitHub `maven-central` Environment must contain these secrets:
+The GitHub `maven-central` Environment contains:
 
 - `CENTRAL_USERNAME`
 - `CENTRAL_PASSWORD`
 - `GPG_PRIVATE_KEY`
 - `GPG_PASSPHRASE`
 
-Snapshot publishing also requires the `io.github.archetom` namespace to have **Enable SNAPSHOTs** selected in the [Central Portal namespace settings](https://central.sonatype.com/publishing/namespaces). It reuses only `CENTRAL_USERNAME` and `CENTRAL_PASSWORD`; GPG secrets are not exposed to the snapshot job.
+Snapshot publishing requires **Enable SNAPSHOTs** for the `io.github.archetom` namespace in the [Central Portal namespace settings](https://central.sonatype.com/publishing/namespaces). Snapshot jobs use `CENTRAL_USERNAME` and `CENTRAL_PASSWORD` only.
 
-## Prepare
+## Prepare a release
 
-1. Review `CHANGELOG.md`, compatibility documentation, and breaking changes.
+1. Review `CHANGELOG.md`, compatibility notes, and breaking changes.
 2. Set a non-SNAPSHOT version:
 
    ```bash
    make version VERSION=2.0.0
    ```
 
-3. Run the same gates used by CI:
+3. Run the CI gates:
 
    ```bash
    make install
@@ -40,29 +40,27 @@ Snapshot publishing also requires the `io.github.archetom` namespace to have **E
    ```
 
 4. Confirm `target/` contains non-empty main, sources, and Javadoc JARs.
-5. Commit the release version, wait for CI, and confirm the worktree is clean.
+5. Commit the version, merge it to `main`, and wait for CI.
 
-## Automated upload and publish
-
-After the release commit is merged to `main` and CI passes, dispatch the protected workflow:
+## Publish a release
 
 ```bash
 gh workflow run release.yml --ref main -f version=2.0.0
 ```
 
-The workflow rejects non-`main` refs, SNAPSHOT versions, and input/POM version mismatches. It imports the signing key only for the hosted runner, generates Maven settings from Environment secrets, enables Central automatic publishing, and waits until Central reports `published`.
+The workflow accepts only `main`, a non-SNAPSHOT version that matches the POM, and a successful signed Central deployment. It waits until Central reports `published`.
 
-## Automated snapshot upload
+## Publish a snapshot
 
-Snapshots use a separate workflow because they do not enter the Central release validation and publication state machine. After the intended `-SNAPSHOT` commit is merged to `main` and CI passes, dispatch:
+After the intended `-SNAPSHOT` commit is merged to `main` and CI passes, run:
 
 ```bash
 gh workflow run snapshot.yml --ref main -f version=2.1.0-SNAPSHOT
 ```
 
-The workflow rejects non-`main` refs, non-SNAPSHOT versions, and input/POM version mismatches. It skips GPG signing, uploads with the existing Portal token, and verifies the result from a fresh Maven local repository. Release and snapshot workflows share a concurrency group so they cannot publish simultaneously.
+The snapshot workflow accepts only `main`, a SNAPSHOT version that matches the POM, and uses the existing Portal token without GPG signing. Release and snapshot workflows share a concurrency group.
 
-Snapshots are mutable development artifacts and are currently cleaned up by Sonatype after approximately 90 days. They are not available from the default Maven Central release repository. Consumers must explicitly enable the Portal snapshot repository:
+Portal snapshots are mutable and are currently removed by Sonatype after approximately 90 days. Consumers must enable the snapshot repository:
 
 ```xml
 <repositories>
@@ -80,7 +78,7 @@ Snapshots are mutable development artifacts and are currently cleaned up by Sona
 </repositories>
 ```
 
-Force Maven to resolve the newest timestamped build with `-U`. To verify without trusting the normal local cache:
+Use `-U` to resolve the latest timestamped build. To verify with an empty Maven local repository:
 
 ```bash
 temporary_repository="$(mktemp -d)"
@@ -91,28 +89,29 @@ temporary_repository="$(mktemp -d)"
   -DremoteRepositories=central-portal-snapshots::default::https://central.sonatype.com/repository/maven-snapshots/
 ```
 
-## Manual recovery path
+## Manual recovery
 
 ```bash
 GPG_KEYNAME='<full-key-fingerprint>' make deploy
 ```
 
-The target refuses SNAPSHOT versions and dirty worktrees. Local publishing intentionally stops after validation. After the command reports that validation succeeded:
+The target rejects SNAPSHOT versions and dirty worktrees. It uploads and validates the deployment but leaves Portal publication for manual approval.
 
-1. inspect the deployment in the Central Portal;
-2. publish it explicitly;
-3. verify the artifact and POM metadata in Central;
-4. create and push the matching signed Git tag;
-5. create the GitHub release from the reviewed changelog.
+After validation:
 
-Central releases are immutable. If validation or verification fails, correct the project and publish a new version rather than attempting to replace an existing release.
+1. inspect and publish the deployment in Central Portal;
+2. verify the artifact and POM metadata;
+3. create and push the matching signed Git tag;
+4. create the GitHub release from the reviewed changelog.
+
+Central releases are immutable. Publish a new version if validation or verification fails after release.
 
 ## Continue development
 
-Set the next snapshot only after the release is public:
+Set the next snapshot after the release is public:
 
 ```bash
 make version VERSION=2.0.1-SNAPSHOT
 ```
 
-Snapshot uploads use `make deploy-snapshot` and intentionally skip release signing and Portal publication.
+Local snapshot uploads use `make deploy-snapshot` and skip release signing and Portal publication.
