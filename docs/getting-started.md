@@ -1,49 +1,54 @@
 # Getting started
 
-This guide generates and runs `io.github.archetom:atom-archetype:2.0.0` from Maven Central. Version `1.1.0` is the legacy Spring Boot 3.5 template and does not match this guide.
+This guide uses the current `main` branch (`2.1.0-SNAPSHOT`) and JDK 25. Maven Central currently contains only the legacy `1.1.0` Spring Boot 3.5 template, so install the archetype locally before generating a project.
+
+The `v2.0.0` release tag uses JDK 21. To use that revision instead, check out the tag and replace `2.1.0-SNAPSHOT` with `2.0.0` in the generation command.
 
 ## Prerequisites
 
-Verify the local toolchain first:
+Check the local toolchain:
 
 ```bash
 java -version
-mvn -version
+./mvnw -version
 docker version
 docker compose version
 ```
 
-The released 2.0.0 project targets JDK 21; the current `main` development line requires JDK 25. Use Maven 3.9 or newer; projects generated from `main` include a wrapper pinned to Maven 3.9.16. Docker is optional for domain unit tests, but it is required for the supplied MySQL service and Testcontainers integration tests.
+Use Maven 3.9 or newer. Projects generated from `main` include Maven Wrapper 3.9.16. Docker is required for the supplied MySQL service and Testcontainers integration tests.
 
-## Generate the project
-
-Generate with the exact released version:
+Install the archetype from the current checkout:
 
 ```bash
-mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+./mvnw clean install -Dgpg.skip=true
+```
+
+## Generate a project
+
+```bash
+cd ..
+./Atom-Archetype/mvnw -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.0.0 \
+  -DarchetypeVersion=2.1.0-SNAPSHOT \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
   -Dversion=1.0.0-SNAPSHOT
 ```
 
-The coordinates mean:
-
 | Property | Purpose |
 |---|---|
-| `groupId` | Maven group for all generated modules |
+| `groupId` | Maven group for the generated modules |
 | `artifactId` | Root project name and module-name prefix |
-| `package` | Base Java package; normally a valid reverse-domain name |
-| `version` | Initial version of the generated application |
+| `package` | Base Java package |
+| `version` | Initial application version |
 
-Pin `archetypeVersion`; omitting it makes generation dependent on repository metadata and is not reproducible.
+Always set `archetypeVersion` to the version installed by the selected checkout.
 
-## Start local infrastructure
+## Start MySQL
 
-The default development datasource matches the generated Compose service:
+The development datasource matches the generated Compose service:
 
 ```bash
 cd orders-service
@@ -51,16 +56,14 @@ docker compose up -d mysql
 docker compose ps
 ```
 
-MySQL runs on `localhost:3306`. Flyway applies the migrations from `infra/persistence/src/main/resources/db/migration` when the application starts. There is no second schema-init mechanism to run manually.
+MySQL listens on `localhost:3306`. Flyway applies migrations from `infra/persistence/src/main/resources/db/migration` when the application starts.
 
-Redis is optional and disabled by default. To exercise the Redis adapter:
+Redis is disabled by default. To enable the Redis adapter locally:
 
 ```bash
 docker compose up -d redis
 export ATOM_REDIS_ENABLED=true
 ```
-
-With Redis disabled, the generated no-op cache adapter is used and business correctness is unchanged.
 
 ## Build and test
 
@@ -68,17 +71,15 @@ With Redis disabled, the generated no-op cache adapter is used and business corr
 sh ./mvnw clean install
 ```
 
-Domain and application unit tests run normally. Integration tests are intentionally explicit because they start containers:
+Run the MySQL Testcontainers tests with Docker available:
 
 ```bash
 CI=true sh ./mvnw test
 ```
 
-Make sure Docker is running before enabling the integration tests.
-
 ## Run the application
 
-No Spring profile is activated implicitly. Select `dev` yourself and explicitly enable the development-only trusted-header adapter:
+No Spring profile is active by default. Start the application with the `dev` profile and enable the development trusted-header adapter:
 
 ```bash
 SPRING_PROFILES_ACTIVE=dev \
@@ -87,14 +88,14 @@ ATOM_REDIS_ENABLED=${ATOM_REDIS_ENABLED:-false} \
 sh ./mvnw -f start/pom.xml spring-boot:run
 ```
 
-Useful endpoints:
+Available development endpoints:
 
 | Endpoint | Access |
 |---|---|
 | `http://localhost:8080/actuator/health` | Anonymous; details depend on authorization |
 | `http://localhost:8080/swagger-ui/index.html` | Anonymous |
 | `http://localhost:8080/v3/api-docs` | Anonymous |
-| `http://localhost:8080/api/v1/users/**` | Authenticated and authority-checked |
+| `http://localhost:8080/api/v1/users/**` | Authentication and authority required |
 
 Create a sample user:
 
@@ -111,33 +112,4 @@ curl -i -X POST http://localhost:8080/api/v1/users \
   }'
 ```
 
-The identity headers do not carry authorities. The server obtains the development authorities from `atom.security.trusted-header.authorities`.
-
-## Production configuration
-
-The production profile requires database credentials and never accepts the development identity headers:
-
-```bash
-export SPRING_PROFILES_ACTIVE=prod
-export SPRING_DATASOURCE_URL='jdbc:mysql://db.example:3306/orders'
-export SPRING_DATASOURCE_USERNAME='orders_app'
-export SPRING_DATASOURCE_PASSWORD='replace-with-a-secret-source'
-```
-
-Before exposing a business endpoint, integrate a real authentication mechanism with Spring Security. The adapter must:
-
-1. verify the external credential using the selected IdP or trust mechanism;
-2. create a trusted principal containing a positive actor ID and tenant ID;
-3. map verified authorities to the generated `AuthenticatedCaller`;
-4. keep client-controlled request bodies and role headers out of that mapping.
-
-The template does not choose an IdP. You can configure OAuth 2.0 resource server/JWT, mTLS, a gateway-integrated principal, or another Spring Security mechanism while retaining the same application contract.
-
-For production Redis, set `ATOM_REDIS_ENABLED=true` only after supplying and testing the Spring Data Redis connection configuration. Leave it false when caching is not required.
-
-## Next steps
-
-- Read the [architecture rules](architecture.md) before adding a bounded context.
-- Apply the [naming conventions](naming-conventions.md) to new types.
-- Review [security and compatibility changes](upgrade-guide.md) before merging a newer template into an existing project.
-- Use [troubleshooting](troubleshooting.md) when generation, startup, authentication, Flyway, or Testcontainers fails.
+See the generated project's [configuration guide](../src/main/resources/archetype-resources/docs/configuration.md) for production profiles, authentication, and Redis settings. See [Architecture](architecture.md) for module boundaries and [Upgrade guide](upgrade-guide.md) for version differences.

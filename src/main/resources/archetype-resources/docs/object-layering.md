@@ -1,6 +1,6 @@
 # Object layering and naming
 
-Names in this project describe both meaning and architectural ownership. Avoid generic `Model`, `Data`, `Manager`, `Helper`, or `Util` names when a domain or boundary-specific term is available.
+Names identify both meaning and architectural ownership. Prefer a domain or boundary term over generic names such as `Model`, `Data`, `Manager`, `Helper`, or `Util`.
 
 ## Object types
 
@@ -8,8 +8,8 @@ Names in this project describe both meaning and architectural ownership. Avoid g
 | --- | --- | --- | --- |
 | `*Request` | `api` | Public input contract and transport validation | `UserCreateRequest` |
 | `*Response` | `api` | Public output contract | `UserResponse` |
-| `AuthenticatedCaller` | `api` | Verified actor, tenant, and authorities passed across the API boundary | `AuthenticatedCaller` |
-| `*VO` | `application` | Use-case output before public facade mapping | `UserVO` |
+| `AuthenticatedCaller` | `api` | Verified actor, tenant, and authorities | `AuthenticatedCaller` |
+| `*VO` | `application` | Use-case output before facade mapping | `UserVO` |
 | Aggregate/entity | `domain` | Identity, state, invariants, and behavior | `User` |
 | Value object | `domain` | Immutable validated concept | `TenantId`, `Email`, `Username` |
 | Domain enum | `domain` | Business state vocabulary | `UserStatus` |
@@ -17,61 +17,31 @@ Names in this project describe both meaning and architectural ownership. Avoid g
 | `*PO` | `infra/persistence` | Relational persistence representation | `UserPO` |
 | Domain event | `domain` | Immutable fact raised by an aggregate | `UserCreatedEvent` |
 
-Do not expose `UserPO` from infrastructure or use API Request/Response types inside the domain.
+API Request/Response types and persistence objects do not belong in `domain`. Infrastructure never exposes `UserPO` through a public contract.
 
 ## Mapping path
 
-The normal flow is:
-
 ```text
-HTTP JSON
-  -> Request
-  -> application arguments and domain value objects
-  -> aggregate
-  -> PO
-  -> MySQL
-
-MySQL
-  -> PO
-  -> reconstituted aggregate
-  -> VO
-  -> Response
-  -> HTTP JSON
+HTTP JSON -> Request -> application/domain input -> aggregate -> PO -> MySQL
+MySQL -> PO -> reconstituted aggregate -> VO -> Response -> HTTP JSON
 ```
 
-Mapping ownership:
+- `infra/rest` binds JSON and maps verified authentication to `AuthenticatedCaller`.
+- `infra/facade` owns the public Request/Response boundary and maps VO to Response without exposing domain objects.
+- `application` validates input, creates domain value objects, and maps aggregate output to VO.
+- `infra/persistence` maps aggregate to PO and calls `reconstitute` on reads.
+- MapStruct handles mechanical field mapping only; validation, defaults, identity, version restoration, and event registration remain explicit.
 
-- the REST adapter binds JSON and creates `AuthenticatedCaller` from verified authentication;
-- the facade owns the public Request/Response boundary and invokes the mapping operations;
-- the application validates public input, creates domain value objects, and maps aggregate output to VO;
-- the facade maps the resulting VO to the public Response without exposing domain objects;
-- the persistence adapter maps aggregate to PO and calls `reconstitute` on reads.
+## Creation and reconstruction
 
-MapStruct may handle mechanical field mapping. Invariants, validation, defaults, identity assignment, version restoration, and event registration remain explicit code.
-
-## Aggregate creation and reconstruction
-
-Use clearly different methods:
-
-- `create...` or a domain factory creates new business state and may raise a creation event;
-- `reconstitute(...)` restores persisted state and must not raise events;
-- behavior methods such as `changeStatus`, `changeEmail`, or `delete` enforce transitions;
+- A `create...` method or domain factory creates new state and may raise a creation event.
+- `reconstitute(...)` restores persisted state and does not raise events.
+- Methods such as `changeStatus`, `changeEmail`, and `delete` enforce state transitions.
 - `onPersisted(...)` synchronizes generated identity, audit timestamps, and version after a successful write.
 
-Avoid public setters and Lombok `@Data` on aggregates. Equality should be based deliberately on aggregate identity or value-object value, not all mutable fields by accident.
+Aggregates do not expose public setters or use Lombok `@Data`. Define equality from aggregate identity or value-object value, not every mutable field.
 
-## Tenant and caller types
-
-`AuthenticatedCaller` belongs at the public/application boundary. `TenantId` belongs in the domain.
-
-```text
-verified security principal
-  -> AuthenticatedCaller
-  -> validated TenantId
-  -> repository/cache method argument
-```
-
-Do not add tenant IDs to user-controlled request bodies for ordinary tenant-scoped operations. Do not recover tenant identity from ThreadLocal state inside a repository.
+`AuthenticatedCaller` stays at the API/application boundary. The application validates its tenant and passes a `TenantId` explicitly to domain, repository, and cache operations. Ordinary request bodies do not carry tenant identity, and repositories do not recover it from a `ThreadLocal`.
 
 ## Naming conventions
 
@@ -79,34 +49,35 @@ Do not add tenant IDs to user-controlled request bodies for ordinary tenant-scop
 | --- | --- |
 | Application write policy | `CommandServiceTemplate` |
 | Application read policy | `QueryServiceTemplate` |
-| Type-safe use-case lifecycle | `ServiceOperation<T>` |
-| Public interface | Business name without `I` prefix, for example `UserService` |
-| Implementation | `*Impl` only when it implements a meaningful interface |
-| Output port | Business capability, for example `CacheStore`, `PasswordHasher` |
-| Adapter | Technology plus capability when useful, for example `RedisCacheService` |
+| Use-case lifecycle | `ServiceOperation<T>` |
+| Public interface | Business name without an `I` prefix, such as `UserService` |
+| Implementation | `*Impl` only for a meaningful interface |
+| Output port | Business capability, such as `CacheStore` or `PasswordHasher` |
+| Adapter | Technology plus capability when useful, such as `RedisCacheService` |
 | API mapping | `*Assembler` or explicit static mapper methods |
 | Persistence mapping | `*POConverter` |
-| Repository port | `*Repository` in domain |
-| Repository adapter | `*RepositoryImpl` in persistence infrastructure |
-| Configuration | `*Config` or `*Configuration`, one convention per package |
-| Exception | Specific failure, not a catch-all name |
-| Test | Class under test plus `Test`; integration intent visible in class name |
+| Repository port | `*Repository` in `domain` |
+| Repository adapter | `*RepositoryImpl` in `infra/persistence` |
+| Configuration | `*Config` or `*Configuration`, consistently within a package |
+| Exception | Specific cause, not a catch-all name |
+| Test | Class under test plus `Test`; integration intent visible in the name |
 
-Avoid the `Abstract*` prefix on concrete Spring beans. Avoid `DTO` when `Request`, `Response`, `VO`, or a domain concept communicates the role more precisely.
+Avoid `Abstract*` on concrete Spring beans. Use `Request`, `Response`, `VO`, or a domain term instead of a generic `DTO` when the role is known.
 
-## Error vocabulary
+## Error names
 
-- `DomainException` represents a stable domain failure with a domain error classification.
-- `ApplicationException` represents an application workflow failure that may be retried according to policy.
-- `NonRetryableApplicationException` represents a stable application rejection.
-- infrastructure exceptions are translated at the adapter boundary or by a dedicated mapper.
-- public error responses expose a stable code and safe message, never an arbitrary internal exception message.
+| Type | Meaning |
+| --- | --- |
+| `DomainException` | Stable domain failure with a domain error classification |
+| `ApplicationException` | Application workflow failure that may be retried according to policy |
+| `NonRetryableApplicationException` | Stable application rejection |
+| Infrastructure exception | Translated at the adapter boundary or by a dedicated mapper |
 
-Names should describe the cause, such as `UserNotFoundException`, `UserAlreadyExistsException`, or `AggregateVersionConflictException`.
+Public errors expose a stable code and safe message, never an arbitrary internal exception message. Specific names include `UserNotFoundException`, `UserAlreadyExistsException`, and `AggregateVersionConflictException`.
 
-## Persistence naming
+## Persistence and collections
 
-Java uses camelCase and SQL uses snake_case:
+Java fields use camelCase and SQL columns use snake_case:
 
 | Java | SQL |
 | --- | --- |
@@ -116,21 +87,6 @@ Java uses camelCase and SQL uses snake_case:
 | `createdTime` | `created_time` |
 | `updatedTime` | `updated_time` |
 
-The optimistic-lock field is named `version` in every layer. Soft deletion uses domain `status=DELETED`; there is no `deleted_time` field.
+Persistence converters map every PO field in both directions, including `version` and audit timestamps. The optimistic-lock field is `version` in every layer. Soft deletion uses `status=DELETED`; there is no `deleted_time` field.
 
-## Collection and absence rules
-
-- Repository single-result queries return `Optional<T>`.
-- Repository collections return an empty list, not null.
-- `PageResult<T>` stays framework-neutral inside the domain boundary.
-- Convert to the public `Pager<T>` only outside the domain.
-- Validate required inputs at the closest trusted boundary and again in domain value objects for domain invariants.
-
-## Review checklist
-
-- Does the name reveal the object's owner and purpose?
-- Did an API or persistence type leak into the domain?
-- Is caller/tenant context explicit rather than hidden?
-- Does reconstruction avoid validation side effects and new events?
-- Are all PO fields mapped in both directions, including version and audit timestamps?
-- Is a new suffix being introduced when an existing convention already fits?
+Repository single-result queries return `Optional<T>`, collections return an empty list rather than null, and domain pagination uses `PageResult<T>`. Convert it to public `Pager<T>` outside the domain boundary. Validate required input at the nearest trusted boundary and enforce domain invariants again in value objects.

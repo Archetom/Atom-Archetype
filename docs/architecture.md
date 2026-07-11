@@ -1,16 +1,8 @@
 # Architecture
 
-Atom Archetype generates a layered Maven reactor with Domain-Driven Design and ports-and-adapters boundaries. The modules are deliberately more important than the sample `User` feature: replace the example while preserving the dependency rules.
+Atom Archetype generates a multi-module Maven project with DDD and ports-and-adapters boundaries. The sample `User` feature demonstrates those boundaries and can be replaced.
 
-## Design goals
-
-1. Keep business rules testable without Spring, databases, HTTP, or Redis.
-2. Make authenticated caller and tenant context explicit at application boundaries.
-3. Treat databases and external services as replaceable adapters behind ports.
-4. Keep transaction commit separate from non-transactional side effects.
-5. Prefer one authoritative representation for each concern: one domain status, one schema migration chain, one error mapping path.
-
-## Module dependency model
+## Module dependencies
 
 ```text
                          ┌──────────────┐
@@ -27,24 +19,22 @@ shared  = result/error conventions
 start   = composition root
 ```
 
-| Module | Owns | Must not own |
+| Module | Owns | Excludes |
 |---|---|---|
-| `api` | Requests, responses, facade contracts, `AuthenticatedCaller` | Domain rules, persistence types |
-| `domain` | Aggregates, entities, value objects, policies, domain events, repository and service contracts | Spring components, HTTP types, MyBatis types, cache clients |
-| `shared` | Stable result/error conventions shared across boundary modules | Business use cases or infrastructure helpers |
-| `application` | Use cases, orchestration, authorization checks, command/query execution, output ports | SQL, servlet concerns, Redis implementation details |
-| `infra/rest` | HTTP transport, Spring Security, principal mapping, OpenAPI, HTTP status mapping | Business invariants |
+| `api` | Requests, responses, facade contracts, `AuthenticatedCaller` | Domain rules and persistence types |
+| `domain` | Aggregates, value objects, policies, events, repository and service contracts | Spring, HTTP, MyBatis, and cache clients |
+| `shared` | Result and error types shared across boundaries | Use cases and infrastructure helpers |
+| `application` | Use cases, authorization, command/query execution, output ports | SQL, servlet types, and Redis implementations |
+| `infra/rest` | HTTP transport, Spring Security, principal mapping, OpenAPI | Business invariants |
 | `infra/persistence` | Repository adapters, PO conversion, MyBatis, Flyway, Redis adapters | Public API contracts |
-| `infra/external` | Third-party adapters implementing application output ports | Application orchestration |
-| `infra/security` | Password hashing and security technology adapters | Authentication policy or domain behavior |
-| `infra/facade` | Published facade implementations | Domain persistence details |
-| `start` | Runtime assembly and the Spring Boot entry point | Reusable business logic |
+| `infra/external` | Third-party output-port adapters | Application orchestration |
+| `infra/security` | Password hashing and security adapters | Authentication policy and domain behavior |
+| `infra/facade` | Facade contract implementations | Persistence details |
+| `start` | Spring Boot entry point and runtime assembly | Reusable business logic |
 
-The hard invariant is: **`domain` never depends on `application`, `api`, `shared`, or any `infra` module.** Infrastructure can depend inward on the contracts it implements.
+`domain` has no dependency on `application`, `api`, `shared`, or any `infra` module. Infrastructure depends on the inward-facing contracts it implements.
 
-## HTTP request flow
-
-For a user request, the generated path is:
+## Request flow
 
 ```text
 credential
@@ -58,83 +48,53 @@ AuthenticatedCallerMapper
    ▼
 Controller → Facade → Application service
                          │
-                         ├─ validate authority and TenantId
+                         ├─ check authority and TenantId
                          ├─ invoke domain behavior
-                         └─ call a tenant-scoped repository/cache port
+                         └─ call a tenant-scoped repository or cache port
 ```
 
-`AuthenticatedCaller` is server-side context. Never deserialize it from a request body or populate it from untrusted role headers. Every use case checks its required authority, and every repository query receives a non-null `TenantId`.
+`AuthenticatedCaller` is server-side context. It is not deserialized from a request body or populated from client-controlled role headers. Application use cases check their required authority, and repository operations require a non-null `TenantId`.
 
-The included trusted-header filter is only a local-development/test adapter. It is active only under `(dev | test) & !prod` and only when explicitly enabled. Production should replace the authentication mechanism while preserving the explicit application context.
+The trusted-header filter is a development and test adapter. It is available only under `(dev | test) & !prod` and only when enabled. Production replaces the authentication adapter while keeping the same `AuthenticatedCaller` contract.
 
 ## Domain model
 
-The sample `User` is an aggregate root. Its important patterns are:
+The sample `User` aggregate uses:
 
 - validated value objects such as `UserId`, `TenantId`, `Username`, and `Email`;
-- mutation through named business methods instead of public setters;
-- factory methods for new aggregates and `reconstitute(...)` for persistence restoration;
-- a domain-owned `UserStatus` rather than an API enum;
-- pending domain events stored by `AggregateRoot`;
-- a persistence version restored into the aggregate for optimistic concurrency.
+- named behavior methods instead of public setters;
+- factories for creation and `reconstitute(...)` for persistence restoration;
+- domain-owned status and events;
+- a persisted `version` for optimistic locking.
 
-Infrastructure conversion must not create business events. Conversely, aggregate creation/mutation must not depend on a PO, mapper, or Spring bean.
+Persistence conversion restores state without creating domain events.
 
 ## Application operations and errors
 
-Application use cases execute a typed `ServiceOperation<T>` lifecycle:
+Application use cases implement a `ServiceOperation<T>` lifecycle:
 
 ```text
 validate → prepare → execute → onSuccess
 ```
 
-`CommandServiceTemplate` adds transaction rollback behavior for state-changing use cases. `QueryServiceTemplate` applies the same result/error mapping without command rollback behavior. The lifecycle is intentionally small: persistence belongs in `execute`, and transaction-dependent side effects belong in `onSuccess` through `AfterCommitExecutor`.
+`CommandServiceTemplate` adds rollback behavior for state-changing use cases. `QueryServiceTemplate` uses the same result and error mapping without command rollback behavior. Persistence runs in `execute`; commit-dependent work is registered from `onSuccess` through `AfterCommitExecutor`.
 
-Domain failures use `DomainException` and `DomainError`. The application maps them to its public error taxonomy. Application failures use `ApplicationException` or `NonRetryableApplicationException`; HTTP mapping belongs to `infra/rest`.
+Domain failures use `DomainException` and `DomainError`. Application failures use `ApplicationException` or `NonRetryableApplicationException`. HTTP status mapping belongs to `infra/rest`.
 
-Do not return raw SQL, stack traces, or provider messages to clients. Add a stable domain/application error first, then map it at the transport boundary.
+## Transactions and events
 
-## Transactions and domain events
+The database transaction covers aggregate loading, domain behavior, and repository persistence. Cache changes and in-process event publication run after commit through `AfterCommitExecutor`.
 
-The database transaction covers aggregate loading, domain behavior, and repository persistence. Cache changes and event publication are registered with `AfterCommitExecutor` so they cannot announce data that later rolls back.
+The generated publisher is in-process only. Cross-service delivery requires a transactional outbox or another durable delivery mechanism. Outbox records and aggregate changes must be written in the same database transaction.
 
-The generated publisher is suitable for in-process events and examples. It is **not a durable message-delivery guarantee**. If an event must survive process termination or be delivered to another service, add a transactional outbox:
+`LoggingUserNotificationAdapter` is available outside `prod`. A production deployment must provide a `UserNotificationPort` implementation.
 
-1. persist aggregate changes and an outbox record in the same database transaction;
-2. publish asynchronously after commit;
-3. retry with idempotent consumers;
-4. record delivery/poison-message state and operational metrics.
+## Persistence and cache
 
-Clear pending aggregate events only after they have been handed to the selected reliable mechanism.
+`domain.repository.UserRepository` defines the persistence port. `infra.persistence.repository.UserRepositoryImpl` implements it with tenant-scoped MyBatis queries.
 
-The generated `LoggingUserNotificationAdapter` is intentionally a non-production example and is active only when the `prod` profile is absent. A production deployment must provide a real `UserNotificationPort` implementation; otherwise startup fails fast instead of pretending a notification was delivered.
+Flyway migrations under `infra/persistence/src/main/resources/db/migration` are the schema source. Aggregate and PO versions provide optimistic locking; a zero-row update is reported as a concurrency conflict.
 
-## Persistence and schema ownership
+`application.port.out.CacheStore` is optional. Cache keys include tenant identity. With `atom.redis.enabled=false`, `NoOpCacheService` returns cache misses and persistence continues through MySQL.
 
-`domain.repository.UserRepository` is the port; `infra.persistence.repository.UserRepositoryImpl` is the MyBatis adapter. All methods require `TenantId`, and SQL applies tenant predicates unconditionally.
-
-Flyway migrations under `infra/persistence/src/main/resources/db/migration` are the only schema source. Do not add competing Docker init SQL or test-only schema files. Production changes follow normal forward migration rules; never edit a migration that has already been deployed.
-
-Optimistic locking uses the aggregate/PO `version` field. An update that affects no row is a concurrency conflict, not success. Reload the aggregate and retry only when the use case is safe to repeat.
-
-The sample deletion model uses domain status rather than a second persistence-level logical-delete flag. Queries decide explicitly whether deleted aggregates are visible.
-
-## Cache and distributed coordination
-
-`application.port.out.CacheStore` is an optional performance port. Cache keys include tenant identity, and cached data must never bypass tenant authorization. When `atom.redis.enabled=false`, `NoOpCacheService` makes every lookup a miss and leaves business behavior unchanged.
-
-The `DistributedLock` output port returns an owner-specific `LockHandle`. A distributed lock is coordination, not the final consistency boundary: database uniqueness and optimistic locking remain authoritative.
-
-## Adding a bounded context
-
-For a new context such as `orders`:
-
-1. model aggregates, value objects, policies, errors, and repository ports in `domain`;
-2. add use-case contracts and orchestration in `application`;
-3. define public transport DTOs only when needed in `api`;
-4. implement inbound adapters in `infra/rest` or `infra/facade`;
-5. implement outbound ports in the relevant infrastructure module;
-6. add Flyway migrations and adapter integration tests;
-7. verify dependency direction with `sh ./mvnw dependency:tree` and tests.
-
-Avoid a generic `common` package. A type should live with the concept that owns its lifecycle and invariants.
+`DistributedLock` is a coordination port. Database uniqueness and optimistic locking remain the consistency boundary.

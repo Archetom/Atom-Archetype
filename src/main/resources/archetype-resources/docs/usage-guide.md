@@ -1,6 +1,6 @@
 # Development workflow
 
-This guide describes the shortest safe path for extending the generated application. Read [architecture](architecture.md) first; its dependency and security invariants are mandatory.
+Use this guide when adding application behavior to a generated project. The dependency and security rules in [architecture](architecture.md) still apply.
 
 ## Local development loop
 
@@ -10,7 +10,7 @@ Start MySQL:
 docker compose up -d mysql
 ```
 
-Build and run with local trusted authentication explicitly enabled:
+Build the project, then run the `start` module with the `dev` profile and trusted development headers enabled:
 
 ```bash
 sh ./mvnw clean install
@@ -19,7 +19,7 @@ ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
   sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Use both development identity headers for protected endpoints:
+Protected endpoints require both development identity headers:
 
 ```bash
 curl \
@@ -28,7 +28,7 @@ curl \
   http://localhost:8080/api/v1/users
 ```
 
-Stop local services without deleting data:
+Stop local services without deleting their data:
 
 ```bash
 docker compose down
@@ -36,137 +36,23 @@ docker compose down
 
 ## Add a use case
 
-Work from the inside outward.
+Work from the domain toward the adapters:
 
-1. Define or update domain vocabulary: value objects, enum, aggregate behavior, policy, and domain error.
-2. Add a domain repository or service port only when the domain needs an external capability.
-3. Add the application use case with explicit `AuthenticatedCaller` and authority checks.
-4. Use `CommandServiceTemplate` for state changes or `QueryServiceTemplate` for reads.
-5. Implement persistence, messaging, or external adapters in `infra`.
-6. Add public Request/Response and facade methods in `api`.
-7. Bind HTTP and authentication details in `infra/rest`.
-8. Wire runtime adapters through Spring configuration and `start`.
-9. Add tests at the lowest useful layer, then an integration test for the boundary.
+1. Add the domain behavior, value objects, policy, and domain error.
+2. Add an application service method that accepts `AuthenticatedCaller`, checks authority, and derives `TenantId` before accessing data.
+3. Use `CommandServiceTemplate` for state changes and `QueryServiceTemplate` for reads.
+4. Call domain behavior from the application service; do not move the state transition into a controller or repository.
+5. Define any required domain repository or security port, or application output port, then implement its adapter in the appropriate `infra` module.
+6. Add or update the public Request, Response, and facade contract in `api`.
+7. Bind the HTTP route and authentication details in `infra/rest`, then wire the adapter through `start`.
 
-Do not begin by creating a database table or controller. First name the business behavior and ownership rule.
+Commands use the `validate -> prepare -> execute -> onSuccess` lifecycle and run inside a transaction. Schedule cache changes and in-process event publication through `AfterCommitExecutor`. Use a transactional outbox when delivery must survive process failure after commit.
 
-## Implement a command
-
-A command is transactional and uses `CommandServiceTemplate`:
-
-```java
-@Transactional
-public Result<Void> updateUserStatus(
-        AuthenticatedCaller caller,
-        Long rawUserId,
-        String rawStatus) {
-
-    return commandTemplate.execute(
-            UseCaseOperation.USER_STATUS_UPDATE,
-            new ServiceOperation<Void>() {
-                private TenantId tenantId;
-                private UserId userId;
-                private User user;
-                private UserStatus status;
-
-                @Override
-                public void validate() {
-                    tenantId = requireCaller(caller, "users:write");
-                    userId = requireUserId(rawUserId);
-                    status = requireUserStatus(rawStatus);
-                }
-
-                @Override
-                public void prepare() {
-                    user = userRepository.findById(tenantId, userId)
-                            .orElseThrow(() -> new UserNotFoundException(rawUserId));
-                }
-
-                @Override
-                public Void execute() {
-                    user.changeStatus(status, "requested by actor");
-                    user = userRepository.save(tenantId, user);
-                    return null;
-                }
-
-                @Override
-                public void onSuccess(Void ignored) {
-                    var events = user.pullDomainEvents();
-                    afterCommitExecutor.execute(() -> {
-                        userCacheService.evictUser(tenantId, userId);
-                        domainEventPublisher.publishAll(events);
-                    });
-                }
-            });
-}
-```
-
-Important properties:
-
-- authorization and tenant derivation happen before data access;
-- the repository receives tenant explicitly;
-- aggregate methods perform the state transition;
-- the repository enforces optimistic locking;
-- cache eviction and event publication occur after commit;
-- the template preserves rollback when a failure is converted into a result.
-
-Do not send an email, publish to a broker, or mutate Redis before the database transaction commits. Use a transactional outbox when delivery must be durable.
-
-## Implement a query
-
-Queries use `QueryServiceTemplate` and still require explicit caller and tenant context:
-
-```java
-public Result<UserVO> getUserById(AuthenticatedCaller caller, Long rawUserId) {
-    return queryTemplate.execute(UseCaseOperation.USER_GET, new ServiceOperation<UserVO>() {
-        private TenantId tenantId;
-        private UserId userId;
-
-        @Override
-        public void validate() {
-            tenantId = requireCaller(caller, "users:read");
-            userId = requireUserId(rawUserId);
-        }
-
-        @Override
-        public UserVO execute() {
-            UserVO cached = userCacheService.getCachedUser(tenantId, userId);
-            if (cached != null) {
-                return cached;
-            }
-
-            User user = userRepository.findById(tenantId, userId)
-                    .orElseThrow(() -> new UserNotFoundException(rawUserId));
-            return UserAssembler.toVO(user);
-        }
-    });
-}
-```
-
-Tenant identity must be part of every cache key. A cache hit must never allow a caller to bypass ownership checks.
-
-## Add aggregate behavior
-
-Prefer intention-revealing behavior:
-
-```java
-user.changeEmail(new Email(address));
-user.changeStatus(UserStatus.LOCKED, reason);
-user.delete();
-```
-
-Avoid:
-
-```java
-user.setStatus("LOCKED");
-user.setDeleted(true);
-```
-
-Factories validate new state. `reconstitute` restores persisted state without generating events. If a new database-generated ID is needed by a creation event, register the event only after persistence has assigned that ID.
+Queries also validate the caller and tenant before a repository or cache lookup. Every cache key must include tenant identity, and a cache hit must not bypass ownership checks.
 
 ## Add a repository operation
 
-Define the port in `domain` with tenant as a required argument:
+Define the port in `domain` and require the tenant explicitly:
 
 ```java
 Optional<User> findByEmail(TenantId tenantId, String email);
@@ -180,87 +66,49 @@ query.eq(UserPO::getTenantId, tenantId.getValue())
      .eq(UserPO::getEmail, email);
 ```
 
-Fail when tenant is absent. Never interpret null tenant as an administrator or unscoped query. Cross-tenant administrative use cases require a separate, explicit port and authority.
+A missing tenant must fail closed. Do not interpret a null tenant as an unscoped or administrator query. Cross-tenant administration needs a separate port and authority.
 
-For aggregate updates, keep the loaded version unchanged until MyBatis-Plus performs the compare-and-increment. Treat zero updated rows as an `AggregateVersionConflictException`.
+For aggregate updates, leave the loaded `version` unchanged until MyBatis-Plus performs the compare-and-increment. Treat zero updated rows as an `AggregateVersionConflictException`.
 
-## Change the database
+## Add a database migration
 
-Create the next migration under:
+Create the next migration in:
 
 ```text
 infra/persistence/src/main/resources/db/migration
 ```
 
-For example:
+Use a versioned name such as:
 
 ```text
 V2__add_user_last_login_time.sql
 ```
 
-In the same change, update:
+Update the migration, `UserPO`, converter mappings, mapper XML, aggregate reconstruction, and tests in the same change. Add the field to the aggregate and `reconstitute` only when it is domain state.
 
-- the migration;
-- the PO and annotations;
-- converter mappings in both directions;
-- mapper XML result maps and column lists;
-- aggregate state and `reconstitute` when the field is domain state;
-- unit and integration tests;
-- relevant documentation.
-
-Do not add `schema.sql`, Docker init SQL, or a second test schema.
+Flyway is the only schema source. Do not add `schema.sql`, Docker init SQL, or a test-only schema.
 
 ## Add an HTTP endpoint
 
-The REST adapter should do only transport work:
+Keep transport work in `infra/rest`:
 
-1. bind and validate Request data;
-2. receive Spring Security `Authentication`;
-3. use `AuthenticatedCallerMapper`;
-4. call the facade;
-5. convert the result to an HTTP response.
+1. Bind and validate Request data.
+2. Receive Spring Security `Authentication` and map it with `AuthenticatedCallerMapper`.
+3. Call the facade.
+4. Map the result to an HTTP response.
+5. Add route authorization in `SecurityConfig` and repeat the capability check in the application use case.
 
-Never accept authorities, administrator flags, actor ID, or tenant ID from a normal request body. Do not log complete request objects when they may contain passwords or tokens.
+Do not accept actor ID, tenant ID, authorities, or administrator flags from an ordinary request body. Do not log passwords, tokens, or complete request objects that may contain them.
 
-Add route authorization in `SecurityConfig`, then repeat capability authorization in the application use case so non-HTTP adapters remain protected.
+Use stable public errors and the narrowest internal failure type. Unexpected exceptions are logged internally and mapped to a generic response; stack traces, SQL, credentials, class names, and arbitrary exception messages are never returned.
 
-## Errors and HTTP behavior
+## Verify the change
 
-Use the narrowest failure type:
-
-- domain rule failures extend `DomainException` with a stable domain error;
-- workflow failures use `ApplicationException`;
-- stable non-retryable rejections use `NonRetryableApplicationException`;
-- optimistic concurrency uses `AggregateVersionConflictException`;
-- unexpected exceptions are logged internally and mapped to a generic public error.
-
-Public mappings include:
-
-| Failure | HTTP status |
-| --- | --- |
-| Invalid request | 400 |
-| Missing authentication | 401 |
-| Insufficient authority | 403 |
-| Missing resource | 404 |
-| Duplicate or version conflict | 409 |
-| Other domain rejection | 422 |
-| Unexpected internal failure | 500 |
-
-Do not expose stack traces, SQL, credentials, internal class names, or arbitrary exception messages.
-
-## Before opening a change
+Run fast tests first, then the Docker-backed integration suite:
 
 ```bash
 sh ./mvnw test
 CI=true sh ./mvnw test
 ```
 
-Also verify:
-
-- a caller from another tenant cannot read, update, delete, or receive a cached object;
-- a missing tenant fails closed;
-- stale updates return a conflict;
-- rollback does not publish events or mutate cache;
-- production profile cannot activate trusted headers;
-- Flyway starts successfully against an empty MySQL database;
-- documentation and `llms.txt` still point to the correct concepts.
+See [testing guide](test-guide.md) for the minimum test layer for each type of change.

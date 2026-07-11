@@ -6,7 +6,7 @@ This page documents the bundled User example. OpenAPI JSON is available at `/v3/
 
 All `/api/v1/users` operations require an authenticated principal and a tenant. The development adapter accepts `X-Dev-User-Id` and `X-Dev-Tenant-Id` only when the `dev` or `test` profile is active and `ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true`.
 
-These headers are development credentials, not a production authentication protocol. Production should verify OAuth2/JWT or another real credential and map the verified principal to `AuthenticatedCaller`.
+These headers are development credentials, not a production authentication protocol. See [configuration](configuration.md) for production authentication requirements.
 
 ## Operations
 
@@ -17,8 +17,6 @@ These headers are development credentials, not a production authentication proto
 | `GET /api/v1/users` | `users:read` | Query parameters below | Page of `UserResponse` |
 | `PUT /api/v1/users/{userId}/status` | `users:write` | `status` query parameter | Empty success body |
 | `DELETE /api/v1/users/{userId}` | `users:delete` | Positive numeric path ID | Empty success body |
-
-`DELETED` is not a general status transition. Clients must use `DELETE`, which applies deletion-specific authorization and domain rules.
 
 ## Create request
 
@@ -70,5 +68,3 @@ Errors have a stable public shape:
 | `409` | A unique value or aggregate version conflicts |
 | `422` | Another stable domain rule rejected the operation |
 | `500` | Unexpected internal failure; internal details are not exposed |
-
-Tenant IDs are derived from verified authentication and are never accepted from ordinary request bodies.
