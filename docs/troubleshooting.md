@@ -26,7 +26,7 @@ java -version
 mvn -version
 ```
 
-Both should report JDK 21. Set `JAVA_HOME` explicitly and restart the IDE/terminal if they differ.
+For projects generated from `main`, both should report JDK 25. The stable 2.0.0 release targets Java 21. Set `JAVA_HOME` explicitly and restart the IDE/terminal if the two commands differ.
 
 ## The application has no active profile
 

@@ -90,7 +90,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Java 21+ should not rely on Mockito dynamically attaching its own agent. -->
+            <!-- Modern JDKs should not rely on Mockito dynamically attaching its own agent. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

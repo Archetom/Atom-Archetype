@@ -139,7 +139,7 @@ rm -f infra/persistence/src/main/resources/db/migration/V1__create_user_table.sq
 rm -f docs/api-reference.md
 
 # Remove links and executable quick-start promises that only apply to the deleted User sample.
-for README_FILE in README.md README.zh-CN.md; do
+for README_FILE in README.md README.en.md; do
     if [ -f "$README_FILE" ]; then
         README_FILE_TMP="${README_FILE}.tmp"
         awk '

@@ -13,7 +13,7 @@ docker version
 docker compose version
 ```
 
-Use JDK 21 and Maven 3.9 or newer. Docker is optional for domain unit tests, but it is required for the supplied MySQL service and Testcontainers integration tests.
+The released 2.0.0 project targets JDK 21; the current `main` development line requires JDK 25. Use Maven 3.9 or newer; projects generated from `main` include a wrapper pinned to Maven 3.9.16. Docker is optional for domain unit tests, but it is required for the supplied MySQL service and Testcontainers integration tests.
 
 ## Generate the project
 

@@ -16,9 +16,9 @@ Thank you for improving Atom Archetype. Read [AGENTS.md](AGENTS.md) and [docs/ar
 make install
 make demo
 cd ~/Downloads/atom-demo
-mvn compile
-mvn test
-CI=true mvn test  # requires Docker
+sh ./mvnw compile
+sh ./mvnw test
+CI=true sh ./mvnw test  # requires Docker
 ```
 
 Pull requests should state which commands passed and whether Docker-backed tests were run.

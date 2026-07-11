@@ -1,12 +1,12 @@
 #set( $h2 = '##' )
 # ${rootArtifactId}
 
-> `${groupId}:${rootArtifactId}:${version}` — Java 21 and Spring Boot 4.1 multi-module DDD application with explicit authenticated caller and tenant context, MyBatis-Plus, MySQL, Flyway, optimistic locking, after-commit domain events, and optional Redis.
+> `${groupId}:${rootArtifactId}:${version}` — Java 25 and Spring Boot 4.1 multi-module DDD application with explicit authenticated caller and tenant context, MyBatis-Plus, MySQL, Flyway, optimistic locking, after-commit domain events, and optional Redis.
 
 $h2 Primary documentation
 
-- [Project overview and quick start](README.md): requirements, commands, module summary, security model, and test entry points.
-- [Chinese project overview](README.zh-CN.md): 简体中文快速开始、架构、安全与测试说明。
+- [Chinese project overview and quick start](README.md): 简体中文快速开始、架构、安全与测试说明。
+- [English project overview](README.en.md): requirements, commands, module summary, security model, and test entry points.
 - [Architecture and invariants](docs/architecture.md): dependency direction, request flow, transactions, tenancy, persistence, cache, and events.
 - [HTTP API reference](docs/api-reference.md): routes, authorization, query constraints, response shapes, status values, and errors.
 - [Development workflow](docs/usage-guide.md): how to add commands, queries, aggregate behavior, repository operations, migrations, HTTP endpoints, and errors.

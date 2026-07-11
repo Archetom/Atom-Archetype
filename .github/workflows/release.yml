@@ -31,7 +31,8 @@ jobs:
         uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '25'
+          check-latest: true
           cache: maven
           server-id: central
           server-username: CENTRAL_USERNAME

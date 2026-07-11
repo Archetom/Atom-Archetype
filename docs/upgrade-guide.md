@@ -33,7 +33,7 @@ The exact delta depends on when the original project was generated. Review each 
 
 ### Java and Spring Boot 4
 
-- Use JDK 21 for compilation and runtime.
+- The exact 2.0.0 migration reference targets JDK 21; raise compilation and runtime to JDK 25 when adopting the current `main` development line.
 - Upgrade to the Spring Boot 4 parent and Boot-managed dependency set as one change.
 - Replace broad/legacy starters with the Boot 4 modules used by the reference project, such as `spring-boot-starter-webmvc`, `spring-boot-starter-webclient`, `spring-boot-starter-jackson`, and `spring-boot-starter-flyway`.
 - Use the Boot 4 MyBatis-Plus starter and compatible SpringDoc version.
