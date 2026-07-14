@@ -26,23 +26,19 @@ public abstract class UserPOConverter {
             return null;
         }
 
-        return User.reconstitute(
-                longToUserId(userPO.getId()),
-                stringToUsername(userPO.getUsername()),
-                stringToEmail(userPO.getEmail()),
-                stringToPhoneNumber(userPO.getPhoneNumber()),
-                stringToPasswordHash(userPO.getPasswordHash()),
-                userPO.getRealName(),
-                codeToStatus(userPO.getStatus()),
-                longToTenantId(userPO.getTenantId()),
-                userPO.getExternalId(),
-                Boolean.TRUE.equals(userPO.getExternalUser()),
-                Boolean.TRUE.equals(userPO.getAdmin()),
-                userPO.getVersion(),
-                userPO.getCreatedTime(),
-                userPO.getUpdatedTime()
-        );
+        return User.reconstitute(toSnapshot(userPO));
     }
+
+    @Mapping(target = "id", expression = "java(longToUserId(userPO.getId()))")
+    @Mapping(target = "username", expression = "java(stringToUsername(userPO.getUsername()))")
+    @Mapping(target = "email", expression = "java(stringToEmail(userPO.getEmail()))")
+    @Mapping(target = "phoneNumber", expression = "java(stringToPhoneNumber(userPO.getPhoneNumber()))")
+    @Mapping(target = "passwordHash", expression = "java(stringToPasswordHash(userPO.getPasswordHash()))")
+    @Mapping(target = "status", expression = "java(codeToStatus(userPO.getStatus()))")
+    @Mapping(target = "tenantId", expression = "java(longToTenantId(userPO.getTenantId()))")
+    @Mapping(target = "externalUser", expression = "java(Boolean.TRUE.equals(userPO.getExternalUser()))")
+    @Mapping(target = "admin", expression = "java(Boolean.TRUE.equals(userPO.getAdmin()))")
+    protected abstract User.UserSnapshot toSnapshot(UserPO userPO);
 
     /**
      * User -> UserPO

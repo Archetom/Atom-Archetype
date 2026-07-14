@@ -5,6 +5,8 @@ import ${package}.api.dto.request.QueryRequest;
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
 import ${package}.application.assembler.UserAssembler;
+import ${package}.application.operation.UseCaseOperation;
+import ${package}.application.security.CallerGuard;
 import ${package}.application.service.UserService;
 import ${package}.application.service.template.CommandServiceTemplate;
 import ${package}.application.service.template.QueryServiceTemplate;
@@ -23,14 +25,12 @@ import ${package}.domain.service.UserDomainService;
 import ${package}.domain.valueobject.TenantId;
 import ${package}.domain.valueobject.UserId;
 import ${package}.shared.enums.ApplicationErrorCode;
-import ${package}.shared.enums.UseCaseOperation;
 import ${package}.shared.exception.NonRetryableApplicationException;
 import io.github.archetom.common.result.Pager;
 import io.github.archetom.common.result.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -50,9 +50,9 @@ public class UserServiceImpl implements UserService {
     private final UserCacheService userCacheService;
     private final UserFactory userFactory;
     private final AfterCommitExecutor afterCommitExecutor;
+    private final CallerGuard callerGuard;
 
     @Override
-    @Transactional
     public Result<UserVO> createUser(AuthenticatedCaller caller, UserCreateRequest request) {
         return commandTemplate.execute(UseCaseOperation.USER_CREATE, new ServiceOperation<UserVO>() {
             private TenantId tenantId;
@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = requireCaller(caller, "users:write");
+                tenantId = callerGuard.requireTenant(caller, "users:write");
                 if (request == null) {
                     throw new NonRetryableApplicationException(ApplicationErrorCode.PARAMETER_INVALID,
                             "Request parameters must not be empty");
@@ -97,19 +97,14 @@ public class UserServiceImpl implements UserService {
             @Override
             public UserVO execute() {
                 user = userRepository.save(tenantId, user);
-                return UserAssembler.toVO(user);
+                return UserAssembler.INSTANCE.toVO(user);
             }
 
             @Override
             public void onSuccess(UserVO userVO) {
                 List<DomainEvent> events = user.pullDomainEvents();
-                User persistedUser = user;
-                afterCommitExecutor.execute(() -> {
-                    userCacheService.cacheUser(tenantId, userVO);
-                    userCacheService.cacheUsernameMapping(
-                            tenantId, persistedUser.getUsernameValue(), persistedUser.getId());
-                    domainEventPublisher.publishAll(events);
-                });
+                afterCommitExecutor.execute(() -> domainEventPublisher.publishAll(events));
+                afterCommitExecutor.execute(() -> userCacheService.cacheUser(tenantId, userVO));
                 log.info("User created: userId={}, tenantId={}",
                         user.getId() != null ? user.getId().getValue() : null,
                         tenantId.getValue());
@@ -125,7 +120,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = requireCaller(caller, "users:read");
+                tenantId = callerGuard.requireTenant(caller, "users:read");
                 id = requireUserId(userId);
             }
 
@@ -141,7 +136,7 @@ public class UserServiceImpl implements UserService {
                 }
 
                 User user = findVisibleUser(tenantId, id, userId);
-                UserVO userVO = UserAssembler.toVO(user);
+                UserVO userVO = UserAssembler.INSTANCE.toVO(user);
                 userCacheService.cacheUser(tenantId, userVO);
                 return userVO;
             }
@@ -156,7 +151,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = requireCaller(caller, "users:read");
+                tenantId = callerGuard.requireTenant(caller, "users:read");
                 if (request == null) {
                     throw new NonRetryableApplicationException(ApplicationErrorCode.PARAMETER_INVALID,
                             "Query request must not be empty");
@@ -186,13 +181,12 @@ public class UserServiceImpl implements UserService {
                         status,
                         request.getPage(),
                         request.getSize());
-                return UserAssembler.toVOPager(userPager);
+                return UserAssembler.INSTANCE.toVOPager(userPager);
             }
         });
     }
 
     @Override
-    @Transactional
     public Result<Void> updateUserStatus(AuthenticatedCaller caller, Long userId, String status) {
         return commandTemplate.execute(UseCaseOperation.USER_STATUS_UPDATE, new ServiceOperation<Void>() {
             private TenantId tenantId;
@@ -202,7 +196,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = requireCaller(caller, "users:write");
+                tenantId = callerGuard.requireTenant(caller, "users:write");
                 id = requireUserId(userId);
                 if (status == null) {
                     throw new NonRetryableApplicationException(
@@ -231,17 +225,14 @@ public class UserServiceImpl implements UserService {
             @Override
             public void onSuccess(Void ignored) {
                 List<DomainEvent> events = user.pullDomainEvents();
-                afterCommitExecutor.execute(() -> {
-                    userCacheService.evictUser(tenantId, id);
-                    domainEventPublisher.publishAll(events);
-                });
+                afterCommitExecutor.execute(() -> domainEventPublisher.publishAll(events));
+                afterCommitExecutor.execute(() -> userCacheService.invalidateUser(tenantId, id));
                 log.info("User status updated: userId={}, tenantId={}", userId, tenantId.getValue());
             }
         });
     }
 
     @Override
-    @Transactional
     public Result<Void> deleteUser(AuthenticatedCaller caller, Long userId) {
         return commandTemplate.execute(UseCaseOperation.USER_DELETE, new ServiceOperation<Void>() {
             private TenantId tenantId;
@@ -250,7 +241,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = requireCaller(caller, "users:delete");
+                tenantId = callerGuard.requireTenant(caller, "users:delete");
                 id = requireUserId(userId);
             }
 
@@ -273,25 +264,11 @@ public class UserServiceImpl implements UserService {
             @Override
             public void onSuccess(Void ignored) {
                 List<DomainEvent> events = user.pullDomainEvents();
-                afterCommitExecutor.execute(() -> {
-                    userCacheService.evictUser(tenantId, id);
-                    domainEventPublisher.publishAll(events);
-                });
+                afterCommitExecutor.execute(() -> domainEventPublisher.publishAll(events));
+                afterCommitExecutor.execute(() -> userCacheService.invalidateUser(tenantId, id));
                 log.info("User deleted: userId={}, tenantId={}", userId, tenantId.getValue());
             }
         });
-    }
-
-    private TenantId requireCaller(AuthenticatedCaller caller, String authority) {
-        if (caller == null) {
-            throw new NonRetryableApplicationException(ApplicationErrorCode.AUTHENTICATION_REQUIRED,
-                    "Authenticated caller is required");
-        }
-        if (!caller.hasAuthority(authority)) {
-            throw new NonRetryableApplicationException(ApplicationErrorCode.ACCESS_DENIED,
-                    "Caller does not have the required authority");
-        }
-        return new TenantId(caller.tenantId());
     }
 
     private UserId requireUserId(Long userId) {

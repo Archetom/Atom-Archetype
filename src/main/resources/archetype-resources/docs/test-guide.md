@@ -36,7 +36,7 @@ CI=true sh ./mvnw test
 | Persistence converter | Full PO/aggregate round trip, version, timestamps | MapStruct mapper instance |
 | REST | Error/status mapping, authentication rejection, safe messages | Spring MVC and Security test support |
 | Start integration | Flyway, MySQL, tenant isolation, locking, HTTP flow | Spring Boot, MockMvc, Testcontainers |
-| Architecture | Forbidden dependencies across modules | JUnit source inspection and Maven Enforcer |
+| Architecture | Forbidden dependencies, adapter bypasses, entity setters, naming | ArchUnit bytecode inspection and Maven Enforcer |
 
 Use the lowest layer that proves the behavior.
 
@@ -64,7 +64,7 @@ Reconstitution tests also verify that persisted `version` is restored without ne
 
 Test through output ports. Verify that an invalid caller or missing authority is rejected before repository access, and that the caller's `TenantId` reaches every repository and cache call.
 
-For commands, verify that a converted failure marks the transaction rollback-only. Post-commit work runs after commit and does not run after rollback; capture aggregate events before clearing them. `AfterCommitExecutorTest` is the reference for commit and no-transaction behavior.
+For commands, verify that `validate` and `prepare` precede the independent transaction, and that a failure rolls back before it is converted to a `Result`. Post-commit work runs after commit and does not run after rollback; register event and cache callbacks independently. `CommandServiceTemplateTest` and `AfterCommitExecutorTest` are the references.
 
 ### Persistence
 

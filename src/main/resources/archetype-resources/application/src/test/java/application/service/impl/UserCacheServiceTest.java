@@ -41,11 +41,18 @@ class UserCacheServiceTest {
     }
 
     @Test
-    void tenantScopesUsernameMappings() {
-        service.cacheUsernameMapping(new TenantId(1L), "alice", new UserId(10L));
+    void invalidationFenceRejectsStaleConcurrentRefill() {
+        TenantId tenantId = new TenantId(1L);
+        UserId userId = new UserId(10L);
+        UserVO staleUser = user(10L, 1L);
+        service.cacheUser(tenantId, staleUser);
 
-        assertEquals(10L, service.getCachedUserIdByUsername(new TenantId(1L), "alice"));
-        assertNull(service.getCachedUserIdByUsername(new TenantId(2L), "alice"));
+        service.invalidateUser(tenantId, userId);
+        service.cacheUser(tenantId, staleUser);
+
+        assertNull(service.getCachedUser(tenantId, userId));
+        assertFalse(cache.values.containsKey("tenant:1:user:10"));
+        assertEquals(Boolean.TRUE, cache.values.get("tenant:1:user:10:refill-fence"));
     }
 
     private UserVO user(Long id, Long tenantId) {

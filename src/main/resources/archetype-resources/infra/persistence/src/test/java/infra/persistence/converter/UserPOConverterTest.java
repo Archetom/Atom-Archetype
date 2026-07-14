@@ -24,7 +24,7 @@ class UserPOConverterTest {
     void roundTripsAllPersistenceFieldsWithoutRaisingEvents() {
         LocalDateTime created = LocalDateTime.now().minusDays(1);
         LocalDateTime updated = LocalDateTime.now();
-        User source = User.reconstitute(
+        User source = User.reconstitute(new User.UserSnapshot(
                 new UserId(10L),
                 new Username("alice"),
                 new Email("alice@example.com"),
@@ -38,7 +38,7 @@ class UserPOConverterTest {
                 true,
                 7L,
                 created,
-                updated);
+                updated));
 
         UserPO po = converter.toPO(source);
         User restored = converter.toDomain(po);
@@ -48,6 +48,7 @@ class UserPOConverterTest {
                 () -> assertEquals(2L, po.getTenantId()),
                 () -> assertEquals("+8613800138000", po.getPhoneNumber()),
                 () -> assertEquals("password-hash", po.getPasswordHash()),
+                () -> assertEquals("Alice", po.getRealName()),
                 () -> assertFalse(po.toString().contains("password-hash")),
                 () -> assertEquals(
                         new UserPO().setPasswordHash("first"),
@@ -57,6 +58,14 @@ class UserPOConverterTest {
                 () -> assertTrue(po.getAdmin()),
                 () -> assertEquals(7L, po.getVersion()),
                 () -> assertEquals(7L, restored.getVersion()),
+                () -> assertEquals("alice", restored.getUsernameValue()),
+                () -> assertEquals("alice@example.com", restored.getEmailValue()),
+                () -> assertEquals("+8613800138000", restored.getPhoneNumberValue()),
+                () -> assertEquals("Alice", restored.getRealName()),
+                () -> assertEquals(UserStatus.ACTIVE, restored.getStatus()),
+                () -> assertEquals("EXT-10", restored.getExternalId()),
+                () -> assertTrue(restored.isExternalUser()),
+                () -> assertTrue(restored.isAdmin()),
                 () -> assertTrue(restored.getPasswordHash().sameValueAs(
                         PasswordHash.fromTrustedHash("password-hash"))),
                 () -> assertEquals(new TenantId(2L), restored.getTenantId()),

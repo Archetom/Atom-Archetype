@@ -11,6 +11,7 @@ import ${package}.api.facade.UserFacade;
 import ${package}.application.assembler.UserAssembler;
 import ${package}.application.service.UserService;
 import ${package}.application.vo.UserVO;
+import ${package}.shared.util.ResultUtil;
 import io.github.archetom.common.result.Pager;
 import io.github.archetom.common.result.Result;
 import lombok.RequiredArgsConstructor;
@@ -30,59 +31,17 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     public Result<UserResponse> createUser(AuthenticatedCaller caller, UserCreateRequest request) {
-        Result<UserVO> result = userService.createUser(caller, request);
-
-        if (!result.isSuccess()) {
-            Result<UserResponse> errorResult = new Result<>();
-            errorResult.setSuccess(false);
-            errorResult.setErrorContext(result.getErrorContext());
-            return errorResult;
-        }
-
-        UserResponse response = UserAssembler.toResponse(result.getData());
-
-        Result<UserResponse> successResult = new Result<>();
-        successResult.setSuccess(true);
-        successResult.setData(response);
-        return successResult;
+        return ResultUtil.map(userService.createUser(caller, request), UserAssembler.INSTANCE::toResponse);
     }
 
     @Override
     public Result<UserResponse> getUserById(AuthenticatedCaller caller, Long userId) {
-        Result<UserVO> result = userService.getUserById(caller, userId);
-
-        if (!result.isSuccess()) {
-            Result<UserResponse> errorResult = new Result<>();
-            errorResult.setSuccess(false);
-            errorResult.setErrorContext(result.getErrorContext());
-            return errorResult;
-        }
-
-        UserResponse response = UserAssembler.toResponse(result.getData());
-
-        Result<UserResponse> successResult = new Result<>();
-        successResult.setSuccess(true);
-        successResult.setData(response);
-        return successResult;
+        return ResultUtil.map(userService.getUserById(caller, userId), UserAssembler.INSTANCE::toResponse);
     }
 
     @Override
     public Result<Pager<UserResponse>> queryUsers(AuthenticatedCaller caller, UserQueryRequest request) {
-        Result<Pager<UserVO>> result = userService.queryUsers(caller, request);
-
-        if (!result.isSuccess()) {
-            Result<Pager<UserResponse>> errorResult = new Result<>();
-            errorResult.setSuccess(false);
-            errorResult.setErrorContext(result.getErrorContext());
-            return errorResult;
-        }
-
-        Pager<UserResponse> responsePager = UserAssembler.toResponsePager(result.getData());
-
-        Result<Pager<UserResponse>> successResult = new Result<>();
-        successResult.setSuccess(true);
-        successResult.setData(responsePager);
-        return successResult;
+        return ResultUtil.map(userService.queryUsers(caller, request), UserAssembler.INSTANCE::toResponsePager);
     }
 
     @Override

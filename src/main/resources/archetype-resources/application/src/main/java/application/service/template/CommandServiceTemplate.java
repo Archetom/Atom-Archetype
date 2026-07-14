@@ -2,8 +2,9 @@ package ${package}.application.service.template;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.NoTransactionException;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Executes state-changing use cases and preserves transaction rollback semantics
@@ -12,16 +13,19 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 @Component
 public class CommandServiceTemplate extends OperationTemplateSupport {
 
-    public CommandServiceTemplate(@Value("${spring.application.name}") String appName) {
+    private final TransactionTemplate transactionTemplate;
+
+    public CommandServiceTemplate(
+            @Value("${spring.application.name}") String appName,
+            PlatformTransactionManager transactionManager
+    ) {
         super(appName);
+        transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     @Override
-    protected void onFailure() {
-        try {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-        } catch (NoTransactionException ignored) {
-            // Commands may also be used by callers that deliberately have no transaction.
-        }
+    protected <T> T invoke(ServiceOperation<T> operation) {
+        return transactionTemplate.execute(status -> super.invoke(operation));
     }
 }

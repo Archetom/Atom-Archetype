@@ -1,60 +1,70 @@
 package ${package}.application.assembler;
 
 import ${package}.api.dto.response.UserResponse;
-import ${package}.application.converter.UserConverter;
 import ${package}.application.vo.UserVO;
 import ${package}.domain.entity.User;
+import ${package}.domain.model.UserStatus;
 import ${package}.domain.repository.PageResult;
+import ${package}.domain.valueobject.Email;
+import ${package}.domain.valueobject.PhoneNumber;
+import ${package}.domain.valueobject.TenantId;
+import ${package}.domain.valueobject.UserId;
+import ${package}.domain.valueobject.Username;
 import ${package}.shared.util.PageUtil;
 import io.github.archetom.common.result.Pager;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-/**
- * user
- * @author hanfeng
- */
-public class UserAssembler {
+/** Maps domain output to application and tenant-safe public representations. */
+@Mapper
+public interface UserAssembler {
+
+    UserAssembler INSTANCE = Mappers.getMapper(UserAssembler.class);
 
     /**
      * Domain User -> UserVO
      */
-    public static UserVO toVO(User user) {
-        return UserConverter.INSTANCE.toVO(user);
-    }
+    @Mapping(target = "id", expression = "java(userIdToLong(user.getId()))")
+    @Mapping(target = "username", expression = "java(usernameToString(user.getUsername()))")
+    @Mapping(target = "email", expression = "java(emailToString(user.getEmail()))")
+    @Mapping(target = "maskedPhoneNumber", expression = "java(phoneNumberToMasked(user.getPhoneNumber()))")
+    @Mapping(target = "status", expression = "java(statusToCode(user.getStatus()))")
+    @Mapping(target = "statusName", expression = "java(statusToName(user.getStatus()))")
+    @Mapping(target = "active", expression = "java(statusToActive(user.getStatus()))")
+    @Mapping(target = "tenantId", expression = "java(tenantIdToLong(user.getTenantId()))")
+    UserVO toVO(User user);
 
     /**
      * UserVO -> UserResponse
      */
-    public static UserResponse toResponse(UserVO userVO) {
-        return UserConverter.INSTANCE.toResponse(userVO);
-    }
+    @BeanMapping(ignoreUnmappedSourceProperties = "tenantId")
+    UserResponse toResponse(UserVO userVO);
 
     /**
      * Domain User -> UserResponse
      */
-    public static UserResponse toResponse(User user) {
+    default UserResponse toResponse(User user) {
         return toResponse(toVO(user));
     }
 
     /**
      * Domain User List -> UserVO List
      */
-    public static List<UserVO> toVOList(List<User> users) {
-        return UserConverter.INSTANCE.toVOList(users);
-    }
+    List<UserVO> toVOList(List<User> users);
 
     /**
      * UserVO List -> UserResponse List
      */
-    public static List<UserResponse> toResponseList(List<UserVO> userVOs) {
-        return UserConverter.INSTANCE.toResponseList(userVOs);
-    }
+    List<UserResponse> toResponseList(List<UserVO> userVOs);
 
     /**
      * Domain User Pager -> UserVO Pager
      */
-    public static Pager<UserVO> toVOPager(PageResult<User> userPager) {
+    default Pager<UserVO> toVOPager(PageResult<User> userPager) {
         if (userPager == null) {
             return null;
         }
@@ -70,7 +80,7 @@ public class UserAssembler {
     /**
      * UserVO Pager -> UserResponse Pager
      */
-    public static Pager<UserResponse> toResponsePager(Pager<UserVO> userVOPager) {
+    default Pager<UserResponse> toResponsePager(Pager<UserVO> userVOPager) {
         if (userVOPager == null) {
             return null;
         }
@@ -78,5 +88,37 @@ public class UserAssembler {
         Pager<UserResponse> responsePager = PageUtil.copy(userVOPager);
         responsePager.setObjectList(toResponseList(userVOPager.getObjectList()));
         return responsePager;
+    }
+
+    default Long userIdToLong(UserId userId) {
+        return userId != null ? userId.getValue() : null;
+    }
+
+    default Long tenantIdToLong(TenantId tenantId) {
+        return tenantId != null ? tenantId.getValue() : null;
+    }
+
+    default String usernameToString(Username username) {
+        return username != null ? username.getValue() : null;
+    }
+
+    default String emailToString(Email email) {
+        return email != null ? email.getValue() : null;
+    }
+
+    default String phoneNumberToMasked(PhoneNumber phoneNumber) {
+        return phoneNumber != null ? phoneNumber.getMasked() : null;
+    }
+
+    default String statusToCode(UserStatus status) {
+        return status != null ? status.getCode() : null;
+    }
+
+    default String statusToName(UserStatus status) {
+        return status != null ? status.getDisplayName() : null;
+    }
+
+    default Boolean statusToActive(UserStatus status) {
+        return status == UserStatus.ACTIVE;
     }
 }

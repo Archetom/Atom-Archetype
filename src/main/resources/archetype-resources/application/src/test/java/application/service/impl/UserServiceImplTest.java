@@ -6,6 +6,7 @@ import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
 import ${package}.application.service.template.CommandServiceTemplate;
 import ${package}.application.service.template.QueryServiceTemplate;
+import ${package}.application.security.CallerGuard;
 import ${package}.application.transaction.AfterCommitExecutor;
 import ${package}.domain.entity.User;
 import ${package}.domain.event.DomainEventPublisher;
@@ -24,13 +25,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -51,20 +59,26 @@ class UserServiceImplTest {
     private UserFactory userFactory;
     @Mock
     private AfterCommitExecutor afterCommitExecutor;
+    @Mock
+    private PlatformTransactionManager transactionManager;
 
     private UserServiceImpl service;
 
     @BeforeEach
     void setUp() {
+        org.mockito.Mockito.lenient().when(
+                        transactionManager.getTransaction(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new SimpleTransactionStatus());
         service = new UserServiceImpl(
                 userRepository,
                 userDomainService,
                 domainEventPublisher,
-                new CommandServiceTemplate("test-app"),
+                new CommandServiceTemplate("test-app", transactionManager),
                 new QueryServiceTemplate("test-app"),
                 userCacheService,
                 userFactory,
-                afterCommitExecutor);
+                afterCommitExecutor,
+                new CallerGuard());
     }
 
     @Test
@@ -140,12 +154,33 @@ class UserServiceImplTest {
         verify(userRepository, never()).save(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
     }
 
+    @Test
+    void eventFailureCannotSkipIndependentCacheInvalidation() {
+        TenantId tenantId = new TenantId(99L);
+        UserId userId = new UserId(10L);
+        User user = activeUser(tenantId, userId);
+        when(userRepository.findById(tenantId, userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(tenantId, user)).thenReturn(user);
+
+        Result<Void> result = service.updateUserStatus(caller("users:write"), 10L, "LOCKED");
+
+        assertTrue(result.isSuccess());
+        var callbacks = org.mockito.ArgumentCaptor.forClass(Runnable.class);
+        verify(afterCommitExecutor, org.mockito.Mockito.times(2)).execute(callbacks.capture());
+        List<Runnable> actions = callbacks.getAllValues();
+        doThrow(new IllegalStateException("publisher unavailable"))
+                .when(domainEventPublisher).publishAll(anyList());
+        assertThrows(IllegalStateException.class, actions.get(0)::run);
+        actions.get(1).run();
+        verify(userCacheService).invalidateUser(tenantId, userId);
+    }
+
     private AuthenticatedCaller caller(String authority) {
         return new AuthenticatedCaller(7L, 99L, Set.of(authority));
     }
 
     private User deletedUser(TenantId tenantId, UserId userId) {
-        return User.reconstitute(
+        return User.reconstitute(new User.UserSnapshot(
                 userId,
                 new Username("deleted_user"),
                 new Email("deleted@example.com"),
@@ -159,11 +194,11 @@ class UserServiceImplTest {
                 false,
                 1L,
                 LocalDateTime.now(),
-                LocalDateTime.now());
+                LocalDateTime.now()));
     }
 
     private User adminUser(TenantId tenantId, UserId userId) {
-        return User.reconstitute(
+        return User.reconstitute(new User.UserSnapshot(
                 userId,
                 new Username("admin_user"),
                 new Email("admin@example.com"),
@@ -177,7 +212,25 @@ class UserServiceImplTest {
                 true,
                 1L,
                 LocalDateTime.now(),
-                LocalDateTime.now());
+                LocalDateTime.now()));
+    }
+
+    private User activeUser(TenantId tenantId, UserId userId) {
+        return User.reconstitute(new User.UserSnapshot(
+                userId,
+                new Username("active_user"),
+                new Email("active@example.com"),
+                null,
+                PasswordHash.fromTrustedHash("password-hash"),
+                "Active User",
+                UserStatus.ACTIVE,
+                tenantId,
+                null,
+                false,
+                false,
+                1L,
+                LocalDateTime.now(),
+                LocalDateTime.now()));
     }
 
     private void assertFailure(Result<?> result, String expectedSpecificCode) {

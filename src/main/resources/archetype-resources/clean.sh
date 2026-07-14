@@ -46,8 +46,6 @@ rm -f domain/src/main/java/${PACKAGE_PATH}/domain/exception/UserDomainException.
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/exception/UserNotFoundException.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/factory/UserFactory.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/policy/PasswordPolicy.java
-rm -f domain/src/main/java/${PACKAGE_PATH}/domain/specification/UserSpecification.java
-rm -f domain/src/main/java/${PACKAGE_PATH}/domain/valueobject/Address.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/valueobject/Email.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/valueobject/PhoneNumber.java
 rm -f domain/src/main/java/${PACKAGE_PATH}/domain/valueobject/PasswordHash.java
@@ -63,12 +61,11 @@ rm -f application/src/main/java/${PACKAGE_PATH}/application/service/impl/UserSer
 rm -f application/src/main/java/${PACKAGE_PATH}/application/service/impl/UserCacheService.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/vo/UserVO.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/assembler/UserAssembler.java
-rm -f application/src/main/java/${PACKAGE_PATH}/application/converter/UserConverter.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/config/DomainConfiguration.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/event/DomainEventPublisherImpl.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/event/listener/UserEventListener.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/port/out/UserNotificationPort.java
-rm -f shared/src/main/java/${PACKAGE_PATH}/shared/enums/UseCaseOperation.java
+rm -f application/src/main/java/${PACKAGE_PATH}/application/operation/UseCaseOperation.java
 
 # =============================================================================
 # Infrastructure layer sample code
@@ -185,7 +182,6 @@ fi
 echo " clean test code..."
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/entity/UserTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/policy/PasswordPolicyTest.java
-rm -f domain/src/test/java/${PACKAGE_PATH}/domain/specification/UserSpecificationTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/package-info.java
 rm -f application/src/test/java/${PACKAGE_PATH}/application/service/impl/UserCacheServiceTest.java
 rm -f application/src/test/java/${PACKAGE_PATH}/application/service/impl/UserServiceImplTest.java
@@ -214,12 +210,10 @@ KEEP_DIRS=(
     "domain/src/main/java/${PACKAGE_PATH}/domain/event"
     "domain/src/main/java/${PACKAGE_PATH}/domain/factory"
     "domain/src/main/java/${PACKAGE_PATH}/domain/policy"
-    "domain/src/main/java/${PACKAGE_PATH}/domain/specification"
     "application/src/main/java/${PACKAGE_PATH}/application/service"
     "application/src/main/java/${PACKAGE_PATH}/application/service/impl"
     "application/src/main/java/${PACKAGE_PATH}/application/vo"
     "application/src/main/java/${PACKAGE_PATH}/application/assembler"
-    "application/src/main/java/${PACKAGE_PATH}/application/converter"
     "infra/persistence/src/main/java/${PACKAGE_PATH}/infra/persistence/mysql/po"
     "infra/persistence/src/main/java/${PACKAGE_PATH}/infra/persistence/mysql/mapper"
     "infra/persistence/src/main/java/${PACKAGE_PATH}/infra/persistence/repository"
@@ -290,13 +284,6 @@ cat > "application/src/main/java/${PACKAGE_PATH}/application/assembler/package-i
  * boundary assemblers
  */
 package ${PACKAGE_PATH//\//.}.application.assembler;
-EOF
-
-cat > "application/src/main/java/${PACKAGE_PATH}/application/converter/package-info.java" << EOF
-/**
- * application converters
- */
-package ${PACKAGE_PATH//\//.}.application.converter;
 EOF
 
 cat > "application/src/main/java/${PACKAGE_PATH}/application/event/listener/package-info.java" << EOF

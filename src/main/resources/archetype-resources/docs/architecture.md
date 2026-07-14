@@ -63,9 +63,11 @@ HTTP request
 validate -> prepare -> execute -> onSuccess
 ```
 
-When a command converts an application or domain failure to a `Result`, the template marks the active transaction rollback-only. `QueryServiceTemplate` uses the same typed `ServiceOperation` lifecycle without command rollback behavior.
+`CommandServiceTemplate` runs `validate` and `prepare` before opening an independent transaction for `execute` and `onSuccess`. Slow preparation such as password hashing therefore does not hold a database connection. A failure rolls that transaction back before it is converted to a `Result`, so an outer transaction is neither marked rollback-only nor surprised by `UnexpectedRollbackException`. Treat each command as its own atomic use case; do not use it when several commands must share one transaction. `QueryServiceTemplate` uses the same typed lifecycle without a transaction.
 
-The relational database is the source of truth. `AfterCommitExecutor` delays cache writes, cache eviction, and in-process event publication until commit. This prevents side effects from observing a transaction that later rolls back.
+The relational database is the source of truth. `AfterCommitExecutor` delays cache writes, cache invalidation, and in-process event publication until commit. Events and cache actions use separate registrations so one callback failure cannot skip the other. Cache invalidation installs a short refill fence before eviction so a concurrent stale reader cannot repopulate a 30-minute entry after the write commits.
+
+Events are already published from the post-commit phase. Use ordinary `@EventListener` consumers; an `@TransactionalEventListener(AFTER_COMMIT)` would be registered too late and will not receive this publication path.
 
 Post-commit callbacks are not durable delivery. Use a transactional outbox when an event must survive process failure after commit.
 
@@ -73,7 +75,7 @@ Redis is optional and implements an application output port. Cache keys include 
 
 ## Aggregate persistence
 
-`User` owns its state transitions. Persistence restores it through `User.reconstitute`, including identity, tenant, timestamps, and optimistic-lock version, without raising new domain events.
+`User` owns its state transitions. Persistence restores it through `User.reconstitute(UserSnapshot)`, including identity, tenant, timestamps, and optimistic-lock version, without raising new domain events. MapStruct creates the snapshot by field name, avoiding fragile long positional reconstruction calls.
 
 Repository constraints:
 
@@ -103,3 +105,5 @@ Do not add `schema.sql` or container initialization SQL, and do not edit an appl
 - Repository and cache calls without a tenant fail closed.
 
 See [configuration](configuration.md) for profile and security settings, and [development workflow](usage-guide.md) for adding behavior.
+
+`ArchitectureBoundaryTest` uses ArchUnit bytecode analysis to enforce inward dependencies across application, domain, API, shared, and infrastructure classes. It also rejects controller-to-repository/VO coupling, public entity setters, missing core layers, and naming violations for Request, Response, VO, PO, and repository types.

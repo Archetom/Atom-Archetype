@@ -78,7 +78,7 @@ Client-controlled headers must not supply authorities or administrator state. Th
 | `AbstractQueryServiceTemplate` | `QueryServiceTemplate` |
 | `ServiceCallback<T>` | `ServiceOperation<T>` |
 | domain `CacheService` | application output port `CacheStore` |
-| shared `DistributedLock` | application output port `DistributedLock` |
+| shared `DistributedLock` | Removed; add a use-case-specific application output port only when it has a consumer |
 
 The operation lifecycle is `validate → prepare → execute → onSuccess`. Use command templates for state changes and query templates for reads.
 

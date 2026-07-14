@@ -1,4 +1,4 @@
-package ${package}.shared.enums;
+package ${package}.application.operation;
 
 import ${package}.shared.operation.OperationCode;
 import lombok.AccessLevel;

@@ -22,11 +22,11 @@ $h2 Architecture summary
 - Every use case receives `AuthenticatedCaller` and derives an explicit `TenantId`.
 - Repository and cache operations require tenant and fail closed.
 - Commands use `CommandServiceTemplate`; reads use `QueryServiceTemplate`.
-- Application operation/error-scene identifiers use `UseCaseOperation`; domain facts use `*Event`.
+- Application-owned operation/error-scene identifiers use `application.operation.UseCaseOperation`; domain facts use `*Event`.
 - Flyway is the only schema initializer.
 - Aggregate `version` provides optimistic concurrency control.
 - `UserStatus.DELETED` is the only soft-delete representation.
-- Cache and event side effects execute after transaction commit.
+- Cache and event side effects use independent registrations after transaction commit.
 - Redis is optional and cannot change business correctness.
 - Trusted identity headers are disabled by default and restricted to dev/test profiles.
 
