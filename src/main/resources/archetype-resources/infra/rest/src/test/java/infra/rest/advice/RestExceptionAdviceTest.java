@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
@@ -87,18 +86,6 @@ class RestExceptionAdviceTest {
 
         assertError(response, HttpStatus.UNPROCESSABLE_CONTENT, "303",
                 "Deleted users cannot change status");
-    }
-
-    @Test
-    void shouldMapOptimisticLockingToConflictWithoutLeakingCause(CapturedOutput output) {
-        String internalMessage = "update user set version=8 where password='secret'";
-        ResponseEntity<?> response = advice.optimisticLockingException(
-                new OptimisticLockingFailureException(internalMessage));
-
-        RestErrorResult error = assertError(response, HttpStatus.CONFLICT, "200",
-                "Resource version conflict");
-        assertFalse(error.getErrMsg().contains(internalMessage));
-        assertFalse(output.getAll().contains(internalMessage));
     }
 
     @Test

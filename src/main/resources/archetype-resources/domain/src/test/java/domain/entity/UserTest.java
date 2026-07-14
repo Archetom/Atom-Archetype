@@ -111,6 +111,16 @@ class UserTest {
     }
 
     @Test
+    void unchangedPhoneNumberDoesNotChangeAuditTime() {
+        User user = persistedUser();
+        user.changePhoneNumber("+8613900139000");
+        var changedTime = user.getUpdatedTime();
+        user.changePhoneNumber("+8613900139000");
+
+        assertEquals(changedTime, user.getUpdatedTime());
+    }
+
+    @Test
     void passwordHashIsExplicitlyRedacted() {
         User user = newUser();
 

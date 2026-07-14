@@ -42,4 +42,21 @@ class AfterCommitExecutorTest {
 
         assertTrue(executed.get());
     }
+
+    @Test
+    void isolatesFailuresBetweenPostCommitActions() {
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        TransactionSynchronizationManager.initSynchronization();
+        AtomicBoolean secondActionExecuted = new AtomicBoolean();
+
+        executor.execute(() -> {
+            throw new IllegalStateException("simulated side-effect failure");
+        });
+        executor.execute(() -> secondActionExecuted.set(true));
+
+        TransactionSynchronizationManager.getSynchronizations()
+                .forEach(synchronization -> synchronization.afterCommit());
+
+        assertTrue(secondActionExecuted.get());
+    }
 }

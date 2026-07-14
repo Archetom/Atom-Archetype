@@ -32,13 +32,11 @@ abstract class OperationTemplateSupport {
         try {
             operation.validate();
             operation.prepare();
-            T data = operation.execute();
-            operation.onSuccess(data);
+            T data = invoke(operation);
             result.setData(data);
             result.setSuccess(true);
             return result;
         } catch (DomainException exception) {
-            onFailure();
             log.warn("Domain operation rejected: event={}, error={}", event, exception.getError());
             NonRetryableApplicationException mapped = new NonRetryableApplicationException(
                     DomainExceptionMapper.toApplicationCode(exception),
@@ -46,7 +44,6 @@ abstract class OperationTemplateSupport {
                     exception);
             return ResultUtil.genErrorResult(result, mapped, event.code(), appName);
         } catch (IllegalArgumentException exception) {
-            onFailure();
             log.warn("Application input rejected: event={}, exceptionType={}",
                     event, exception.getClass().getName());
             NonRetryableApplicationException mapped = new NonRetryableApplicationException(
@@ -55,17 +52,14 @@ abstract class OperationTemplateSupport {
                     exception);
             return ResultUtil.genErrorResult(result, mapped, event.code(), appName);
         } catch (NonRetryableApplicationException exception) {
-            onFailure();
             log.warn("Application operation rejected: event={}, error={}",
                     event, exception.getErrorCode());
             return ResultUtil.genErrorResult(result, exception, event.code(), appName);
         } catch (ApplicationException exception) {
-            onFailure();
             log.warn("Application operation failed: event={}, error={}",
                     event, exception.getErrorCode());
             return ResultUtil.genErrorResult(result, exception, event.code(), appName);
         } catch (RuntimeException exception) {
-            onFailure();
             log.error("Unexpected application failure: event={}, exceptionType={}",
                     event, exception.getClass().getName());
             return ResultUtil.genErrorResult(exception, appName);
@@ -75,9 +69,9 @@ abstract class OperationTemplateSupport {
         }
     }
 
-    /**
-     * Hook used by command execution to mark an active transaction rollback-only.
-     */
-    protected void onFailure() {
+    protected <T> T invoke(ServiceOperation<T> operation) {
+        T data = operation.execute();
+        operation.onSuccess(data);
+        return data;
     }
 }

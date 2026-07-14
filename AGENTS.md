@@ -43,14 +43,14 @@ Generated projects have these modules (defined in `archetype-resources/pom.xml`)
 
 ## Key Architectural Patterns in Templates
 
-- **Application operation templates**: Commands and queries use `CommandServiceTemplate` / `QueryServiceTemplate` with a typed `ServiceOperation` lifecycle (`validate → prepare → execute → onSuccess`) and `UseCaseOperation` identifiers
-- **Object conversion flow**: Request → application/domain model (Assembler) → PO (Converter), and reverse for responses
+- **Application operation templates**: Commands and queries use `CommandServiceTemplate` / `QueryServiceTemplate` with a typed `ServiceOperation` lifecycle (`validate → prepare → execute → onSuccess`) and application-owned `UseCaseOperation` identifiers; command transactions wrap `execute/onSuccess`
+- **Object conversion flow**: Request enters the application use case directly; `*Assembler` maps aggregate → VO → tenant-safe Response, while `*POConverter` maps aggregate ↔ PO
 - **Exception types**: Domain failures use `DomainException`/`DomainError`; application failures use `ApplicationException` and `NonRetryableApplicationException` and are mapped at the boundary
 - **Repository pattern**: Interfaces in `domain`, implementations in `infra/persistence`
-- **Entity design**: Entities use `@Getter` (no `@Data`/setters), mutation through business methods only. Use `User.reconstitute(...)` static method for persistence-layer reconstruction, factory methods for creation
+- **Entity design**: Entities use `@Getter` (no `@Data`/setters), mutation through business methods only. Use `User.reconstitute(UserSnapshot)` for persistence-layer reconstruction, factory methods for creation
 - **AggregateRoot**: Base class with domain event collection and optimistic-lock `version`; persistence restores version without producing events
 - **Explicit caller/tenant**: `AuthenticatedCaller` and `TenantId` are required inputs; repositories and cache keys are tenant-scoped and do not read a ThreadLocal
-- **Post-commit side effects**: `AfterCommitExecutor` delays cache changes and in-process event publication until a successful transaction commit; durable cross-service delivery still requires an outbox
+- **Post-commit side effects**: `AfterCommitExecutor` delays cache changes and in-process event publication until a successful transaction commit; register events and cache work independently so one failure cannot suppress the other; durable cross-service delivery still requires an outbox
 - **Optional Redis**: `atom.redis.enabled=false` selects a no-op cache adapter, so Redis is not a correctness or startup requirement
 - **API versioning**: REST endpoints under `/api/v1/`
 
@@ -60,10 +60,10 @@ Generated projects have these modules (defined in `archetype-resources/pom.xml`)
 - `*VO` — Application result/view objects
 - `*PO` — Persistence objects (infra layer), extend `BasePO` (with `@Version` optimistic lock)
 - `*Assembler` — Cross-layer object converters (MapStruct)
-- `*Converter` — Entity ↔ PO converters (MapStruct, abstract class with manual `toDomain()` using `reconstitute`)
+- `*POConverter` — Entity ↔ PO converters (MapStruct, abstract class with manual `toDomain()` using a named reconstruction snapshot)
 - `*DomainService` — Domain services for behavior that does not belong to a single aggregate/value object
 - `*Repository` / `*RepositoryImpl` — Domain port / infrastructure adapter
-- `UseCaseOperation` — Use-case/error-scene identifiers; enums do not use an `Enum` suffix
+- `UseCaseOperation` — Application-owned use-case/error-scene identifiers; enums do not use an `Enum` suffix
 
 ## Tech Stack (Generated Projects)
 

@@ -34,9 +34,27 @@ public class User extends AggregateRoot<UserId> {
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
 
-    /** Constructor reserved for mapping and persistence frameworks. */
-    public User() {
-        // Business code creates users through a validated factory.
+    private User() {
+        // Creation and persistence restoration must go through the named entry points below.
+    }
+
+    /** Complete persisted state used to restore an aggregate by field name. */
+    public record UserSnapshot(
+            UserId id,
+            Username username,
+            Email email,
+            PhoneNumber phoneNumber,
+            PasswordHash passwordHash,
+            String realName,
+            UserStatus status,
+            TenantId tenantId,
+            String externalId,
+            boolean externalUser,
+            boolean admin,
+            Long version,
+            LocalDateTime createdTime,
+            LocalDateTime updatedTime
+    ) {
     }
 
     // ========== Value-object accessors ==========
@@ -114,8 +132,9 @@ public class User extends AggregateRoot<UserId> {
         user.status = UserStatus.ACTIVE;
         user.externalUser = false;
         user.admin = false;
-        user.createdTime = LocalDateTime.now();
-        user.updatedTime = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        user.createdTime = now;
+        user.updatedTime = now;
 
         return user;
     }
@@ -132,26 +151,25 @@ public class User extends AggregateRoot<UserId> {
     }
 
     /** Restore persisted state without raising new domain events. */
-    public static User reconstitute(UserId id, Username username, Email email, PhoneNumber phoneNumber,
-                                     PasswordHash passwordHash, String realName, UserStatus status,
-                                     TenantId tenantId, String externalId, boolean externalUser,
-                                     boolean admin, Long version,
-                                     LocalDateTime createdTime, LocalDateTime updatedTime) {
+    public static User reconstitute(UserSnapshot snapshot) {
+        if (snapshot == null) {
+            throw new UserDomainException("User snapshot must not be empty");
+        }
         User user = new User();
-        user.id = id;
-        user.username = username;
-        user.email = email;
-        user.phoneNumber = phoneNumber;
-        user.passwordHash = requirePasswordHash(passwordHash);
-        user.realName = realName;
-        user.status = status;
-        user.tenantId = requireTenantId(tenantId);
-        user.externalId = externalId;
-        user.externalUser = externalUser;
-        user.admin = admin;
-        user.restoreVersion(version);
-        user.createdTime = createdTime;
-        user.updatedTime = updatedTime;
+        user.id = snapshot.id();
+        user.username = snapshot.username();
+        user.email = snapshot.email();
+        user.phoneNumber = snapshot.phoneNumber();
+        user.passwordHash = requirePasswordHash(snapshot.passwordHash());
+        user.realName = snapshot.realName();
+        user.status = snapshot.status();
+        user.tenantId = requireTenantId(snapshot.tenantId());
+        user.externalId = snapshot.externalId();
+        user.externalUser = snapshot.externalUser();
+        user.admin = snapshot.admin();
+        user.restoreVersion(snapshot.version());
+        user.createdTime = snapshot.createdTime();
+        user.updatedTime = snapshot.updatedTime();
         return user;
     }
 
@@ -270,8 +288,7 @@ public class User extends AggregateRoot<UserId> {
 
     /** Validate and change the phone number supplied as E.164 text. */
     public void changePhoneNumber(String newPhoneNumber) {
-        this.phoneNumber = new PhoneNumber(newPhoneNumber);
-        this.updatedTime = LocalDateTime.now();
+        changePhoneNumber(new PhoneNumber(newPhoneNumber));
     }
 
     // ========== State queries ==========

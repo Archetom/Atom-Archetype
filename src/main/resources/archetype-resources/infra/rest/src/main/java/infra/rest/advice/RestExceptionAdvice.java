@@ -9,7 +9,6 @@ import ${package}.shared.exception.ApplicationException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.security.access.AccessDeniedException;
@@ -90,15 +89,6 @@ public class RestExceptionAdvice {
         log.warn("Application request rejected: code={}", exception.getErrorCode());
         return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
                 exception.getErrorCode(), exception.getMessage(), appName));
-    }
-
-    /** Maps an optimistic-lock conflict without logging SQL or entity contents. */
-    @ExceptionHandler(OptimisticLockingFailureException.class)
-    public ResponseEntity<?> optimisticLockingException(OptimisticLockingFailureException exception) {
-        log.warn("Optimistic locking conflict: exceptionType={}", exception.getClass().getName());
-        return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
-                ApplicationErrorCode.VERSION_CONFLICT,
-                ApplicationErrorCode.VERSION_CONFLICT.getDescription(), appName));
     }
 
     /** Maps an unexpected failure without exposing its message or cause. */

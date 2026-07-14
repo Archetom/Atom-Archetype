@@ -22,20 +22,20 @@ API Request/Response types and persistence objects do not belong in `domain`. In
 ## Mapping path
 
 ```text
-HTTP JSON -> Request -> application/domain input -> aggregate -> PO -> MySQL
+HTTP JSON -> Request -> application use case -> aggregate -> PO -> MySQL
 MySQL -> PO -> reconstituted aggregate -> VO -> Response -> HTTP JSON
 ```
 
 - `infra/rest` binds JSON and maps verified authentication to `AuthenticatedCaller`.
 - `infra/facade` owns the public Request/Response boundary and maps VO to Response without exposing domain objects.
-- `application` validates input, creates domain value objects, and maps aggregate output to VO.
+- `application` validates Request input, creates domain value objects, and uses an Assembler only for aggregate -> VO -> Response output mapping.
 - `infra/persistence` maps aggregate to PO and calls `reconstitute` on reads.
 - MapStruct handles mechanical field mapping only; validation, defaults, identity, version restoration, and event registration remain explicit.
 
 ## Creation and reconstruction
 
 - A `create...` method or domain factory creates new state and may raise a creation event.
-- `reconstitute(...)` restores persisted state and does not raise events.
+- `reconstitute(UserSnapshot)` restores persisted state by named fields and does not raise events.
 - Methods such as `changeStatus`, `changeEmail`, and `delete` enforce state transitions.
 - `onPersisted(...)` synchronizes generated identity, audit timestamps, and version after a successful write.
 
@@ -84,6 +84,7 @@ Java fields use camelCase and SQL columns use snake_case:
 | `tenantId` | `tenant_id` |
 | `phoneNumber` | `phone_number` |
 | `externalUser` | `is_external_user` |
+| `passwordHash` | `password` (explicit legacy mapping) |
 | `createdTime` | `created_time` |
 | `updatedTime` | `updated_time` |
 

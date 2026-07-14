@@ -40,7 +40,7 @@ Enums use the concept name, such as `UserStatus` and `UseCaseOperation`. Do not 
 | `ServiceOperation<T>` | Typed lifecycle for one use case | `ServiceOperation<UserVO>` |
 | `*Mapper` | Mapping between error or security taxonomies | `DomainExceptionMapper` |
 | `*Executor` | A defined execution policy or lifecycle | `AfterCommitExecutor` |
-| `*Store`, `*Publisher`, `*Lock` | Vendor-neutral output capability | `CacheStore`, `DomainEventPublisher`, `DistributedLock` |
+| `*Store`, `*Publisher` | Vendor-neutral output capability | `CacheStore`, `DomainEventPublisher` |
 
 Application exceptions use `ApplicationException` and `NonRetryableApplicationException`. Use-case operation codes live in `UseCaseOperation`; domain facts use concrete `*Event` classes.
 

@@ -41,11 +41,11 @@ sh ./mvnw -pl infra/rest -am test
 - `start` is the composition root, not a business layer.
 - Keep `shared` small and free of domain concepts.
 - Commands use `CommandServiceTemplate`; queries use `QueryServiceTemplate`.
-- Use `UseCaseOperation` names that describe the application operation and its stable error-code scene.
+- Keep `UseCaseOperation` in `application/operation`; names describe the application operation and its stable error-code scene.
 
 ## Security and tenancy rules
 
-- Every use case receives an explicit `AuthenticatedCaller`.
+- Every use case receives an explicit `AuthenticatedCaller` and validates it through `CallerGuard`.
 - Derive `TenantId` from verified caller context, never from normal request data.
 - Every repository and cache operation is tenant scoped and fails when tenant is absent.
 - Cache keys include tenant identity.
@@ -58,7 +58,7 @@ sh ./mvnw -pl infra/rest -am test
 ## Domain and persistence rules
 
 - Aggregates expose behavior methods, not public state setters.
-- New aggregates use factories or creation methods; persisted aggregates use `reconstitute`.
+- New aggregates use factories or creation methods; persisted aggregates use `reconstitute` with a named snapshot.
 - Reconstitution restores version and never raises new events.
 - Repository save synchronizes the same aggregate instance so events are preserved.
 - Optimistic-lock conflicts must not overwrite newer data.
@@ -69,8 +69,8 @@ sh ./mvnw -pl infra/rest -am test
 
 ## Transactions and events
 
-- State-changing application methods require a transaction.
-- Cache mutation and event publication run through `AfterCommitExecutor`.
+- State changes run through `CommandServiceTemplate`, which opens an independent transaction around `execute` and `onSuccess`; `validate` and `prepare` run before that transaction.
+- Cache mutation and event publication run through separate `AfterCommitExecutor` registrations.
 - A rollback must not expose cache or event side effects.
 - Use a transactional outbox for delivery guarantees beyond best-effort post-commit publication.
 - Do not catch `Throwable` or suppress unexpected failures.
@@ -81,7 +81,7 @@ sh ./mvnw -pl infra/rest -am test
 
 - API transport: `*Request`, `*Response`.
 - Application output: `*VO`.
-- Persistence model: `*PO`.
+- Persistence model: `*PO`; persistence mapping: `*POConverter`.
 - API mapping: `*Assembler`; persistence mapping: `*POConverter`.
 - Ports use capability names such as `CacheStore` or `PasswordHasher`.
 - Avoid `I*`, concrete `Abstract*` beans, and vague `Manager`, `Helper`, `Data`, or `Model` names.

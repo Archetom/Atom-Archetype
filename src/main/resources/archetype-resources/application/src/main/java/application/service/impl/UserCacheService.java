@@ -19,6 +19,7 @@ import java.time.Duration;
 public class UserCacheService {
 
     private static final Duration USER_CACHE_TTL = Duration.ofMinutes(30);
+    private static final Duration REFILL_FENCE_TTL = Duration.ofSeconds(5);
 
     private final CacheStore cacheStore;
 
@@ -30,7 +31,10 @@ public class UserCacheService {
         if (!tenantId.getValue().equals(user.getTenantId())) {
             throw new IllegalArgumentException("Cached user tenant does not match cache tenant");
         }
-        cacheStore.put(userKey(tenantId, new UserId(user.getId())), user, USER_CACHE_TTL);
+        UserId userId = new UserId(user.getId());
+        if (!isRefillBlocked(tenantId, userId)) {
+            cacheStore.put(userKey(tenantId, userId), user, USER_CACHE_TTL);
+        }
     }
 
     public UserVO getCachedUser(TenantId tenantId, UserId userId) {
@@ -39,6 +43,10 @@ public class UserCacheService {
             return null;
         }
         String key = userKey(tenantId, userId);
+        if (isRefillBlocked(tenantId, userId)) {
+            cacheStore.evict(key);
+            return null;
+        }
         UserVO user = cacheStore.get(key, UserVO.class);
         if (user != null && !tenantId.getValue().equals(user.getTenantId())) {
             cacheStore.evict(key);
@@ -55,27 +63,25 @@ public class UserCacheService {
         }
     }
 
-    public void cacheUsernameMapping(TenantId tenantId, String username, UserId userId) {
+    /** Prevent a stale concurrent reader from repopulating immediately after a committed write. */
+    public void invalidateUser(TenantId tenantId, UserId userId) {
         requireTenantId(tenantId);
-        if (username != null && userId != null) {
-            cacheStore.put(usernameKey(tenantId, username), userId.getValue(), USER_CACHE_TTL);
+        if (userId != null) {
+            cacheStore.put(refillFenceKey(tenantId, userId), Boolean.TRUE, REFILL_FENCE_TTL);
+            cacheStore.evict(userKey(tenantId, userId));
         }
     }
 
-    public Long getCachedUserIdByUsername(TenantId tenantId, String username) {
-        requireTenantId(tenantId);
-        if (username == null) {
-            return null;
-        }
-        return cacheStore.get(usernameKey(tenantId, username), Long.class);
+    private boolean isRefillBlocked(TenantId tenantId, UserId userId) {
+        return Boolean.TRUE.equals(cacheStore.get(refillFenceKey(tenantId, userId), Boolean.class));
     }
 
     private String userKey(TenantId tenantId, UserId userId) {
         return "tenant:%d:user:%d".formatted(tenantId.getValue(), userId.getValue());
     }
 
-    private String usernameKey(TenantId tenantId, String username) {
-        return "tenant:%d:username:%s".formatted(tenantId.getValue(), username);
+    private String refillFenceKey(TenantId tenantId, UserId userId) {
+        return "tenant:%d:user:%d:refill-fence".formatted(tenantId.getValue(), userId.getValue());
     }
 
     private void requireTenantId(TenantId tenantId) {

@@ -77,13 +77,13 @@ Application use cases implement a `ServiceOperation<T>` lifecycle:
 validate → prepare → execute → onSuccess
 ```
 
-`CommandServiceTemplate` adds rollback behavior for state-changing use cases. `QueryServiceTemplate` uses the same result and error mapping without command rollback behavior. Persistence runs in `execute`; commit-dependent work is registered from `onSuccess` through `AfterCommitExecutor`.
+`CommandServiceTemplate` runs validation and preparation before an independent transaction around `execute` and `onSuccess`. Failures roll back before they are converted to a `Result`; commit-dependent work is registered from `onSuccess` through `AfterCommitExecutor`. `QueryServiceTemplate` uses the same result and error mapping without a transaction.
 
 Domain failures use `DomainException` and `DomainError`. Application failures use `ApplicationException` or `NonRetryableApplicationException`. HTTP status mapping belongs to `infra/rest`.
 
 ## Transactions and events
 
-The database transaction covers aggregate loading, domain behavior, and repository persistence. Cache changes and in-process event publication run after commit through `AfterCommitExecutor`.
+The command transaction covers domain mutation and repository persistence. Preparation may load a detached aggregate first; optimistic version checks reject concurrent changes. Cache changes and in-process event publication use separate post-commit registrations through `AfterCommitExecutor`.
 
 The generated publisher is in-process only. Cross-service delivery requires a transactional outbox or another durable delivery mechanism. Outbox records and aggregate changes must be written in the same database transaction.
 
@@ -97,4 +97,4 @@ Flyway migrations under `infra/persistence/src/main/resources/db/migration` are 
 
 `application.port.out.CacheStore` is optional. Cache keys include tenant identity. With `atom.redis.enabled=false`, `NoOpCacheService` returns cache misses and persistence continues through MySQL.
 
-`DistributedLock` is a coordination port. Database uniqueness and optimistic locking remain the consistency boundary.
+Add coordination ports only when a concrete use case consumes them. Database uniqueness and optimistic locking remain the default consistency boundary.

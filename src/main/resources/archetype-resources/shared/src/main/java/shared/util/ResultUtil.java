@@ -6,10 +6,28 @@ import io.github.archetom.common.result.Result;
 import io.github.archetom.common.error.ErrorCode;
 import io.github.archetom.common.error.ErrorContext;
 
+import java.util.Objects;
+import java.util.function.Function;
+
 /** Creates public results while preventing internal error details from leaking. */
 public final class ResultUtil {
 
     private ResultUtil() {
+    }
+
+    /** Maps successful data while preserving an existing public error unchanged. */
+    public static <S, T> Result<T> map(Result<S> source, Function<? super S, ? extends T> mapper) {
+        Objects.requireNonNull(source, "source must not be null");
+        Objects.requireNonNull(mapper, "mapper must not be null");
+
+        Result<T> result = new Result<>();
+        result.setSuccess(source.isSuccess());
+        if (source.isSuccess()) {
+            result.setData(mapper.apply(source.getData()));
+        } else {
+            result.setErrorContext(source.getErrorContext());
+        }
+        return result;
     }
 
     /**
