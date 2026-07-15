@@ -25,7 +25,6 @@ public class ApplicationException extends RuntimeException {
     private final ErrorContext errorContext;
 
     /** Create an application failure from an existing error context. */
-    @SuppressWarnings("unused")
     public ApplicationException(ApplicationErrorCode errorCode, ErrorContext errorContext) {
         super(requireErrorCode(errorCode).getDescription());
         this.errorCode = requireErrorCode(errorCode);

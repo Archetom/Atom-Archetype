@@ -60,8 +60,7 @@ abstract class OperationTemplateSupport {
                     event, exception.getErrorCode());
             return ResultUtil.genErrorResult(result, exception, event.code(), appName);
         } catch (RuntimeException exception) {
-            log.error("Unexpected application failure: event={}, exceptionType={}",
-                    event, exception.getClass().getName());
+            log.error("Unexpected application failure: event={}", event, exception);
             return ResultUtil.genErrorResult(exception, appName);
         } finally {
             log.info("Application operation completed: event={}, success={}",

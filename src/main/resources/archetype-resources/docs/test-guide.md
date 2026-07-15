@@ -13,6 +13,7 @@ sh ./mvnw test
 Run one module and its dependencies:
 
 ```bash
+sh ./mvnw -pl shared test
 sh ./mvnw -pl domain -am test
 sh ./mvnw -pl application -am test
 sh ./mvnw -pl infra/persistence -am test
@@ -31,6 +32,7 @@ CI=true sh ./mvnw test
 
 | Layer | Test focus | Typical dependencies |
 | --- | --- | --- |
+| Shared | Framework-neutral result, error, and pagination utilities | JUnit and assertions only |
 | Domain | Value validation, aggregate transitions, policies, events | JUnit and assertions only |
 | Application | Authority checks, tenant propagation, orchestration, post-commit scheduling | Mocks or small port fakes |
 | Persistence converter | Full PO/aggregate round trip, version, timestamps | MapStruct mapper instance |

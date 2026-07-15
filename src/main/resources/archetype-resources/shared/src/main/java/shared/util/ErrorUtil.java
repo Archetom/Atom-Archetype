@@ -83,6 +83,13 @@ public final class ErrorUtil {
         return context;
     }
 
+    /** Add a located error to an existing context or create a new context. */
+    public static ErrorContext makeAndAddError(ErrorContext context, ErrorCode errorCode, String message,
+                                               String location) {
+        CommonError error = makeError(errorCode, message, location);
+        return addError(context, error);
+    }
+
     /**
      * error error context
      *

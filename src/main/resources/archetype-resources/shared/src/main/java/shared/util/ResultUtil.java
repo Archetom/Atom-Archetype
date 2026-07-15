@@ -62,9 +62,13 @@ public final class ResultUtil {
      */
     public static <T> Result<T> genErrorResult(Result<T> result, ApplicationException e,
                                                String eventCode, String appName) {
+        Objects.requireNonNull(result, "result must not be null");
+        Objects.requireNonNull(e, "exception must not be null");
+        requireEventCode(eventCode);
 
         result.setSuccess(false);
         ErrorContext errorContext = ErrorUtil.makeAndAddError(
+                e.getErrorContext(),
                 new ErrorCode(e.getErrorCode().getCompleteCode(eventCode), ApplicationErrorCode.VERSION),
                 publicMessage(e.getErrorCode(), e.getMessage()), appName);
         result.setErrorContext(errorContext);
@@ -80,5 +84,11 @@ public final class ResultUtil {
             return safeErrorCode.getDescription().trim();
         }
         return requestedMessage;
+    }
+
+    private static void requireEventCode(String eventCode) {
+        if (eventCode == null || eventCode.length() != 4) {
+            throw new IllegalArgumentException("eventCode must be exactly 4 characters long");
+        }
     }
 }

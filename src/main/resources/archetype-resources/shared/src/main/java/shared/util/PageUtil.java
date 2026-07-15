@@ -7,16 +7,19 @@ import io.github.archetom.common.result.Pager;
  */
 public class PageUtil {
     /**
-     * base code
+     * Copies page metadata but intentionally omits the object list.
+     * Unlike {@code Pager.map(Function)}, this method does not transform or retain elements.
      *
-     * @param pager Pager
+     * @param pager source pager
+     * @return a pager with the same page metadata and no object list
      */
     public static <T, S> Pager<S> copy(Pager<T> pager) {
         Pager<S> newPager = new Pager<>();
 
         newPager.setPageNum(pager.getPageNum());
         newPager.setPageSize(pager.getPageSize());
-        newPager.setTotalNum((Math.max(pager.getTotalNum(), 0L)));
+        newPager.setTotalNum(pager.getTotalNum());
+        newPager.setMeta(pager.getMeta());
 
         return newPager;
     }

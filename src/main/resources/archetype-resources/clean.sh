@@ -180,6 +180,8 @@ fi
 # test code
 # =============================================================================
 echo " clean test code..."
+rm -f shared/src/test/java/${PACKAGE_PATH}/shared/util/PageUtilTest.java
+rm -f shared/src/test/java/${PACKAGE_PATH}/shared/util/ResultUtilTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/entity/UserTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/policy/PasswordPolicyTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/package-info.java

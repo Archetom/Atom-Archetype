@@ -26,6 +26,7 @@ CI=true sh ./mvnw test
 Run focused tests with Maven reactor dependencies:
 
 ```bash
+sh ./mvnw -pl shared test
 sh ./mvnw -pl domain -am test
 sh ./mvnw -pl application -am test
 sh ./mvnw -pl infra/persistence -am test
