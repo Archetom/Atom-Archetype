@@ -13,6 +13,7 @@ All notable architecture, compatibility, and security changes are documented her
 - moved the development line to `2.1.0-SNAPSHOT`
 - updated the generated Docker defaults to MySQL 9.7.1 LTS and optional Redis 8.8.0
 - updated Maven JAR/source plugins and GitHub checkout actions
+- aligned both Maven Enforcer rules and generated-project documentation with the bundled Maven 3.9.16 wrapper; all explicitly pinned third-party dependencies remain on their latest stable releases
 - aligned Testcontainers and compatibility documentation with the generated Docker defaults
 - added a protected Central Portal snapshot workflow with public resolution verification
 

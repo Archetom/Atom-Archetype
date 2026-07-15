@@ -22,7 +22,7 @@ The quick start below uses `main`, so install `2.1.0-SNAPSHOT` in your local Mav
 
 ## Quick start
 
-You need JDK 25, Docker, and Docker Compose v2. The repository and generated projects both include Maven Wrapper 3.9.16; use Maven 3.9 or newer if you prefer a system installation.
+You need JDK 25, Docker, and Docker Compose v2. The repository and generated projects both include Maven Wrapper 3.9.16; use Maven 3.9.16 or newer if you prefer a system installation.
 
 ### 1. Install the archetype
 

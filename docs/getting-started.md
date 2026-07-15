@@ -15,7 +15,7 @@ docker version
 docker compose version
 ```
 
-Use Maven 3.9 or newer. Projects generated from `main` include Maven Wrapper 3.9.16. Docker is required for the supplied MySQL service and Testcontainers integration tests.
+Use Maven 3.9.16 or newer. Projects generated from `main` include Maven Wrapper 3.9.16. Docker is required for the supplied MySQL service and Testcontainers integration tests.
 
 Install the archetype from the current checkout:
 

@@ -39,7 +39,7 @@
 
     <properties>
         <java.version>25</java.version>
-        <maven.minimum.version>3.9.0</maven.minimum.version>
+        <maven.minimum.version>3.9.16</maven.minimum.version>
         <project.build.outputTimestamp>2026-07-10T00:00:00Z</project.build.outputTimestamp>
 
         <!-- Common -->

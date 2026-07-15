@@ -10,7 +10,7 @@ Generated coordinates: `${groupId}:${rootArtifactId}:${version}`. Run `make clea
 $h2 Requirements
 
 - JDK 25
-- Bundled Maven Wrapper 3.9.16
+- Bundled Maven Wrapper 3.9.16 (or Maven 3.9.16 or newer when using a system installation)
 - Docker with Docker Compose for local MySQL and integration tests
 - Make (optional)
 
