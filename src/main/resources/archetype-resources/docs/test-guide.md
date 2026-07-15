@@ -13,7 +13,7 @@ sh ./mvnw test
 Run one module and its dependencies:
 
 ```bash
-sh ./mvnw -pl shared test
+sh ./mvnw -pl shared -am test
 sh ./mvnw -pl domain -am test
 sh ./mvnw -pl application -am test
 sh ./mvnw -pl infra/persistence -am test
@@ -32,7 +32,7 @@ CI=true sh ./mvnw test
 
 | Layer | Test focus | Typical dependencies |
 | --- | --- | --- |
-| Shared | Framework-neutral result, error, and pagination utilities | JUnit and assertions only |
+| Shared | Result mapping, safe public errors, and pagination metadata | JUnit Jupiter |
 | Domain | Value validation, aggregate transitions, policies, events | JUnit and assertions only |
 | Application | Authority checks, tenant propagation, orchestration, post-commit scheduling | Mocks or small port fakes |
 | Persistence converter | Full PO/aggregate round trip, version, timestamps | MapStruct mapper instance |
@@ -41,6 +41,10 @@ CI=true sh ./mvnw test
 | Architecture | Forbidden dependencies, adapter bypasses, entity setters, naming | ArchUnit bytecode inspection and Maven Enforcer |
 
 Use the lowest layer that proves the behavior.
+
+### Shared
+
+Keep shared tests free of Spring. Cover result mapping, fixed public messages for unexpected failures, error-context chaining, complete error-code formats, and pagination metadata separately from REST transport tests.
 
 ## Representative tests
 
@@ -96,6 +100,7 @@ Cover missing, incomplete, and invalid header pairs; missing authority; attempte
 | Change | Minimum verification |
 | --- | --- |
 | Aggregate or value object | Domain unit test |
+| Shared result, error, or pagination contract | Shared JUnit contract test |
 | Application command/query | Caller, tenant, success, and failure application tests |
 | Cache behavior | Tenant-key and database fallback tests |
 | PO or converter | Complete round-trip test |

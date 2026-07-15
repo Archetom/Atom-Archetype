@@ -129,6 +129,10 @@ The default route policy is fail-closed:
 
 Application services repeat the authority check and derive `TenantId` from `AuthenticatedCaller`, so facade and non-HTTP adapters follow the same policy.
 
+### Tenant identity and selection
+
+Tenant identity is established by the verified authentication principal and is passed explicitly through every use case. A request body, query parameter, or untrusted header cannot select a tenant. The dev/test trusted-header adapter described below is the sole exception: it accepts both headers only when explicitly enabled and remains unavailable in `prod`. Tenant membership discovery and switching require the future organization module and remain unavailable until it can verify the caller's membership.
+
 ### Trusted development headers
 
 The development adapter accepts `X-Dev-User-Id` and `X-Dev-Tenant-Id`. Both values must be positive integers; authorities come from server configuration, not request headers.

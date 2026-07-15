@@ -50,6 +50,18 @@ class ResultUtilTest {
     }
 
     @Test
+    void preservesTheDocumentedPublicParameterErrorCodeFormat() {
+        String eventCode = "1001";
+        Result<String> result = ResultUtil.genErrorResult(new Result<>(),
+                new ApplicationException(ApplicationErrorCode.PARAMETER_INVALID, "Invalid input"),
+                eventCode, APP_NAME);
+
+        String actualErrorCode = result.getErrorContext().fetchRootError().getErrorCode().toString();
+        assertEquals("DE0311001101", actualErrorCode);
+        assertEquals(ApplicationErrorCode.PARAMETER_INVALID.getCompleteCode(eventCode), actualErrorCode);
+    }
+
+    @Test
     void appendsApplicationErrorToExceptionContextWhileRestKeepsOriginalRootError() {
         ErrorContext originalContext = ErrorUtil.makeAndAddError(
                 new ErrorCode(ApplicationErrorCode.PARAMETER_INVALID.getCompleteCode(EVENT_CODE),
@@ -72,9 +84,13 @@ class ResultUtilTest {
     }
 
     @Test
-    void rejectsEventCodesThatCannotProduceACompleteErrorCode() {
+    void rejectsMissingResultOrExceptionAndInvalidEventCodes() {
         ApplicationException exception = new ApplicationException(ApplicationErrorCode.PARAMETER_INVALID, "Invalid input");
 
+        assertThrows(NullPointerException.class,
+                () -> ResultUtil.genErrorResult(null, exception, EVENT_CODE, APP_NAME));
+        assertThrows(NullPointerException.class,
+                () -> ResultUtil.genErrorResult(new Result<>(), null, EVENT_CODE, APP_NAME));
         IllegalArgumentException failure = assertThrows(IllegalArgumentException.class,
                 () -> ResultUtil.genErrorResult(new Result<>(), exception, "123", APP_NAME));
 

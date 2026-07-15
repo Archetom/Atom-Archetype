@@ -11,6 +11,7 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.Method;
@@ -47,7 +48,7 @@ class TrustedHeaderAuthenticationFilterTest {
             assertEquals(7L, principal.userId());
             assertEquals(11L, principal.tenantId());
             assertEquals(Set.of("users:read"), authentication.getAuthorities().stream()
-                    .map(Object::toString)
+                    .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet()));
         });
 

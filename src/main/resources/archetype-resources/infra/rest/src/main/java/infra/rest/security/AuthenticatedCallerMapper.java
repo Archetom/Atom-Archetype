@@ -3,6 +3,7 @@ package ${package}.infra.rest.security;
 import ${package}.api.context.AuthenticatedCaller;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
@@ -23,7 +24,7 @@ public class AuthenticatedCallerMapper {
                 principal.userId(),
                 principal.tenantId(),
                 authentication.getAuthorities().stream()
-                        .map(Object::toString)
+                        .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toUnmodifiableSet()));
     }
 }
