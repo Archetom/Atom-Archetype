@@ -42,7 +42,7 @@ Passwords are write-only, contain 12–64 Unicode characters, remain within BCry
 | `email` | string | — | Valid email address |
 | `status` | string | — | One of the status values below |
 
-The page response contains `pageNum`, `pageSize`, `totalNum`, and `objectList`.
+The page response contains `pageNum`, `pageSize`, `totalNum`, and `objectList`. `totalNum` is always a non-negative integer. Any other serialized property (such as `meta`) is a reserved internal carrier, always `null`, and not part of the public contract — clients must not depend on it.
 
 ## User status
 

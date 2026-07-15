@@ -185,6 +185,7 @@ rm -f shared/src/test/java/${PACKAGE_PATH}/shared/util/ResultUtilTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/entity/UserTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/policy/PasswordPolicyTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/package-info.java
+rm -f application/src/test/java/${PACKAGE_PATH}/application/assembler/UserAssemblerTest.java
 rm -f application/src/test/java/${PACKAGE_PATH}/application/service/impl/UserCacheServiceTest.java
 rm -f application/src/test/java/${PACKAGE_PATH}/application/service/impl/UserServiceImplTest.java
 rm -f infra/persistence/src/test/java/${PACKAGE_PATH}/infra/persistence/converter/UserPOConverterTest.java

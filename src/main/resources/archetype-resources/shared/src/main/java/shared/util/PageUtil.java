@@ -7,11 +7,17 @@ import io.github.archetom.common.result.Pager;
  */
 public class PageUtil {
     /**
-     * Copies page metadata but intentionally omits the object list.
-     * Unlike {@code Pager.map(Function)}, this method does not transform or retain elements.
+     * Copies page metadata but intentionally omits the object list. Unlike
+     * {@code Pager.map(Function)}, this method does not transform or retain
+     * elements — the caller fills {@code objectList} with mapped items itself.
      *
-     * @param pager source pager
-     * @return a pager with the same page metadata and no object list
+     * <p>Contract: {@code totalNum} is passed through unchanged, including the
+     * {@link Pager#NO_TOTAL_NUM} sentinel — normalization is a boundary concern,
+     * not a copier concern; {@code meta} is shared by reference, matching
+     * {@code Pager.map} semantics.
+     *
+     * @param pager source pager, must not be null
+     * @return a new pager carrying the source page metadata with a null object list
      */
     public static <T, S> Pager<S> copy(Pager<T> pager) {
         Pager<S> newPager = new Pager<>();

@@ -84,8 +84,16 @@ public interface UserAssembler {
         if (userVOPager == null) {
             return null;
         }
+        if (userVOPager.getTotalNum() < 0) {
+            throw new IllegalStateException("Unknown total (" + userVOPager.getTotalNum()
+                    + ") must not reach the public page contract; model count-free paging explicitly.");
+        }
 
         Pager<UserResponse> responsePager = PageUtil.copy(userVOPager);
+        // The public page contract exposes pageNum/pageSize/totalNum/objectList only
+        // (docs/api-reference.md); meta is an internal carrier and never crosses the
+        // API boundary — same posture as the tenantId strip in toResponse.
+        responsePager.setMeta(null);
         responsePager.setObjectList(toResponseList(userVOPager.getObjectList()));
         return responsePager;
     }
