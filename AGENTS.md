@@ -15,10 +15,10 @@ make install      # Clean build + install locally (skips GPG signing) — DEFAUL
 make clean        # Clean build artifacts
 make deploy       # Deploy to Maven Central (requires GPG key)
 make version VERSION=x.y.z  # Set project version
-make demo         # Generate a demo project from the archetype into ~/Downloads/atom-demo
+make demo         # Generate a demo project under target/generated-projects/atom-demo
 ```
 
-**Verification workflow**: after any template change, always run `make install && make demo`, then `cd ~/Downloads/atom-demo && sh ./mvnw compile`. Run `sh ./mvnw test` for unit tests and `CI=true sh ./mvnw test` with Docker available for the supplied Testcontainers integration tests.
+**Verification workflow**: after any template change, always run `make install && make demo`, then `cd target/generated-projects/atom-demo && sh ./mvnw compile`. Run `sh ./mvnw test` for unit tests and `CI=true sh ./mvnw test` with Docker available for the supplied Testcontainers integration tests. `make install` also runs the official Maven Archetype integration test, which compiles and tests a freshly generated project automatically.
 
 ## Archetype Structure
 

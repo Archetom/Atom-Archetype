@@ -70,7 +70,7 @@ Reconstitution tests also verify that persisted `version` is restored without ne
 
 Test through output ports. Verify that an invalid caller or missing authority is rejected before repository access, and that the caller's `TenantId` reaches every repository and cache call.
 
-For commands, verify that `validate` and `prepare` precede the independent transaction, and that a failure rolls back before it is converted to a `Result`. Post-commit work runs after commit and does not run after rollback; register event and cache callbacks independently. `CommandServiceTemplateTest` and `AfterCommitExecutorTest` are the references.
+For commands, verify that `validate` and `prepare` precede the independent transaction, and that a failure rolls back before it is converted to a `Result`. For queries, verify that the read phase uses an independent read-only `REPEATABLE_READ` transaction. Post-commit work runs after commit and does not run after rollback; register event and cache callbacks independently. `CommandServiceTemplateTest`, `QueryServiceTemplateTest`, and `AfterCommitExecutorTest` are the references.
 
 ### Persistence
 

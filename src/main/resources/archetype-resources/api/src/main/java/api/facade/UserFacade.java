@@ -6,8 +6,8 @@ package ${package}.api.facade;
 import ${package}.api.context.AuthenticatedCaller;
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
+import ${package}.api.dto.response.UserPageResponse;
 import ${package}.api.dto.response.UserResponse;
-import io.github.archetom.common.result.Pager;
 import io.github.archetom.common.result.Result;
 
 /** Public facade contract for the bundled User example. */
@@ -20,7 +20,7 @@ public interface UserFacade {
     Result<UserResponse> getUserById(AuthenticatedCaller caller, Long userId);
 
     /** Query a bounded page of visible users. */
-    Result<Pager<UserResponse>> queryUsers(AuthenticatedCaller caller, UserQueryRequest request);
+    Result<UserPageResponse> queryUsers(AuthenticatedCaller caller, UserQueryRequest request);
 
     /** Change a user's non-deleted status. */
     Result<Void> updateUserStatus(AuthenticatedCaller caller, Long userId, String status);

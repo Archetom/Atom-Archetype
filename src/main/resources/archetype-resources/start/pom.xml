@@ -1,3 +1,5 @@
+#set( $symbol_dollar = '$' )
+#set( $symbol_pound = '#' )
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -39,7 +41,7 @@
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit</artifactId>
-            <version>${archunit.version}</version>
+            <version>${symbol_dollar}{archunit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -82,7 +84,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.name}</finalName>
+        <finalName>${symbol_dollar}{project.name}</finalName>
         <plugins>
             <!-- Resolve the Mockito artifact path used by the explicit Java agent below. -->
             <plugin>
@@ -101,7 +103,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>@{argLine} -javaagent:&#36;{org.mockito:mockito-core:jar}</argLine>
+                    <argLine>@{argLine} -javaagent:&${symbol_pound}36;{org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
             <plugin>

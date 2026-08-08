@@ -1,3 +1,4 @@
+#set( $dollar = '$' )
 package ${package}.application.service.template;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +17,7 @@ public class CommandServiceTemplate extends OperationTemplateSupport {
     private final TransactionTemplate transactionTemplate;
 
     public CommandServiceTemplate(
-            @Value("${spring.application.name}") String appName,
+            @Value("${dollar}{spring.application.name}") String appName,
             PlatformTransactionManager transactionManager
     ) {
         super(appName);

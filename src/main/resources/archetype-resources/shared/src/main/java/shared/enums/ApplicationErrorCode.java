@@ -19,6 +19,7 @@ public enum ApplicationErrorCode {
     AUTHENTICATION_REQUIRED("102", "Authentication is required", ErrorLevelConst.WARN, ErrorTypeConst.BIZ),
     ACCESS_DENIED("103", "Access is denied", ErrorLevelConst.WARN, ErrorTypeConst.BIZ),
     VERSION_CONFLICT("200", "Resource version conflict", ErrorLevelConst.WARN, ErrorTypeConst.BIZ),
+    CONCURRENT_OPERATION("201", "Concurrent operation timed out", ErrorLevelConst.WARN, ErrorTypeConst.BIZ),
     RESOURCE_NOT_FOUND("300", "Requested resource was not found", ErrorLevelConst.WARN, ErrorTypeConst.BIZ),
     RESOURCE_ALREADY_EXISTS("302", "Resource already exists", ErrorLevelConst.WARN, ErrorTypeConst.BIZ),
     DOMAIN_RULE_VIOLATION("303", "Domain rule violation", ErrorLevelConst.WARN, ErrorTypeConst.BIZ);

@@ -166,7 +166,7 @@ password: ${dollar}{SPRING_DATASOURCE_PASSWORD}
 ```bash
 make install
 make demo
-cd ~/Downloads/atom-demo
+cd target/generated-projects/atom-demo
 sh ./mvnw compile
 CI=true sh ./mvnw test
 ```

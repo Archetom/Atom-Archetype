@@ -5,13 +5,12 @@ package ${package};
 
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
+import ${package}.api.dto.response.UserPageResponse;
 import ${package}.api.dto.response.UserResponse;
-import io.github.archetom.common.result.Pager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.test.web.servlet.ResultActions;
-import tools.jackson.core.type.TypeReference;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,9 +29,9 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     void openApiDocumentsUserContract() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$['paths']['/api/v1/users']['get']['summary']")
+                .andExpect(jsonPath("${symbol_dollar}['paths']['/api/v1/users']['get']['summary']")
                         .value("Query visible users"))
-                .andExpect(jsonPath("$['paths']['/api/v1/users']['post']['responses']['409']")
+                .andExpect(jsonPath("${symbol_dollar}['paths']['/api/v1/users']['post']['responses']['409']")
                         .exists());
     }
 
@@ -66,10 +65,10 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
 
         // Then
         result.andExpect(status().isOk())
-              .andExpect(jsonPath("$.username").value("newuser"))
-              .andExpect(jsonPath("$.email").value("newuser@example.com"))
-              .andExpect(jsonPath("$.realName").value("New User"))
-              .andExpect(jsonPath("$.status").value("ACTIVE"));
+              .andExpect(jsonPath("${symbol_dollar}.username").value("newuser"))
+              .andExpect(jsonPath("${symbol_dollar}.email").value("newuser@example.com"))
+              .andExpect(jsonPath("${symbol_dollar}.realName").value("New User"))
+              .andExpect(jsonPath("${symbol_dollar}.status").value("ACTIVE"));
     }
 
     @Test
@@ -111,7 +110,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
 
         // Then
         result.andExpect(status().isConflict())
-              .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("Username already exists")));
+              .andExpect(jsonPath("${symbol_dollar}.errMsg").value(org.hamcrest.Matchers.containsString("Username already exists")));
     }
 
     @Test
@@ -133,9 +132,9 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
 
         // Then
         result.andExpect(status().isOk())
-              .andExpect(jsonPath("$.id").value(createdUser.getId()))
-              .andExpect(jsonPath("$.username").value("testuser"))
-              .andExpect(jsonPath("$.email").value("test@example.com"));
+              .andExpect(jsonPath("${symbol_dollar}.id").value(createdUser.getId()))
+              .andExpect(jsonPath("${symbol_dollar}.username").value("testuser"))
+              .andExpect(jsonPath("${symbol_dollar}.email").value("test@example.com"));
     }
 
     @Test
@@ -165,7 +164,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
 
         // Then
         result.andExpect(status().isNotFound())
-              .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("User does not exist")));
+              .andExpect(jsonPath("${symbol_dollar}.errMsg").value(org.hamcrest.Matchers.containsString("User does not exist")));
     }
 
     @Test
@@ -190,8 +189,8 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
 
         // Then
         result.andExpect(status().isOk())
-              .andExpect(jsonPath("$.totalNum").value(org.hamcrest.Matchers.greaterThanOrEqualTo(3)))
-              .andExpect(jsonPath("$.objectList").isArray());
+              .andExpect(jsonPath("${symbol_dollar}.totalNum").value(org.hamcrest.Matchers.greaterThanOrEqualTo(3)))
+              .andExpect(jsonPath("${symbol_dollar}.objectList").isArray());
     }
 
     @Test
@@ -217,7 +216,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         result.andExpect(status().isOk());
 
         String responseJson = result.andReturn().getResponse().getContentAsString();
-        Pager<UserResponse> pager = fromJson(responseJson, new TypeReference<Pager<UserResponse>>() {});
+        UserPageResponse pager = fromJson(responseJson, UserPageResponse.class);
 
         assertTrue(pager.getTotalNum() >= 1);
         assertTrue(pager.getObjectList().stream()
@@ -257,7 +256,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         // validate status already update
         ResultActions getResult = performGet("/api/v1/users/{userId}", createdUser.getId());
         getResult.andExpect(status().isOk())
-                 .andExpect(jsonPath("$.status").value("INACTIVE"));
+                 .andExpect(jsonPath("${symbol_dollar}.status").value("INACTIVE"));
     }
 
     @Test
@@ -343,7 +342,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
 
         // Then
         result.andExpect(status().isNotFound())
-              .andExpect(jsonPath("$.errMsg").value(org.hamcrest.Matchers.containsString("User does not exist")));
+              .andExpect(jsonPath("${symbol_dollar}.errMsg").value(org.hamcrest.Matchers.containsString("User does not exist")));
     }
 
     @Override

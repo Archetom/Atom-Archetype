@@ -1,3 +1,4 @@
+#set( $dollar = '$' )
 package ${package}.infra.rest.advice;
 
 import ${package}.application.exception.DomainExceptionMapper;
@@ -27,7 +28,7 @@ public class RestExceptionAdvice {
 
     private final String appName;
 
-    public RestExceptionAdvice(@Value("${spring.application.name}") String appName) {
+    public RestExceptionAdvice(@Value("${dollar}{spring.application.name}") String appName) {
         this.appName = appName;
     }
 
@@ -89,6 +90,13 @@ public class RestExceptionAdvice {
         log.warn("Application request rejected: code={}", exception.getErrorCode());
         return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
                 exception.getErrorCode(), exception.getMessage(), appName));
+    }
+
+    /** Preserves an already-classified, operation-scoped failure at the REST boundary. */
+    @ExceptionHandler(ResultResponseException.class)
+    public ResponseEntity<?> resultResponseException(ResultResponseException exception) {
+        log.warn("Application result rejected at REST boundary");
+        return ResponseEntityUtil.assembleResponse(exception.result());
     }
 
     /** Maps an unexpected failure without exposing its message or cause. */

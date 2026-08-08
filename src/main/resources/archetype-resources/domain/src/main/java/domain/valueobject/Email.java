@@ -17,7 +17,7 @@ public class Email implements ValueObject<Email> {
     private static final int MAX_LENGTH = 254;
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$"
+            "^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})${symbol_dollar}"
     );
 
     String value;

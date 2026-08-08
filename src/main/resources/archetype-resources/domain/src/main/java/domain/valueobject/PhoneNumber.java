@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 public class PhoneNumber implements ValueObject<PhoneNumber> {
 
     private static final Pattern PHONE_PATTERN = Pattern.compile(
-            "^\\+[1-9]\\d{7,14}$"
+            "^\\+[1-9]\\d{7,14}${symbol_dollar}"
     );
 
     String value;

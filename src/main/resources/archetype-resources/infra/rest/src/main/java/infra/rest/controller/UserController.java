@@ -6,12 +6,12 @@ package ${package}.infra.rest.controller;
 import ${package}.api.context.AuthenticatedCaller;
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
+import ${package}.api.dto.response.UserPageResponse;
 import ${package}.api.dto.response.UserResponse;
 import ${package}.api.facade.UserFacade;
 import ${package}.infra.rest.result.RestErrorResult;
 import ${package}.infra.rest.security.AuthenticatedCallerMapper;
 import ${package}.infra.rest.util.ResponseEntityUtil;
-import io.github.archetom.common.result.Pager;
 import io.github.archetom.common.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -77,14 +77,14 @@ public class UserController {
     @Operation(summary = "Query visible users")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Page containing UserResponse objects",
-                    content = @Content(schema = @Schema(implementation = Pager.class))),
+                    content = @Content(schema = @Schema(implementation = UserPageResponse.class))),
             @ApiResponse(responseCode = "400", description = "Query validation failed",
                     content = @Content(schema = @Schema(implementation = RestErrorResult.class)))
     })
     @GetMapping
     public ResponseEntity<?> queryUsers(Authentication authentication, @Valid UserQueryRequest request) {
         AuthenticatedCaller caller = callerMapper.from(authentication);
-        Result<Pager<UserResponse>> result = userFacade.queryUsers(caller, request);
+        Result<UserPageResponse> result = userFacade.queryUsers(caller, request);
         return ResponseEntityUtil.assembleResponse(result);
     }
 

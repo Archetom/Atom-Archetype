@@ -3,6 +3,7 @@ package ${package}.application.service.template;
 import ${package}.shared.operation.OperationCode;
 import io.github.archetom.common.result.Result;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.SimpleTransactionStatus;
@@ -72,6 +73,24 @@ class CommandServiceTemplateTest {
         assertFalse(result.isSuccess());
         assertEquals(List.of("begin", "rollback"), lifecycle);
         verify(transactionManager, never()).commit(any());
+    }
+
+    @Test
+    void mapsLockTimeoutToStableConcurrentOperationError() {
+        List<String> lifecycle = new ArrayList<>();
+        CommandServiceTemplate template = new CommandServiceTemplate("test-app", transactionManager(lifecycle));
+
+        Result<String> result = template.execute(TestOperation.CREATE, new ServiceOperation<>() {
+            @Override
+            public String execute() {
+                throw new CannotAcquireLockException("lock wait timed out");
+            }
+        });
+
+        assertFalse(result.isSuccess());
+        assertEquals("201", result.getErrorContext().fetchRootError()
+                .getErrorCode().getErrorSpecific());
+        assertEquals(List.of("begin", "rollback"), lifecycle);
     }
 
     private PlatformTransactionManager transactionManager(List<String> lifecycle) {

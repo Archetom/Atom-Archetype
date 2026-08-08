@@ -71,6 +71,7 @@ sh ./mvnw -pl infra/rest -am test
 ## Transactions and events
 
 - State changes run through `CommandServiceTemplate`, which opens an independent transaction around `execute` and `onSuccess`; `validate` and `prepare` run before that transaction.
+- Queries run through `QueryServiceTemplate`, which opens an independent read-only `REPEATABLE_READ` transaction around `execute` and `onSuccess`; `validate` and `prepare` run before the snapshot.
 - Cache mutation and event publication run through separate `AfterCommitExecutor` registrations.
 - A rollback must not expose cache or event side effects.
 - Use a transactional outbox for delivery guarantees beyond best-effort post-commit publication.

@@ -72,7 +72,8 @@ curl http://localhost:8080/actuator/health
 - MyBatis-Plus 3.5.16、Flyway 和 MySQL 9.7.1 LTS。
 - Spring Security、SpringDoc OpenAPI 3.0.3 和统一的 HTTP 错误映射。
 - 默认关闭的 Redis 8.8.0 缓存适配器，以及对应的空实现。
-- 命令/查询服务模板、事务提交后回调和 Testcontainers 集成测试。
+- 独立的命令事务与只读查询快照事务、事务提交后回调和 Testcontainers 集成测试。
+- 具名分页响应、稳定并发错误，以及会自动编译和测试生成项目的 Archetype 回归测试。
 
 业务 API 默认需要认证。开发身份请求头仅适用于显式启用的 `dev`、`test` 环境；生产环境应接入自己的身份系统。
 
@@ -109,7 +110,7 @@ curl http://localhost:8080/actuator/health
 ```bash
 make install
 make demo
-cd ~/Downloads/atom-demo
+cd target/generated-projects/atom-demo
 sh ./mvnw compile
 CI=true sh ./mvnw test   # 需要 Docker
 ```

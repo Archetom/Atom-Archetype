@@ -21,7 +21,7 @@ $h2 Architecture summary
 - Domain does not depend on API, application, shared, or infrastructure modules.
 - Every use case receives `AuthenticatedCaller` and derives an explicit `TenantId`.
 - Repository and cache operations require tenant and fail closed.
-- Commands use `CommandServiceTemplate`; reads use `QueryServiceTemplate`.
+- Commands use independent write transactions through `CommandServiceTemplate`; reads use independent read-only `REPEATABLE_READ` snapshots through `QueryServiceTemplate`.
 - Application-owned operation/error-scene identifiers use `application.operation.UseCaseOperation`; domain facts use `*Event`.
 - Flyway is the only schema initializer.
 - Aggregate `version` provides optimistic concurrency control.
@@ -35,7 +35,7 @@ $h2 Code landmarks
 Search these class names with `rg` because generated Java paths include the chosen package:
 
 - `Bootstrap`: application composition and entry point.
-- `UserController`: REST endpoints under `/api/v1/users`.
+- `UserController`, `UserPageResponse`, `UserResponse`: typed REST contracts under `/api/v1/users`.
 - `SecurityConfig`: route authorization and trusted-header profile guard.
 - `AuthenticatedCallerMapper`: verified Spring Security principal to API context.
 - `UserServiceImpl`: explicit caller/tenant command and query orchestration.

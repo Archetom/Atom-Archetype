@@ -22,7 +22,7 @@ public class UserCreateRequest {
      */
     @NotBlank(message = "Username must not be empty")
     @Size(min = 3, max = 50, message = "Username length must be between 3 and 50 characters")
-    @Pattern(regexp = "^[A-Za-z0-9_]{3,50}$",
+    @Pattern(regexp = "^[A-Za-z0-9_]{3,50}${symbol_dollar}",
             message = "Username may contain only letters, digits, and underscores")
     private String username;
 
@@ -37,7 +37,7 @@ public class UserCreateRequest {
     /**
      * phone number
      */
-    @Pattern(regexp = "^\\+[1-9]\\d{7,14}$", message = "Phone number must use E.164 format")
+    @Pattern(regexp = "^\\+[1-9]\\d{7,14}${symbol_dollar}", message = "Phone number must use E.164 format")
     private String phoneNumber;
 
     /**

@@ -1,3 +1,4 @@
+#set( $dollar = '$' )
 package ${package}.domain.valueobject;
 
 import lombok.Value;
@@ -12,7 +13,7 @@ import java.util.regex.Pattern;
 @Value
 public class Username implements ValueObject<Username> {
 
-    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]{3,50}$");
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]{3,50}${dollar}");
 
     String value;
 

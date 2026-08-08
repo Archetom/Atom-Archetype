@@ -4,6 +4,7 @@ import ${package}.domain.exception.UserAlreadyExistsException;
 import ${package}.domain.exception.UserDomainException;
 import ${package}.domain.exception.UserNotFoundException;
 import ${package}.infra.rest.result.RestErrorResult;
+import ${package}.infra.rest.util.ErrorResultWrapUtil;
 import ${package}.shared.enums.ApplicationErrorCode;
 import ${package}.shared.exception.ApplicationException;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,16 @@ class RestExceptionAdviceTest {
                 new ApplicationException(ApplicationErrorCode.PARAMETER_INVALID, "User ID must be positive"));
 
         assertError(response, HttpStatus.BAD_REQUEST, "101", "User ID must be positive");
+    }
+
+    @Test
+    void shouldPreserveOperationScopedFailureResult() {
+        var result = ErrorResultWrapUtil.genErrorResult(
+                ApplicationErrorCode.PARAMETER_INVALID, "Safe validation failure", "test-app");
+
+        ResponseEntity<?> response = advice.resultResponseException(new ResultResponseException(result));
+
+        assertError(response, HttpStatus.BAD_REQUEST, "101", "Safe validation failure");
     }
 
     @Test

@@ -1,11 +1,12 @@
 MVN := ./mvnw
+DEMO_OUTPUT ?= $(CURDIR)/target/generated-projects
 PROJECT_VERSION := $(shell awk -F'[<>]' '/^[[:space:]]*<version>/{print $$3; exit}' pom.xml)
 VERSION ?= $(PROJECT_VERSION)
 ARCHETYPE_PLUGIN_VERSION := $(shell awk -F'[<>]' '/<maven.archetype.packaging.version>/{print $$3; exit}' pom.xml)
 VERSIONS_PLUGIN_VERSION := $(shell awk -F'[<>]' '/<versions.maven.plugin.version>/{print $$3; exit}' pom.xml)
 GPG_KEY_ARGS = $(if $(strip $(GPG_KEYNAME)),-Dgpg.keyname=$(GPG_KEYNAME),)
 
-.PHONY: default clean install release-check snapshot-check deploy deploy-snapshot version demo
+.PHONY: default clean install release-check snapshot-check deploy deploy-snapshot version demo demo-test
 
 default: install
 
@@ -44,12 +45,18 @@ version:
 	  -DnewVersion=$(VERSION)
 
 demo: install
-	cd ~/Downloads && rm -rf atom-demo && $(CURDIR)/mvnw -B -ntp \
+	@mkdir -p $(DEMO_OUTPUT)
+	@$(MVN) -B -ntp \
 	  org.apache.maven.plugins:maven-archetype-plugin:$(ARCHETYPE_PLUGIN_VERSION):generate \
 	  -DarchetypeGroupId=io.github.archetom       \
 	  -DarchetypeArtifactId=atom-archetype  \
 	  -DarchetypeVersion=$(PROJECT_VERSION) \
 	  -DgroupId=com.foo.bar                 \
-	  -DartifactId=atom-demo      			\
+	  -DartifactId=atom-demo               \
 	  -Dpackage=com.foo.bar                 \
-	  -Dversion=1.0.0-SNAPSHOT
+	  -Dversion=1.0.0-SNAPSHOT               \
+	  -DoutputDirectory=$(DEMO_OUTPUT)       \
+	  -DinteractiveMode=false
+
+demo-test: demo
+	@CI=false sh $(DEMO_OUTPUT)/atom-demo/mvnw test

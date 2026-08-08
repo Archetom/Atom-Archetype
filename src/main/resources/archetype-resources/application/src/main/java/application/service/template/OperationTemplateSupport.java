@@ -9,6 +9,7 @@ import ${package}.shared.operation.OperationCode;
 import ${package}.shared.util.ResultUtil;
 import io.github.archetom.common.result.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.PessimisticLockingFailureException;
 
 import java.util.Objects;
 
@@ -25,8 +26,14 @@ abstract class OperationTemplateSupport {
     }
 
     public final <T> Result<T> execute(OperationCode event, ServiceOperation<T> operation) {
+        return execute(event, operation, OperationLogPolicy.DEFAULT);
+    }
+
+    public final <T> Result<T> execute(OperationCode event, ServiceOperation<T> operation,
+                                       OperationLogPolicy logPolicy) {
         Objects.requireNonNull(event, "event must not be null");
         Objects.requireNonNull(operation, "operation must not be null");
+        Objects.requireNonNull(logPolicy, "logPolicy must not be null");
 
         Result<T> result = new Result<>();
         try {
@@ -37,15 +44,23 @@ abstract class OperationTemplateSupport {
             result.setSuccess(true);
             return result;
         } catch (DomainException exception) {
-            log.warn("Domain operation rejected: event={}, error={}", event, exception.getError());
+            if (logPolicy == OperationLogPolicy.SAFE_BACKGROUND) {
+                log.warn("Background operation rejected: event={}", event);
+            } else {
+                log.warn("Domain operation rejected: event={}, error={}", event, exception.getError());
+            }
             NonRetryableApplicationException mapped = new NonRetryableApplicationException(
                     DomainExceptionMapper.toApplicationCode(exception),
                     exception.getMessage(),
                     exception);
             return ResultUtil.genErrorResult(result, mapped, event.code(), appName);
         } catch (IllegalArgumentException exception) {
-            log.warn("Application input rejected: event={}, exceptionType={}",
-                    event, exception.getClass().getName());
+            if (logPolicy == OperationLogPolicy.SAFE_BACKGROUND) {
+                log.warn("Background operation rejected: event={}", event);
+            } else {
+                log.warn("Application input rejected: event={}, exceptionType={}",
+                        event, exception.getClass().getName());
+            }
             NonRetryableApplicationException mapped = new NonRetryableApplicationException(
                     ApplicationErrorCode.PARAMETER_INVALID,
                     ApplicationErrorCode.PARAMETER_INVALID.getDescription(),
@@ -59,13 +74,32 @@ abstract class OperationTemplateSupport {
             log.warn("Application operation failed: event={}, error={}",
                     event, exception.getErrorCode());
             return ResultUtil.genErrorResult(result, exception, event.code(), appName);
+        } catch (PessimisticLockingFailureException exception) {
+            log.warn("Concurrent application operation timed out: event={}", event);
+            ApplicationException mapped = new ApplicationException(
+                    ApplicationErrorCode.CONCURRENT_OPERATION,
+                    ApplicationErrorCode.CONCURRENT_OPERATION.getDescription(), exception);
+            return ResultUtil.genErrorResult(result, mapped, event.code(), appName);
         } catch (RuntimeException exception) {
-            log.error("Unexpected application failure: event={}", event, exception);
+            if (logPolicy == OperationLogPolicy.SAFE_BACKGROUND) {
+                log.warn("Background operation failed: event={}", event);
+            } else {
+                log.error("Unexpected application failure: event={}, exceptionType={}",
+                        event, exception.getClass().getName());
+            }
             return ResultUtil.genErrorResult(exception, appName);
         } finally {
             log.info("Application operation completed: event={}, success={}",
                     event, result.isSuccess());
         }
+    }
+
+    /** Maps a deliberate pre-transaction rejection to its operation-scoped public result. */
+    protected final <T> Result<T> rejected(OperationCode event, ApplicationException exception) {
+        Objects.requireNonNull(event, "event must not be null");
+        Objects.requireNonNull(exception, "exception must not be null");
+        Result<T> result = new Result<>();
+        return ResultUtil.genErrorResult(result, exception, event.code(), appName);
     }
 
     protected <T> T invoke(ServiceOperation<T> operation) {

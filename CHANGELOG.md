@@ -21,6 +21,12 @@ All notable architecture, compatibility, and security changes are documented her
 
 - include `atom-common` and Spring JDBC on the generated executable application's runtime classpath
 - document that existing MySQL data volumes must reach 8.4 LTS before upgrading to 9.7 LTS
+- preserve Maven, Spring, Logback, MyBatis, JSONPath, Markdown, and banner literals through Velocity filtering
+- execute queries in independent read-only `REPEATABLE_READ` transactions and keep validation outside the snapshot
+- expose a named `UserPageResponse` so OpenAPI clients retain the page item type
+- map database lock acquisition failures to stable `CONCURRENT_OPERATION` errors and HTTP 409
+- preserve already-classified operation errors at the REST boundary and provide a safe background logging policy
+- compile and test a freshly generated project during the archetype integration-test lifecycle
 
 ## [2.0.0] — 2026-07-10
 

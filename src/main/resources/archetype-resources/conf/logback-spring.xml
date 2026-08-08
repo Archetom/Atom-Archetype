@@ -1,3 +1,4 @@
+#set( $dollar = '$' )
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
@@ -23,32 +24,32 @@
     <!-- Console appender -->
     <appender name="CONSOLE_APPENDER" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${dollar}{LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
     <!--****************************************************** Do not change the section above ****************************************-->
     <!-- Log file appender -->
     <appender name="FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${APP_LOG_PATH}/${APP_NAME}.log</file>
+        <file>${dollar}{APP_LOG_PATH}/${dollar}{APP_NAME}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${APP_LOG_PATH}/${APP_NAME}.log.%d{yyyy-MM-dd}</fileNamePattern>
-            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <fileNamePattern>${dollar}{APP_LOG_PATH}/${dollar}{APP_NAME}.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>${dollar}{MAX_HISTORY}</maxHistory>
         </rollingPolicy>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>${LOG_PATTERN}</Pattern>
+            <Pattern>${dollar}{LOG_PATTERN}</Pattern>
         </encoder>
     </appender>
 
     <!-- Error log file appender used by each business logger -->
     <appender name="ERROR_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${APP_LOG_PATH}/${APP_NAME}-error.log</file>
+        <file>${dollar}{APP_LOG_PATH}/${dollar}{APP_NAME}-error.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${APP_LOG_PATH}/${APP_NAME}-error.log.%d{yyyy-MM-dd}</fileNamePattern>
-            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <fileNamePattern>${dollar}{APP_LOG_PATH}/${dollar}{APP_NAME}-error.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>${dollar}{MAX_HISTORY}</maxHistory>
         </rollingPolicy>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>${LOG_PATTERN}</Pattern>
+            <Pattern>${dollar}{LOG_PATTERN}</Pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>error</level>

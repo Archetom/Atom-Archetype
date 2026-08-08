@@ -1,3 +1,4 @@
+#set( $pound = '#' )
 package ${package}.shared.util;
 
 import io.github.archetom.common.result.Pager;
@@ -12,7 +13,7 @@ public class PageUtil {
      * elements — the caller fills {@code objectList} with mapped items itself.
      *
      * <p>Contract: {@code totalNum} is passed through unchanged, including the
-     * {@link Pager#NO_TOTAL_NUM} sentinel — normalization is a boundary concern,
+     * {@link Pager${pound}NO_TOTAL_NUM} sentinel — normalization is a boundary concern,
      * not a copier concern; {@code meta} is shared by reference, matching
      * {@code Pager.map} semantics.
      *

@@ -1,5 +1,6 @@
 package ${package}.application.assembler;
 
+import ${package}.api.dto.response.UserPageResponse;
 import ${package}.api.dto.response.UserResponse;
 import ${package}.application.vo.UserVO;
 import ${package}.domain.entity.User;
@@ -96,6 +97,19 @@ public interface UserAssembler {
         responsePager.setMeta(null);
         responsePager.setObjectList(toResponseList(userVOPager.getObjectList()));
         return responsePager;
+    }
+
+    /** Converts the internal carrier to an explicit public page contract. */
+    default UserPageResponse toPageResponse(Pager<UserVO> userVOPager) {
+        Pager<UserResponse> responsePager = toResponsePager(userVOPager);
+        if (responsePager == null) {
+            return null;
+        }
+        return new UserPageResponse()
+                .setPageNum(Math.toIntExact(responsePager.getPageNum()))
+                .setPageSize(Math.toIntExact(responsePager.getPageSize()))
+                .setTotalNum(responsePager.getTotalNum())
+                .setObjectList(responsePager.getObjectList());
     }
 
     default Long userIdToLong(UserId userId) {

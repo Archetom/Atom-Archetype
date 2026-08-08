@@ -4,7 +4,6 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -19,9 +18,10 @@ class ArchitectureBoundaryTest {
 
     @Test
     void compiledArchitectureRespectsBoundaries() {
-        JavaClasses classes = new ClassFileImporter()
-                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                .importPackages(ROOT_PACKAGE);
+        // Do not use DO_NOT_INCLUDE_TESTS here. Maven Archetype's official integration-test
+        // harness nests the generated project below an outer target/test-classes directory,
+        // which would make that predefined path filter discard every reactor module.
+        JavaClasses classes = new ClassFileImporter().importPackages(ROOT_PACKAGE);
         List<String> violations = new ArrayList<>();
 
         assertLayerPresent(classes, ".api.", violations);

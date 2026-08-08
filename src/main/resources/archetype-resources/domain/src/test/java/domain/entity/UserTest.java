@@ -1,3 +1,4 @@
+#set( $dollar = '$' )
 package ${package}.domain.entity;
 
 import ${package}.domain.event.UserCreatedEvent;
@@ -20,7 +21,7 @@ class UserTest {
 
     private static final TenantId TENANT_ID = new TenantId(1L);
     private static final PasswordHash PASSWORD_HASH =
-            PasswordHash.fromTrustedHash("$2a$10$abcdefghijklmnopqrstuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu");
+            PasswordHash.fromTrustedHash("${dollar}2a${dollar}10${dollar}abcdefghijklmnopqrstuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu");
 
     @Test
     void createsTenantOwnedUserFromTrustedHash() {

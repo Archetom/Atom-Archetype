@@ -1,3 +1,4 @@
+#set( $pound = '#' )
 package ${package}.domain.valueobject;
 
 import java.io.Serial;
@@ -7,7 +8,7 @@ import java.util.Objects;
  * One-way password hash stored by the user aggregate.
  *
  * <p>The raw hash is available only through the deliberately named persistence
- * accessor. It is never exposed through a JavaBean getter or {@link #toString()}.</p>
+ * accessor. It is never exposed through a JavaBean getter or {@link ${pound}toString()}.</p>
  */
 public final class PasswordHash implements ValueObject<PasswordHash> {
 

@@ -6,13 +6,12 @@ package ${package}.infra.facade;
 import ${package}.api.context.AuthenticatedCaller;
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
+import ${package}.api.dto.response.UserPageResponse;
 import ${package}.api.dto.response.UserResponse;
 import ${package}.api.facade.UserFacade;
 import ${package}.application.assembler.UserAssembler;
 import ${package}.application.service.UserService;
-import ${package}.application.vo.UserVO;
 import ${package}.shared.util.ResultUtil;
-import io.github.archetom.common.result.Pager;
 import io.github.archetom.common.result.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +39,8 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public Result<Pager<UserResponse>> queryUsers(AuthenticatedCaller caller, UserQueryRequest request) {
-        return ResultUtil.map(userService.queryUsers(caller, request), UserAssembler.INSTANCE::toResponsePager);
+    public Result<UserPageResponse> queryUsers(AuthenticatedCaller caller, UserQueryRequest request) {
+        return ResultUtil.map(userService.queryUsers(caller, request), UserAssembler.INSTANCE::toPageResponse);
     }
 
     @Override

@@ -1,3 +1,4 @@
+#set( $pound = '#' )
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="${package}.infra.persistence.mysql.mapper.UserMapper">
@@ -30,16 +31,16 @@
     <select id="selectUserPage" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List" />
         FROM t_user
-        WHERE tenant_id = #{tenantId}
+        WHERE tenant_id = ${pound}{tenantId}
         <if test="username != null and username != ''">
-            AND username LIKE CONCAT('%', #{username}, '%')
+            AND username LIKE CONCAT('%', ${pound}{username}, '%')
         </if>
         <if test="email != null and email != ''">
-            AND email LIKE CONCAT('%', #{email}, '%')
+            AND email LIKE CONCAT('%', ${pound}{email}, '%')
         </if>
         <choose>
             <when test="status != null and status != ''">
-                AND status = #{status}
+                AND status = ${pound}{status}
             </when>
             <otherwise>
                 AND status &lt;&gt; 'DELETED'

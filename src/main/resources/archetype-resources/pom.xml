@@ -1,3 +1,5 @@
+#set( $symbol_dollar = '$' )
+#set( $symbol_pound = '#' )
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -69,14 +71,14 @@
             <dependency>
                 <groupId>io.github.archetom</groupId>
                 <artifactId>atom-common</artifactId>
-                <version>${atom.common.version}</version>
+                <version>${symbol_dollar}{atom.common.version}</version>
             </dependency>
             <!-- MapStruct -->
             <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
-                <version>${mapstruct.version}</version>
+                <version>${symbol_dollar}{mapstruct.version}</version>
             </dependency>
 
             <!-- Database -->
@@ -85,19 +87,19 @@
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
-                <version>${mybatis.plus.version}</version>
+                <version>${symbol_dollar}{mybatis.plus.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-jsqlparser</artifactId>
-                <version>${mybatis.plus.version}</version>
+                <version>${symbol_dollar}{mybatis.plus.version}</version>
             </dependency>
             <!-- SpringDoc -->
             <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                <version>${springdoc.version}</version>
+                <version>${symbol_dollar}{springdoc.version}</version>
             </dependency>
 
             <!-- Project Modules -->
@@ -169,17 +171,17 @@
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
-                                <version>${lombok.version}</version>
+                                <version>${symbol_dollar}{lombok.version}</version>
                             </path>
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok-mapstruct-binding</artifactId>
-                                <version>${lombok.mapstruct.binding.version}</version>
+                                <version>${symbol_dollar}{lombok.mapstruct.binding.version}</version>
                             </path>
                             <path>
                                 <groupId>org.mapstruct</groupId>
                                 <artifactId>mapstruct-processor</artifactId>
-                                <version>${mapstruct.version}</version>
+                                <version>${symbol_dollar}{mapstruct.version}</version>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
@@ -212,10 +214,10 @@
                                 <rules>
                                     <dependencyConvergence/>
                                     <requireJavaVersion>
-                                        <version>[${java.version},)</version>
+                                        <version>[${symbol_dollar}{java.version},)</version>
                                     </requireJavaVersion>
                                     <requireMavenVersion>
-                                        <version>[${maven.minimum.version},)</version>
+                                        <version>[${symbol_dollar}{maven.minimum.version},)</version>
                                     </requireMavenVersion>
                                 </rules>
                             </configuration>

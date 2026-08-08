@@ -1,3 +1,4 @@
+#set( $dollar = '$' )
 package ${package};
 
 import org.junit.jupiter.api.Test;
@@ -15,12 +16,12 @@ class OpenApiIntegrationTest extends BaseIntegrationTest {
     void publishesProjectIdentityAndVersion() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.openapi").isNotEmpty())
-                .andExpect(jsonPath("$.info.title").value("${rootArtifactId}-test API"))
-                .andExpect(jsonPath("$.info.version").value("${version}"))
-                .andExpect(jsonPath("$['components']['securitySchemes']['devUserId']['name']")
+                .andExpect(jsonPath("${dollar}.openapi").isNotEmpty())
+                .andExpect(jsonPath("${dollar}.info.title").value("${rootArtifactId}-test API"))
+                .andExpect(jsonPath("${dollar}.info.version").value("${version}"))
+                .andExpect(jsonPath("${dollar}['components']['securitySchemes']['devUserId']['name']")
                         .value("X-Dev-User-Id"))
-                .andExpect(jsonPath("$['components']['securitySchemes']['devTenantId']['name']")
+                .andExpect(jsonPath("${dollar}['components']['securitySchemes']['devTenantId']['name']")
                         .value("X-Dev-Tenant-Id"));
     }
 }

@@ -54,7 +54,7 @@ public final class ResponseEntityUtil {
             case AUTHENTICATION_REQUIRED -> HttpStatus.UNAUTHORIZED;
             case ACCESS_DENIED -> HttpStatus.FORBIDDEN;
             case RESOURCE_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case VERSION_CONFLICT, RESOURCE_ALREADY_EXISTS -> HttpStatus.CONFLICT;
+            case VERSION_CONFLICT, CONCURRENT_OPERATION, RESOURCE_ALREADY_EXISTS -> HttpStatus.CONFLICT;
             case UNKNOWN, SYSTEM -> HttpStatus.INTERNAL_SERVER_ERROR;
             default -> HttpStatus.UNPROCESSABLE_CONTENT;
         };

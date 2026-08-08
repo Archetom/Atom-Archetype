@@ -27,6 +27,7 @@ echo "Detected package path: $PACKAGE_PATH"
 echo " clean API layer sample code..."
 rm -f api/src/main/java/${PACKAGE_PATH}/api/dto/request/UserQueryRequest.java
 rm -f api/src/main/java/${PACKAGE_PATH}/api/dto/request/UserCreateRequest.java
+rm -f api/src/main/java/${PACKAGE_PATH}/api/dto/response/UserPageResponse.java
 rm -f api/src/main/java/${PACKAGE_PATH}/api/dto/response/UserResponse.java
 rm -f api/src/main/java/${PACKAGE_PATH}/api/facade/UserFacade.java
 

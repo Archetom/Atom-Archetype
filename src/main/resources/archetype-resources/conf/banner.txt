@@ -1,10 +1,11 @@
-${AnsiColor.BRIGHT_GREEN}
+#set( $dollar = '$' )
+${dollar}{AnsiColor.BRIGHT_GREEN}
   ,---.     ,--.
  /  O  \  ,-'  '-.  ,---.  ,--,--,--.
 |  .-.  | '-.  .-' | .-. | |        |
 |  | |  |   |  |   ' '-' ' |  |  |  |
 `--' `--'   `--'    `---'  `--`--`--'
 
-${AnsiColor.BLUE}
-Spring Boot Version: ${spring-boot.version}${spring-boot.formatted-version}
-${AnsiColor.DEFAULT}
+${dollar}{AnsiColor.BLUE}
+Spring Boot Version: ${dollar}{spring-boot.version}${dollar}{spring-boot.formatted-version}
+${dollar}{AnsiColor.DEFAULT}

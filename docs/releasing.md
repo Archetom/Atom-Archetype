@@ -35,7 +35,7 @@ Snapshot publishing requires **Enable SNAPSHOTs** for the `io.github.archetom` n
    ```bash
    make install
    make demo
-   cd ~/Downloads/atom-demo
+   cd target/generated-projects/atom-demo
    CI=true sh ./mvnw test
    ```
 

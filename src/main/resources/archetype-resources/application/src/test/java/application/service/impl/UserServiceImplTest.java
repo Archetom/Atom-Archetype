@@ -74,7 +74,7 @@ class UserServiceImplTest {
                 userDomainService,
                 domainEventPublisher,
                 new CommandServiceTemplate("test-app", transactionManager),
-                new QueryServiceTemplate("test-app"),
+                new QueryServiceTemplate("test-app", transactionManager),
                 userCacheService,
                 userFactory,
                 afterCommitExecutor,

@@ -63,7 +63,9 @@ HTTP request
 validate -> prepare -> execute -> onSuccess
 ```
 
-`CommandServiceTemplate` runs `validate` and `prepare` before opening an independent transaction for `execute` and `onSuccess`. Slow preparation such as password hashing therefore does not hold a database connection. A failure rolls that transaction back before it is converted to a `Result`, so an outer transaction is neither marked rollback-only nor surprised by `UnexpectedRollbackException`. Treat each command as its own atomic use case; do not use it when several commands must share one transaction. `QueryServiceTemplate` uses the same typed lifecycle without a transaction.
+`CommandServiceTemplate` runs `validate` and `prepare` before opening an independent transaction for `execute` and `onSuccess`. Slow preparation such as password hashing therefore does not hold a database connection. A failure rolls that transaction back before it is converted to a `Result`, so an outer transaction is neither marked rollback-only nor surprised by `UnexpectedRollbackException`. Treat each command as its own atomic use case; do not use it when several commands must share one transaction.
+
+`QueryServiceTemplate` runs `validate` and `prepare` before opening an independent read-only `REPEATABLE_READ` transaction for `execute` and `onSuccess`. Multi-query reads therefore observe one database snapshot without inheriting a caller transaction. Database lock acquisition failures are mapped to the stable `CONCURRENT_OPERATION` public error and HTTP 409. A deliberate pre-transaction rejection retains its use-case-specific error scene.
 
 The relational database is the source of truth. `AfterCommitExecutor` delays cache writes, cache invalidation, and in-process event publication until commit. Events and cache actions use separate registrations so one callback failure cannot skip the other. Cache invalidation installs a short refill fence before eviction so a concurrent stale reader cannot repopulate a 30-minute entry after the write commits.
 

@@ -14,7 +14,7 @@ These headers are development credentials, not a production authentication proto
 | --- | --- | --- | --- |
 | `POST /api/v1/users` | `users:write` | `UserCreateRequest` JSON | `UserResponse` |
 | `GET /api/v1/users/{userId}` | `users:read` | Positive numeric path ID | `UserResponse` |
-| `GET /api/v1/users` | `users:read` | Query parameters below | Page of `UserResponse` |
+| `GET /api/v1/users` | `users:read` | Query parameters below | `UserPageResponse` |
 | `PUT /api/v1/users/{userId}/status` | `users:write` | `status` query parameter | Empty success body |
 | `DELETE /api/v1/users/{userId}` | `users:delete` | Positive numeric path ID | Empty success body |
 
@@ -42,7 +42,7 @@ Passwords are write-only, contain 12–64 Unicode characters, remain within BCry
 | `email` | string | — | Valid email address |
 | `status` | string | — | One of the status values below |
 
-The page response contains `pageNum`, `pageSize`, `totalNum`, and `objectList`. `totalNum` is always a non-negative integer. Any other serialized property (such as `meta`) is a reserved internal carrier, always `null`, and not part of the public contract — clients must not depend on it.
+`UserPageResponse` contains `pageNum`, `pageSize`, `totalNum`, and an `objectList` of `UserResponse`. `totalNum` is always non-negative. The API does not expose the generic internal pager or its metadata carrier, so generated clients retain the item type.
 
 ## User status
 
@@ -65,6 +65,6 @@ Errors have a stable public shape:
 | `401` | Authentication is missing or invalid |
 | `403` | The authenticated caller lacks the required authority |
 | `404` | The tenant-scoped resource does not exist |
-| `409` | A unique value or aggregate version conflicts |
+| `409` | A unique value, aggregate version, or database lock acquisition conflicts |
 | `422` | Another stable domain rule rejected the operation |
 | `500` | Unexpected internal failure; internal details are not exposed |

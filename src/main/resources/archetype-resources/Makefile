@@ -1,3 +1,4 @@
+#set( $dollar = '$' )
 MVN ?= sh ./mvnw
 VERSION ?= ${version}
 
@@ -6,28 +7,28 @@ VERSION ?= ${version}
 default: verify
 
 clean:
-	@$(MVN) clean
+	@${dollar}(MVN) clean
 
 compile:
-	@$(MVN) compile
+	@${dollar}(MVN) compile
 
 test:
-	@CI=false $(MVN) test
+	@CI=false ${dollar}(MVN) test
 
 integration-test:
-	@CI=true $(MVN) test
+	@CI=true ${dollar}(MVN) test
 
 verify:
-	@CI=false $(MVN) verify
+	@CI=false ${dollar}(MVN) verify
 
 install:
-	@CI=false $(MVN) clean install
+	@CI=false ${dollar}(MVN) clean install
 
 package:
-	@CI=false $(MVN) clean package
+	@CI=false ${dollar}(MVN) clean package
 
 run:
-	@$(MVN) -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+	@${dollar}(MVN) -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
 
 infra-up:
 	@docker compose up -d mysql redis
@@ -39,4 +40,4 @@ clean-sample:
 	@bash clean.sh
 
 version:
-	@$(MVN) versions:set -DgenerateBackupPoms=false -DnewVersion=$(VERSION)
+	@${dollar}(MVN) versions:set -DgenerateBackupPoms=false -DnewVersion=${dollar}(VERSION)

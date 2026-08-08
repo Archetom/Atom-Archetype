@@ -1,5 +1,6 @@
 package ${package}.application.assembler;
 
+import ${package}.api.dto.response.UserPageResponse;
 import ${package}.api.dto.response.UserResponse;
 import ${package}.application.vo.UserVO;
 import io.github.archetom.common.result.Pager;
@@ -30,6 +31,12 @@ class UserAssemblerTest {
 
         assertEquals(37L, responsePager.getTotalNum());
         assertNull(responsePager.getMeta());
+
+        UserPageResponse pageResponse = UserAssembler.INSTANCE.toPageResponse(voPager);
+        assertEquals(1, pageResponse.getPageNum());
+        assertEquals(20, pageResponse.getPageSize());
+        assertEquals(37L, pageResponse.getTotalNum());
+        assertEquals(List.of(), pageResponse.getObjectList());
     }
 
     @Test

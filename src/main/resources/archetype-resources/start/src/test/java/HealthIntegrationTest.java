@@ -1,3 +1,4 @@
+#set( $dollar = '$' )
 package ${package};
 
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,6 @@ class HealthIntegrationTest extends BaseIntegrationTest {
 
         mockMvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("UP"));
+                .andExpect(jsonPath("${dollar}.status").value("UP"));
     }
 }
