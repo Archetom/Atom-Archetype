@@ -58,6 +58,8 @@ docker compose ps
 
 MySQL listens on `localhost:3306`. Flyway applies migrations from `infra/persistence/src/main/resources/db/migration` when the application starts.
 
+The generated Compose file pins MySQL 26.7.0. Back up persistent data and follow MySQL's supported upgrade path before attaching an older data volume, or create a fresh volume for disposable development data.
+
 Redis is disabled by default. To enable the Redis adapter locally:
 
 ```bash

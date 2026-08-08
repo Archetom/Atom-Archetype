@@ -69,9 +69,9 @@ See [Getting started](docs/getting-started.md) for development identity headers,
 
 - Dependency boundaries between `domain`, `application`, `api`, and infrastructure modules.
 - Explicit `AuthenticatedCaller` and `TenantId` values for tenant-scoped repository and cache access.
-- MyBatis-Plus 3.5.16, Flyway, and MySQL 9.7.1 LTS.
-- Spring Security, SpringDoc OpenAPI 3.0.3, and consistent HTTP error mapping.
-- Redis 8.8.0 adapters, disabled by default, with a corresponding no-op implementation.
+- MyBatis-Plus 3.5.17, Flyway, and MySQL 26.7.0.
+- Spring Security, SpringDoc OpenAPI 3.1.0, and consistent HTTP error mapping.
+- Redis 8.10.0 adapters, disabled by default, with a corresponding no-op implementation.
 - Command/query service templates, after-commit callbacks, and Testcontainers integration tests.
 
 Business APIs require authentication by default. Development identity headers are limited to explicitly enabled `dev` and `test` environments; production should integrate its own identity provider.

@@ -11,7 +11,8 @@ All notable architecture, compatibility, and security changes are documented her
 - updated the archetype build's Maven Clean and Resources plugins and the generated project's Dependency Plugin to their latest stable releases
 - added the required Lombok-MapStruct annotation-processor binding for reliable generated mappings on modern JDKs
 - moved the development line to `2.1.0-SNAPSHOT`
-- updated the generated Docker defaults to MySQL 9.7.1 LTS and optional Redis 8.8.0
+- updated the generated Docker defaults to MySQL 26.7.0 and optional Redis 8.10.0
+- updated generated projects to atom-common 1.0.1, MyBatis-Plus 3.5.17, and SpringDoc OpenAPI 3.1.0
 - updated Maven JAR/source plugins and GitHub checkout actions
 - aligned both Maven Enforcer rules and generated-project documentation with the bundled Maven 3.9.16 wrapper; all explicitly pinned third-party dependencies remain on their latest stable releases
 - aligned Testcontainers and compatibility documentation with the generated Docker defaults
@@ -20,7 +21,7 @@ All notable architecture, compatibility, and security changes are documented her
 ### Fixed
 
 - include `atom-common` and Spring JDBC on the generated executable application's runtime classpath
-- document that existing MySQL data volumes must reach 8.4 LTS before upgrading to 9.7 LTS
+- document that existing MySQL data volumes must follow MySQL's supported upgrade path before adopting newer generated Docker defaults
 - preserve Maven, Spring, Logback, MyBatis, JSONPath, Markdown, and banner literals through Velocity filtering
 - execute queries in independent read-only `REPEATABLE_READ` transactions and keep validation outside the snapshot
 - expose a named `UserPageResponse` so OpenAPI clients retain the page item type

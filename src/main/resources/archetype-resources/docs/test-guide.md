@@ -26,7 +26,7 @@ Run Docker-backed integration tests:
 CI=true sh ./mvnw test
 ```
 
-`CI=true` enables the generated integration test classes. Docker must be available. Testcontainers starts MySQL 9.7.1 LTS; Redis remains disabled.
+`CI=true` enables the generated integration test classes. Docker must be available. Testcontainers starts MySQL 26.7.0; Redis remains disabled.
 
 ## Test layers
 

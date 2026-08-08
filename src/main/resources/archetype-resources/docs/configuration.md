@@ -61,6 +61,8 @@ docker compose up -d mysql
 
 These credentials are local examples only.
 
+The generated Compose file pins MySQL 26.7.0. Before reusing a data volume created by an older MySQL release, back it up and follow MySQL's supported upgrade path; for disposable development data, create a fresh volume instead.
+
 ## Production settings
 
 The `prod` profile has no default datasource credentials. Supply all three datasource variables:

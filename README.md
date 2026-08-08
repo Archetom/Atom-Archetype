@@ -69,9 +69,9 @@ curl http://localhost:8080/actuator/health
 
 - `domain`、`application`、`api` 与基础设施模块之间的依赖边界。
 - 显式的 `AuthenticatedCaller` 和 `TenantId`，仓储与缓存按租户访问。
-- MyBatis-Plus 3.5.16、Flyway 和 MySQL 9.7.1 LTS。
-- Spring Security、SpringDoc OpenAPI 3.0.3 和统一的 HTTP 错误映射。
-- 默认关闭的 Redis 8.8.0 缓存适配器，以及对应的空实现。
+- MyBatis-Plus 3.5.17、Flyway 和 MySQL 26.7.0。
+- Spring Security、SpringDoc OpenAPI 3.1.0 和统一的 HTTP 错误映射。
+- 默认关闭的 Redis 8.10.0 缓存适配器，以及对应的空实现。
 - 独立的命令事务与只读查询快照事务、事务提交后回调和 Testcontainers 集成测试。
 - 具名分页响应、稳定并发错误，以及会自动编译和测试生成项目的 Archetype 回归测试。
 

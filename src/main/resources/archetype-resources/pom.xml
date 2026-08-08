@@ -45,13 +45,13 @@
         <project.build.outputTimestamp>2026-07-10T00:00:00Z</project.build.outputTimestamp>
 
         <!-- Common -->
-        <atom.common.version>1.0.0</atom.common.version>
+        <atom.common.version>1.0.1</atom.common.version>
 
         <!-- Maven Plugin -->
         <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
 
         <!-- Database -->
-        <mybatis.plus.version>3.5.16</mybatis.plus.version>
+        <mybatis.plus.version>3.5.17</mybatis.plus.version>
 
         <!-- MapStruct -->
         <mapstruct.version>1.6.3</mapstruct.version>
@@ -61,7 +61,7 @@
         <archunit.version>1.4.2</archunit.version>
 
         <!-- SpringDoc -->
-        <springdoc.version>3.0.3</springdoc.version>
+        <springdoc.version>3.1.0</springdoc.version>
     </properties>
 
     <!-- The root POM owns dependency versions; each module declares what it uses directly. -->
