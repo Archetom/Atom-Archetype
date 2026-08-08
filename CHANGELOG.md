@@ -4,19 +4,21 @@ All notable architecture, compatibility, and security changes are documented her
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-08-08
+
 ### Changed
 
 - made Chinese the default repository and generated-project README while retaining English as `README.en.md`
 - raised the repository, CI, release workflows, and generated-project baseline from JDK 21 to JDK 25
 - updated the archetype build's Maven Clean and Resources plugins and the generated project's Dependency Plugin to their latest stable releases
 - added the required Lombok-MapStruct annotation-processor binding for reliable generated mappings on modern JDKs
-- moved the development line to `2.1.0-SNAPSHOT`
 - updated the generated Docker defaults to MySQL 26.7.0 and optional Redis 8.10.0
 - updated generated projects to atom-common 1.1.0, MyBatis-Plus 3.5.17, and SpringDoc OpenAPI 3.1.0
 - updated Maven JAR/source plugins and GitHub checkout actions
 - aligned both Maven Enforcer rules and generated-project documentation with the bundled Maven 3.9.16 wrapper; all explicitly pinned third-party dependencies remain on their latest stable releases
 - aligned Testcontainers and compatibility documentation with the generated Docker defaults
 - added a protected Central Portal snapshot workflow with public resolution verification
+- made release publication reject an existing Central version and verify the new artifact from a clean Maven repository
 
 ### Fixed
 

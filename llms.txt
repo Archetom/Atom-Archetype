@@ -4,7 +4,7 @@
 
 Canonical repository: https://github.com/Archetom/atom-archetype
 Maven coordinates: io.github.archetom:atom-archetype
-Current stable release: 2.0.0 (Maven Central)
+Current stable release: 2.1.0 (Maven Central, Java 25)
 Legacy Maven Central release: 1.1.0 (Spring Boot 3.5 architecture)
 License: MIT
 
@@ -28,7 +28,7 @@ License: MIT
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.0.0 \
+  -DarchetypeVersion=2.1.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \

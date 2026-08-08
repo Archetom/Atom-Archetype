@@ -20,7 +20,7 @@ jobs:
     name: Publish signed release
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
     environment: maven-central
 
     steps:
@@ -34,6 +34,9 @@ jobs:
           java-version: '25'
           check-latest: true
           cache: maven
+          cache-dependency-path: |
+            .mvn/wrapper/maven-wrapper.properties
+            pom.xml
           server-id: central
           server-username: CENTRAL_USERNAME
           server-password: CENTRAL_PASSWORD
@@ -49,9 +52,14 @@ jobs:
             *-SNAPSHOT) echo "Refusing to publish a SNAPSHOT as a release."; exit 1 ;;
           esac
           git diff --check 4b825dc642cb6eb9a060e54bf8d69288fbee4904 HEAD -- .
+          artifact_url="https://repo.maven.apache.org/maven2/io/github/archetom/atom-archetype/${version}/atom-archetype-${version}.pom"
+          if curl --fail --silent --show-error --head "$artifact_url" >/dev/null 2>&1; then
+            echo "Refusing to overwrite an existing Maven Central release: $artifact_url"
+            exit 1
+          fi
 
       - name: Publish and wait for Maven Central
-        timeout-minutes: 35
+        timeout-minutes: 40
         env:
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
@@ -60,3 +68,24 @@ jobs:
           ./mvnw -B -ntp clean deploy
           -Dcentral.autoPublish=true
           -Dcentral.waitUntil=published
+
+      - name: Verify release is publicly resolvable
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          local_repository="${RUNNER_TEMP}/release-verification-repository"
+          remote_repository="central::default::https://repo.maven.apache.org/maven2"
+          for attempt in {1..30}; do
+            if ./mvnw -B -U -ntp dependency:get \
+              -Dmaven.repo.local="$local_repository" \
+              -Dartifact="io.github.archetom:atom-archetype:${{ inputs.version }}" \
+              -Dtransitive=false \
+              -DremoteRepositories="$remote_repository"; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "Release did not become publicly resolvable in time."
+              exit 1
+            fi
+            sleep 20
+          done

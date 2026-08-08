@@ -1,6 +1,6 @@
 # Atom Archetype
 
-[![Maven Central 旧版](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg?label=Maven%20Central%20legacy)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
 [![CI](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml/badge.svg)](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml)
 [![Java 25](https://img.shields.io/badge/Java-25-007396.svg)](https://openjdk.org/projects/jdk/25/)
 [![Spring Boot 4.1](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F.svg)](https://spring.io/projects/spring-boot)
@@ -14,39 +14,30 @@ Atom Archetype 是一个基于 Java 25 和 Spring Boot 4.1 的 Maven Archetype�
 
 ## 版本说明
 
-- `main` 当前版本为 `2.1.0-SNAPSHOT`，开发和生成项目均使用 JDK 25。
-- [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) 是当前分层架构的稳定 Git 标签，编译目标为 Java 21。
-- Maven Central 目前只有 `1.1.0`，它属于 Spring Boot 3.5 旧架构。
+- `2.1.0` 是当前稳定版，Archetype 开发和生成项目均使用 JDK 25。
+- [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) 是 Java 21 版本的旧标签。
+- Maven Central `1.1.0` 属于 Spring Boot 3.5 旧架构。
 
-以下快速开始基于 `main`，需要先将 `2.1.0-SNAPSHOT` 安装到本地 Maven 仓库。
+以下快速开始直接使用 Maven Central 上的 `2.1.0`。
 
 ## 快速开始
 
 需要 JDK 25、Docker 和 Docker Compose v2。仓库及生成项目均提供 Maven Wrapper 3.9.16；如果使用系统 Maven，请使用 3.9.16 或更高版本。
 
-### 1. 安装 Archetype
+### 1. 生成项目
 
 ```bash
-git clone https://github.com/Archetom/Atom-Archetype.git
-cd Atom-Archetype
-./mvnw clean install -Dgpg.skip=true
-```
-
-### 2. 生成项目
-
-```bash
-cd ..
-./Atom-Archetype/mvnw -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.1.0-SNAPSHOT \
+  -DarchetypeVersion=2.1.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
   -Dversion=1.0.0-SNAPSHOT
 ```
 
-### 3. 构建并运行
+### 2. 构建并运行
 
 ```bash
 cd orders-service

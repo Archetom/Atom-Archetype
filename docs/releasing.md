@@ -12,12 +12,14 @@ Atom Archetype publishes through the Sonatype Central Portal. The `Release to Ma
 
 Do not store Central tokens, GPG private keys, or passphrases in the repository.
 
-The GitHub `maven-central` Environment contains:
+The GitHub `maven-central` Environment consumes these secrets, which may be provided once at organization scope and shared with this repository:
 
 - `CENTRAL_USERNAME`
 - `CENTRAL_PASSWORD`
 - `GPG_PRIVATE_KEY`
 - `GPG_PASSPHRASE`
+
+Keep a single source of truth for each name. An environment-level secret overrides an organization-level secret with the same name and can otherwise leave a release using stale credentials.
 
 Snapshot publishing requires **Enable SNAPSHOTs** for the `io.github.archetom` namespace in the [Central Portal namespace settings](https://central.sonatype.com/publishing/namespaces). Snapshot jobs use `CENTRAL_USERNAME` and `CENTRAL_PASSWORD` only.
 
@@ -27,7 +29,7 @@ Snapshot publishing requires **Enable SNAPSHOTs** for the `io.github.archetom` n
 2. Set a non-SNAPSHOT version:
 
    ```bash
-   make version VERSION=2.0.0
+   make version VERSION=2.1.0
    ```
 
 3. Run the CI gates:
@@ -45,7 +47,7 @@ Snapshot publishing requires **Enable SNAPSHOTs** for the `io.github.archetom` n
 ## Publish a release
 
 ```bash
-gh workflow run release.yml --ref main -f version=2.0.0
+gh workflow run release.yml --ref main -f version=2.1.0
 ```
 
 The workflow accepts only `main`, a non-SNAPSHOT version that matches the POM, and a successful signed Central deployment. It waits until Central reports `published`.
@@ -55,7 +57,7 @@ The workflow accepts only `main`, a non-SNAPSHOT version that matches the POM, a
 After the intended `-SNAPSHOT` commit is merged to `main` and CI passes, run:
 
 ```bash
-gh workflow run snapshot.yml --ref main -f version=2.1.0-SNAPSHOT
+gh workflow run snapshot.yml --ref main -f version=2.1.1-SNAPSHOT
 ```
 
 The snapshot workflow accepts only `main`, a SNAPSHOT version that matches the POM, and uses the existing Portal token without GPG signing. Release and snapshot workflows share a concurrency group.
@@ -84,7 +86,7 @@ Use `-U` to resolve the latest timestamped build. To verify with an empty Maven 
 temporary_repository="$(mktemp -d)"
 ./mvnw -B -U -ntp dependency:get \
   -Dmaven.repo.local="$temporary_repository" \
-  -Dartifact=io.github.archetom:atom-archetype:2.1.0-SNAPSHOT \
+  -Dartifact=io.github.archetom:atom-archetype:2.1.1-SNAPSHOT \
   -Dtransitive=false \
   -DremoteRepositories=central-portal-snapshots::default::https://central.sonatype.com/repository/maven-snapshots/
 ```
@@ -111,7 +113,7 @@ Central releases are immutable. Publish a new version if validation or verificat
 Set the next snapshot after the release is public:
 
 ```bash
-make version VERSION=2.0.1-SNAPSHOT
+make version VERSION=2.1.1-SNAPSHOT
 ```
 
 Local snapshot uploads use `make deploy-snapshot` and skip release signing and Portal publication.

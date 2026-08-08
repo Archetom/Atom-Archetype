@@ -6,9 +6,9 @@ A Maven archetype generates source code once. It does not update an existing pro
 
 | Source | Status | Java | Notes |
 |---|---|---|---|
+| Maven Central `2.1.0` | Current stable release | 25 | Spring Boot 4.1 and the latest template changes |
 | Maven Central `1.1.0` | Published release | Legacy baseline | Spring Boot 3.5 architecture |
-| Git tag `v2.0.0` | Release tag; not published to Maven Central | 21 | First release of the 2.x architecture |
-| `main` / `2.1.0-SNAPSHOT` | Current development line | 25 | Spring Boot 4.1 and the latest template changes |
+| Git tag `v2.0.0` | Older release tag; not published to Maven Central | 21 | First release of the 2.x architecture |
 
 Install the selected revision locally before generating a reference project. For the `v2.0.0` tag:
 
@@ -30,7 +30,7 @@ cd ..
 
 | Area | `1.1.0` | 2.x architecture |
 |---|---|---|
-| Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `v2.0.0`, JDK 25 on `main` |
+| Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `v2.0.0`, JDK 25 on `2.1.0` |
 | Caller context | Domain `UserContextHolder` | Explicit API `AuthenticatedCaller` |
 | Tenant scope | Header/ThreadLocal-derived | Validated `TenantId` passed to repositories and caches |
 | Development identity | `X-User-Id`, `X-Tenant-Id`, `X-Admin` | `X-Dev-User-Id`, `X-Dev-Tenant-Id`; dev/test only and explicitly enabled |
@@ -50,7 +50,7 @@ cd ..
 - Use the Boot 4 starters and compatible MyBatis-Plus and SpringDoc versions from the reference project.
 - Review Jackson 3 imports and custom modules.
 - Keep test-only dependencies in `test` scope.
-- Use JDK 21 for the `v2.0.0` tag or JDK 25 for current `main`.
+- Use JDK 21 for the `v2.0.0` tag or JDK 25 for release `2.1.0`.
 
 Do not combine the old Boot BOM with individually upgraded Boot 4 artifacts.
 

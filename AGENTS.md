@@ -4,7 +4,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Project Overview
 
-Atom Archetype is a **Maven archetype** that scaffolds DDD (Domain-Driven Design) Java applications using Spring Boot 4.1 and JDK 25. It generates a multi-module Maven project with layered/ports-and-adapters boundaries. The current architecture is released as `io.github.archetom:atom-archetype:2.0.0`; Maven Central `1.1.0` is the legacy Boot 3.5 line.
+Atom Archetype is a **Maven archetype** that scaffolds DDD (Domain-Driven Design) Java applications using Spring Boot 4.1 and JDK 25. It generates a multi-module Maven project with layered/ports-and-adapters boundaries. The current architecture is released as `io.github.archetom:atom-archetype:2.1.0`; Maven Central `1.1.0` is the legacy Boot 3.5 line.
 
 All template source code lives under `src/main/resources/archetype-resources/`. Files there use Maven archetype Velocity variables (`${groupId}`, `${artifactId}`, `${package}`, `${rootArtifactId}`, `${version}`) — these are **not** typos. Filtered config files use `#set( $dollar = '$' )` and `${dollar}{SOME_ENV_VAR}` when the generated output needs a literal Spring `${SOME_ENV_VAR}` placeholder.
 

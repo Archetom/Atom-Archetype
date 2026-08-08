@@ -1,15 +1,14 @@
 # Troubleshooting
 
-## Maven cannot find the 2.x archetype
+## Maven cannot find the 2.1.0 archetype
 
-**Check:** Maven Central currently contains only `1.1.0`. Run `./mvnw clean install -Dgpg.skip=true` from the selected checkout, then generate with its exact version. For current `main`:
+**Check:** Force Maven to refresh Central metadata and use the exact stable version:
 
 ```bash
-cd ..
-./Atom-Archetype/mvnw -U -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+mvn -U -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.1.0-SNAPSHOT \
+  -DarchetypeVersion=2.1.0 \
   -DgroupId=com.example.demo \
   -DartifactId=demo-service \
   -Dpackage=com.example.demo \
@@ -20,7 +19,7 @@ cd ..
 
 ## The generated project uses the wrong Java version
 
-**Check:** Maven may use a different JDK from the shell. `v2.0.0` targets JDK 21; current `main` requires JDK 25.
+**Check:** Maven may use a different JDK from the shell. `v2.0.0` targets JDK 21; release `2.1.0` requires JDK 25.
 
 ```bash
 java -version

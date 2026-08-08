@@ -1,6 +1,6 @@
 # Atom Archetype
 
-[![Maven Central legacy release](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg?label=Maven%20Central%20legacy)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
 [![CI](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml/badge.svg)](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml)
 [![Java 25](https://img.shields.io/badge/Java-25-007396.svg)](https://openjdk.org/projects/jdk/25/)
 [![Spring Boot 4.1](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F.svg)](https://spring.io/projects/spring-boot)
@@ -14,39 +14,30 @@ The generated result is a standard Maven project. Dependency boundaries between 
 
 ## Versions
 
-- `main` is currently `2.1.0-SNAPSHOT`; both archetype development and generated projects use JDK 25.
-- [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) is the stable Git tag for the current layered architecture and targets Java 21.
-- Maven Central currently contains only `1.1.0`, which uses the legacy Spring Boot 3.5 architecture.
+- `2.1.0` is the current stable release; both archetype development and generated projects use JDK 25.
+- [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) is the older Java 21 tag.
+- Maven Central `1.1.0` uses the legacy Spring Boot 3.5 architecture.
 
-The quick start below uses `main`, so install `2.1.0-SNAPSHOT` in your local Maven repository first.
+The quick start below uses `2.1.0` directly from Maven Central.
 
 ## Quick start
 
 You need JDK 25, Docker, and Docker Compose v2. The repository and generated projects both include Maven Wrapper 3.9.16; use Maven 3.9.16 or newer if you prefer a system installation.
 
-### 1. Install the archetype
+### 1. Generate a project
 
 ```bash
-git clone https://github.com/Archetom/Atom-Archetype.git
-cd Atom-Archetype
-./mvnw clean install -Dgpg.skip=true
-```
-
-### 2. Generate a project
-
-```bash
-cd ..
-./Atom-Archetype/mvnw -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.1.0-SNAPSHOT \
+  -DarchetypeVersion=2.1.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
   -Dversion=1.0.0-SNAPSHOT
 ```
 
-### 3. Build and run
+### 2. Build and run
 
 ```bash
 cd orders-service

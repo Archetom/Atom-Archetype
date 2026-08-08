@@ -1,8 +1,8 @@
 # Getting started
 
-This guide uses the current `main` branch (`2.1.0-SNAPSHOT`) and JDK 25. Maven Central currently contains only the legacy `1.1.0` Spring Boot 3.5 template, so install the archetype locally before generating a project.
+This guide uses the stable `2.1.0` release from Maven Central and JDK 25.
 
-The `v2.0.0` release tag uses JDK 21. To use that revision instead, check out the tag and replace `2.1.0-SNAPSHOT` with `2.0.0` in the generation command.
+The `v2.0.0` release tag uses JDK 21. To use that revision instead, check out the tag, install it locally, and replace `2.1.0` with `2.0.0` in the generation command.
 
 ## Prerequisites
 
@@ -10,27 +10,20 @@ Check the local toolchain:
 
 ```bash
 java -version
-./mvnw -version
+mvn -version
 docker version
 docker compose version
 ```
 
 Use Maven 3.9.16 or newer. Projects generated from `main` include Maven Wrapper 3.9.16. Docker is required for the supplied MySQL service and Testcontainers integration tests.
 
-Install the archetype from the current checkout:
-
-```bash
-./mvnw clean install -Dgpg.skip=true
-```
-
 ## Generate a project
 
 ```bash
-cd ..
-./Atom-Archetype/mvnw -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.1.0-SNAPSHOT \
+  -DarchetypeVersion=2.1.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
@@ -44,7 +37,7 @@ cd ..
 | `package` | Base Java package |
 | `version` | Initial application version |
 
-Always set `archetypeVersion` to the version installed by the selected checkout.
+Set `archetypeVersion` to the exact release you intend to use.
 
 ## Start MySQL
 

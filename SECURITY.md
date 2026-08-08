@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes target the upcoming 2.0 line on `main`. Maven Central 1.1.0 is a legacy architecture and should be assessed independently before production use.
+Security fixes target the 2.1 line on `main`. Maven Central 1.1.0 is a legacy architecture and should be assessed independently before production use.
 
 ## Reporting a vulnerability
 
