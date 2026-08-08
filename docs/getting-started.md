@@ -2,7 +2,7 @@
 
 This guide uses the stable `2.1.0` release from Maven Central and JDK 25.
 
-The `v2.0.0` release tag uses JDK 21. To use that revision instead, check out the tag, install it locally, and replace `2.1.0` with `2.0.0` in the generation command.
+The `2.0.0` release uses JDK 21. To use that version instead, select JDK 21 and replace `2.1.0` with `2.0.0` in the generation command.
 
 ## Prerequisites
 

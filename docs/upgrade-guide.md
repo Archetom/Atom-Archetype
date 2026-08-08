@@ -7,8 +7,8 @@ A Maven archetype generates source code once. It does not update an existing pro
 | Source | Status | Java | Notes |
 |---|---|---|---|
 | Maven Central `2.1.0` | Current stable release | 25 | Spring Boot 4.1 and the latest template changes |
+| Maven Central `2.0.0` / Git tag `v2.0.0` | Older release | 21 | First release of the 2.x architecture |
 | Maven Central `1.1.0` | Published release | Legacy baseline | Spring Boot 3.5 architecture |
-| Git tag `v2.0.0` | Older release tag; not published to Maven Central | 21 | First release of the 2.x architecture |
 
 Install the selected revision locally before generating a reference project. For the `v2.0.0` tag:
 

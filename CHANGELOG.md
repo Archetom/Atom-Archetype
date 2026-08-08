@@ -4,6 +4,10 @@ All notable architecture, compatibility, and security changes are documented her
 
 ## [Unreleased]
 
+### Fixed
+
+- corrected the version guide to reflect that `2.0.0` is available from Maven Central
+
 ## [2.1.0] — 2026-08-08
 
 ### Changed
