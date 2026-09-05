@@ -47,13 +47,9 @@ mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
 - Redis is disabled by default; NoOpCacheService preserves behavior without Redis.
 - Business APIs are fail-closed. Trusted X-Dev-* identity headers are available only in explicitly enabled dev/test profiles and never grant client-supplied roles.
 
-## Maintainer constraints
+## Maintainer guidance
 
-- Template code is under src/main/resources/archetype-resources/ and contains intentional Velocity variables such as ${package}, ${artifactId}, ${rootArtifactId}, and ${version}.
-- Use #set( $dollar = '$' ) plus ${dollar}{ENV_VAR} when a filtered template must emit a literal Spring ${ENV_VAR} placeholder.
-- Update src/main/resources/META-INF/maven/archetype-metadata.xml when adding files or modules that are not covered by an existing file set.
-- Update clean.sh when adding, removing, or renaming removable sample files.
-- After a template change, run make install, make demo, compile the generated project with `sh ./mvnw`, and run `CI=true sh ./mvnw test` when Docker is available.
+See [AGENTS.md](AGENTS.md) for template editing, skill use, and change-specific verification. Its generated application guide covers application invariants.
 
 ## Optional generated-project documentation
 

@@ -1,102 +1,58 @@
 # AGENTS.md
 
-This file is the operating guide for coding agents and automated contributors working in this generated repository.
+This guide describes the generated application. Inside the archetype source tree, edit templates and follow the archetype root guide for verification. Run commands below from a generated project root.
 
-## Start here
+## Working agreement
 
-Read these files before changing code:
+- Complete authorized work and relevant checks; preserve unrelated work. Resolve routine choices from existing contracts; ask when missing information changes the outcome or authorization.
+- Inspect nearby code and tests; use [llms.txt](llms.txt) for relevant docs. Versions/commands come from POMs, `Makefile`, and wrapper config. Batch independent reads and delegate independent work when useful.
+- Load requested or relevant skills on demand. User instructions take precedence over skill guidance. If a skill blocks work, cite its `SKILL.md` and instruction, explain why, and continue unaffected work.
+- Update affected docs and regression tests for behavior changes. Report changes, check results, and missing coverage concisely; repeat successful checks only for new evidence.
 
-1. `README.md`
-2. `docs/architecture.md`
-3. `docs/object-layering.md`
-4. the closest existing implementation and test
+## Architecture and naming
 
-Use `llms.txt` as the compact documentation index.
+- `domain` owns aggregates, values, events, and repository ports. It depends on none of `api`, `application`, `shared`, `infra`, Spring, MyBatis, or Redis.
+- `api` owns transport/facade contracts and `AuthenticatedCaller`; `shared` owns boundary conventions. Both are framework-neutral and independent of domain, application, and adapters.
+- `application` owns use cases/output ports, depending on domain, api, and shared. `infra` implements adapters; `start` composes them. Controllers use use cases/facades, not repositories, and return API responses, not VOs.
+- Names: API `*Request`/`*Response`, application `*VO`, persistence `*PO` extending `BasePO`, boundary mapping `*Assembler`, aggregate/PO mapping `*POConverter`, repository port/adapter `*Repository`/`*RepositoryImpl`.
+- Application operation/error scenes use `application.operation.UseCaseOperation`; domain facts use `*Event`. See [docs/object-layering.md](docs/object-layering.md) for naming and ownership.
+- `start` contains `ArchitectureBoundaryTest`, guarding dependencies, controllers, entities, and naming; include it when changing these boundaries.
 
-## Build and test
+## Security and tenancy
+
+- Use cases receive `AuthenticatedCaller`, validate it through `CallerGuard`, and derive `TenantId` from verified caller context, not request data.
+- Repository/cache operations require tenant scope and fail when absent; cache keys include tenant. Do not introduce identity/tenant ThreadLocals or fail-open queries.
+- Trusted `X-Dev-User-Id`/`X-Dev-Tenant-Id` headers are restricted to the guarded dev/test adapter and cannot be enabled in prod. Never accept caller-controlled roles, authorities, or administrator headers such as `X-Admin`.
+- Do not log passwords, tokens, reset codes, secrets, or sensitive request bodies. Public errors expose stable codes and safe messages.
+- Business REST endpoints use `/api/v1/`. Explicitly select profiles in `conf/`; prod requires datasource environment variables. See [docs/configuration.md](docs/configuration.md).
+
+## Domain, persistence, and transactions
+
+- Aggregates expose business methods, not public setters or Lombok `@Data`. Create through factories; restore persisted aggregates through `reconstitute` with a named snapshot, restoring version without raising events.
+- Repository save synchronizes the same aggregate instance to preserve collected events. Optimistic-lock conflicts must not overwrite newer data.
+- In the User example, `UserStatus.DELETED` is the only soft-delete representation; do not add `@TableLogic` or `deleted_time` to it. `clean.sh` may remove this example while retaining these guides.
+- Flyway is the only schema initializer. Add migrations; never edit applied ones. Keep schema, POs, converters, mapper XML, and reconstruction aligned. The database is authoritative; disabling Redis must preserve startup and correctness.
+- Commands use `CommandServiceTemplate`; queries use `QueryServiceTemplate`. Both run `validate` and `prepare` before an independent transaction around `execute` and `onSuccess`. Queries use a read-only `REPEATABLE_READ` snapshot; commands use a write transaction.
+- Register cache mutations and events separately through `AfterCommitExecutor`: rollback exposes neither, and one callback failure cannot suppress the other. Guaranteed cross-service delivery needs an outbox.
+- Use domain-owned `DomainException`/`DomainError` and application-owned `ApplicationException`/`NonRetryableApplicationException`, mapped at boundaries. Do not catch `Throwable` or suppress unexpected failures.
+
+## Verification
+
+Run from the generated project root with the JDK required by `pom.xml`:
 
 ```bash
-sh ./mvnw clean install
-sh ./mvnw test
+# Focused feedback, including reactor dependencies (choose the affected module).
+CI=false sh ./mvnw -pl application -am test
+
+# All unit and architecture tests, without Docker.
+CI=false sh ./mvnw test
+
+# Includes Docker/MySQL Testcontainers integration tests.
 CI=true sh ./mvnw test
 ```
 
-`CI=true sh ./mvnw test` requires Docker and runs MySQL Testcontainers integration tests. After a database, security, transaction, mapper, cache, or event change, the integration suite is required.
-
-Run focused tests with Maven reactor dependencies:
-
-```bash
-sh ./mvnw -pl shared -am test
-sh ./mvnw -pl domain -am test
-sh ./mvnw -pl application -am test
-sh ./mvnw -pl infra/persistence -am test
-sh ./mvnw -pl infra/rest -am test
-```
-
-## Architecture rules
-
-- Dependencies point inward: adapters -> application -> domain.
-- `domain` must not import API, application, servlet, Spring persistence, MyBatis, Redis, or infrastructure types.
-- `application` owns use-case orchestration and output ports.
-- `infra` implements ports and owns technology-specific code.
-- `start` is the composition root, not a business layer.
-- Keep `shared` small and free of domain concepts.
-- Commands use `CommandServiceTemplate`; queries use `QueryServiceTemplate`.
-- Keep `UseCaseOperation` in `application/operation`; names describe the application operation and its stable error-code scene.
-
-## Security and tenancy rules
-
-- Every use case receives an explicit `AuthenticatedCaller` and validates it through `CallerGuard`.
-- Derive `TenantId` from verified caller context, never from normal request data.
-- Every repository and cache operation is tenant scoped and fails when tenant is absent.
-- Cache keys include tenant identity.
-- Do not add identity or tenant ThreadLocals.
-- Do not trust caller-controlled role, authority, administrator, actor, or tenant headers.
-- `X-Dev-User-Id` and `X-Dev-Tenant-Id` are allowed only through the existing dev/test adapter.
-- Production must remain unable to enable trusted headers.
-- Never log passwords, authentication tokens, reset codes, secrets, or full sensitive requests.
-
-## Domain and persistence rules
-
-- Aggregates expose behavior methods, not public state setters.
-- New aggregates use factories or creation methods; persisted aggregates use `reconstitute` with a named snapshot.
-- Reconstitution restores version and never raises new events.
-- Repository save synchronizes the same aggregate instance so events are preserved.
-- Optimistic-lock conflicts must not overwrite newer data.
-- `UserStatus.DELETED` is the only soft-delete representation; do not add `@TableLogic` or `deleted_time`.
-- Flyway is the only schema initializer. Add a new migration; never edit an applied one.
-- Keep migration, PO, converter, mapper XML, and aggregate reconstruction aligned.
-- The relational database is the source of truth; Redis is optional.
-
-## Transactions and events
-
-- State changes run through `CommandServiceTemplate`, which opens an independent transaction around `execute` and `onSuccess`; `validate` and `prepare` run before that transaction.
-- Queries run through `QueryServiceTemplate`, which opens an independent read-only `REPEATABLE_READ` transaction around `execute` and `onSuccess`; `validate` and `prepare` run before the snapshot.
-- Cache mutation and event publication run through separate `AfterCommitExecutor` registrations.
-- A rollback must not expose cache or event side effects.
-- Use a transactional outbox for delivery guarantees beyond best-effort post-commit publication.
-- Do not catch `Throwable` or suppress unexpected failures.
-- Use `DomainException`, `ApplicationException`, and `NonRetryableApplicationException` according to ownership.
-- Public errors expose stable codes and safe messages only.
-
-## Naming
-
-- API transport: `*Request`, `*Response`.
-- Application output: `*VO`.
-- Persistence model: `*PO`; persistence mapping: `*POConverter`.
-- API mapping: `*Assembler`; persistence mapping: `*POConverter`.
-- Ports use capability names such as `CacheStore` or `PasswordHasher`.
-- Avoid `I*`, concrete `Abstract*` beans, and vague `Manager`, `Helper`, `Data`, or `Model` names.
-- Preserve established package ownership when adding a class.
-
-## Change workflow
-
-1. Inspect the current contract and its callers with `rg`.
-2. Make the smallest coherent change across all affected layers.
-3. Add or update tests before considering the change complete.
-4. Run focused tests, then the full fast suite.
-5. Run Docker integration tests for boundary changes.
-6. Update README, docs, and `llms.txt` when behavior, configuration, modules, or public contracts change.
-7. Review the diff for secrets, sensitive logging, cross-tenant access, stale names, and duplicate configuration.
-
-Do not weaken a security or tenant invariant merely to make a test pass. Fix the caller, fixture, or adapter so the invariant remains explicit.
+- For prose-only edits, check accuracy, links, and `git diff --check`.
+- Test affected behavior. Cross-module, dependency, or architecture changes require the full non-Docker suite, including `ArchitectureBoundaryTest`. Maven `test` already compiles.
+- Database, authentication, transaction, mapper, cache, or event behavior changes also require the Docker suite. Set `CI` explicitly to control integration tests; report missing coverage if Docker/dependencies are unavailable.
+- Test `clean.sh` changes on a disposable copy with `make clean-sample` twice, then run the cleaned project's tests. Preserve generic architecture/security building blocks.
+- Do not weaken security, tenant isolation, or assertions to pass checks. See [docs/test-guide.md](docs/test-guide.md) for fixtures and coverage.

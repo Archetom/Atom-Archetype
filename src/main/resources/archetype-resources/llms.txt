@@ -13,7 +13,7 @@ $h2 Primary documentation
 - [Configuration and security](docs/configuration.md): profiles, environment variables, trusted-header restrictions, Flyway, Redis, MyBatis, and observability.
 - [Object layering and naming](docs/object-layering.md): Request, Response, AuthenticatedCaller, VO, aggregate, value object, PO, converter, error, and naming rules.
 - [Testing guide](docs/test-guide.md): unit, adapter, security, transaction, migration, and MySQL Testcontainers tests.
-- [Agent instructions](AGENTS.md): mandatory rules and verification workflow for automated contributors.
+- [Agent instructions](AGENTS.md): application invariants, task execution, and change-specific verification for coding agents.
 
 $h2 Architecture summary
 
@@ -50,9 +50,7 @@ Search these class names with `rg` because generated Java paths include the chos
 
 $h2 Verification
 
-- Fast suite: `sh ./mvnw test`
-- Docker/MySQL integration suite: `CI=true sh ./mvnw test`
-- Full build: `sh ./mvnw clean install`
+See [AGENTS.md](AGENTS.md#verification) for check selection and commands, including the explicit `CI=false` fast suite and `CI=true` Docker/MySQL suite.
 
 $h2 Security warning
 

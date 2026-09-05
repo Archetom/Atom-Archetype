@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for improving Atom Archetype. Read [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) before changing templates.
+Thank you for improving Atom Archetype. Use [AGENTS.md](AGENTS.md) for editing and verification rules; consult [docs/architecture.md](docs/architecture.md) when changing application boundaries.
 
 ## Workflow
 
@@ -12,14 +12,7 @@ Thank you for improving Atom Archetype. Read [AGENTS.md](AGENTS.md) and [docs/ar
 
 ## Verification
 
-```bash
-make install
-make demo
-cd ~/Downloads/atom-demo
-sh ./mvnw compile
-sh ./mvnw test
-CI=true sh ./mvnw test  # requires Docker
-```
+Follow the change-specific checks in [AGENTS.md](AGENTS.md#verification). `make demo` includes installation and generates `target/generated-projects/atom-demo` by default; run application Maven commands from that generated project root.
 
 Pull requests should state which commands passed and whether Docker-backed tests were run.
 
