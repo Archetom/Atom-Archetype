@@ -2,8 +2,6 @@ package ${package}.application.event;
 
 import ${package}.domain.event.DomainEvent;
 import ${package}.domain.event.DomainEventPublisher;
-import ${package}.domain.event.UserCreatedEvent;
-import ${package}.domain.event.UserStatusChangedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

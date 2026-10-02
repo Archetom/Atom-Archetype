@@ -9,12 +9,14 @@ import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class QueryServiceTemplateTest {
@@ -65,6 +67,42 @@ class QueryServiceTemplateTest {
         assertTrue(result.isSuccess());
         assertEquals("snapshot", result.getData());
         assertEquals(List.of("validate", "prepare", "begin", "execute", "onSuccess", "commit"), lifecycle);
+    }
+
+    @Test
+    void resultResolvedWithoutTransactionNeverOpensOne() {
+        List<String> lifecycle = new ArrayList<>();
+        PlatformTransactionManager transactionManager = mock(PlatformTransactionManager.class);
+
+        QueryServiceTemplate template = new QueryServiceTemplate("test-app", transactionManager);
+        Result<String> result = template.execute(TestOperation.READ, new ServiceOperation<>() {
+            @Override
+            public void validate() {
+                lifecycle.add("validate");
+            }
+
+            @Override
+            public Optional<String> resolveWithoutTransaction() {
+                lifecycle.add("resolve");
+                return Optional.of("cached");
+            }
+
+            @Override
+            public String execute() {
+                lifecycle.add("execute");
+                return "snapshot";
+            }
+
+            @Override
+            public void onSuccess(String ignored) {
+                lifecycle.add("onSuccess");
+            }
+        });
+
+        assertTrue(result.isSuccess());
+        assertEquals("cached", result.getData());
+        assertEquals(List.of("validate", "resolve"), lifecycle);
+        verifyNoInteractions(transactionManager);
     }
 
     private enum TestOperation implements OperationCode {

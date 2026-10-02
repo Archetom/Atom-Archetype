@@ -2,23 +2,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- Log4j has three main components: Loggers, Appenders, and Layouts. They represent log categories, log destinations, and log formatting. -->
-    <!-- Loggers are divided into five ordered levels: DEBUG, INFO, WARN, ERROR, and FATAL. Log4j only outputs messages whose level is not lower than the configured level.-->
-    <!-- Read configuration from application.yml-->
+    <!-- Read the log location and application name from the Spring environment. -->
     <springProperty scope="context" name="APP_LOG_PATH" source="logging.file.path" defaultValue="./logs/app"/>
     <springProperty scope="context" name="APP_NAME" source="spring.application.name"/>
-    <springProperty scope="context" name="APP_ACTIVE" source="spring.profiles.active" defaultValue="ie"/>
-    <springProperty scope="context" name="LOG_LEVEL" source="logging.level.root" defaultValue="info"/>
 
     <!--Enable this option to avoid losing in-memory log data when the process exits-->
     <shutdownHook class="ch.qos.logback.core.hook.DefaultShutdownHook"/>
 
-    <!-- Log format and retention time -->
+    <!-- Log format and retention time. requestId comes from the HTTP request filter and follows async event handling. -->
     <property name="MAX_HISTORY" value="7"/>
     <property name="LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p - %msg%n"/>
-    <property name="LOG_PATTERN-PERF"
-              value="%n - %msg%n"/>
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%thread] [%X{requestId:-}] %logger{36} - %msg%n"/>
 
     <!--****************************************************** Do not change the section below ****************************************-->
     <!-- Console appender -->

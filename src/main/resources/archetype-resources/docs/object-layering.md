@@ -69,11 +69,14 @@ Avoid `Abstract*` on concrete Spring beans. Use `Request`, `Response`, `VO`, or 
 | Type | Meaning |
 | --- | --- |
 | `DomainException` | Stable domain failure with a domain error classification |
+| `InvalidValueException` | A value object rejected caller-supplied input; mapped to `PARAMETER_INVALID` and HTTP 400 |
 | `ApplicationException` | Application workflow failure that may be retried according to policy |
 | `NonRetryableApplicationException` | Stable application rejection |
 | Infrastructure exception | Translated at the adapter boundary or by a dedicated mapper |
 
 Public errors expose a stable code and safe message, never an arbitrary internal exception message. Specific names include `UserNotFoundException`, `UserAlreadyExistsException`, and `AggregateVersionConflictException`.
+
+A bare `IllegalArgumentException` or `IllegalStateException` is a programming error or broken invariant, such as a tenant mismatch, and is reported as an internal failure (HTTP 500). Never use it to reject caller input. Values that never come from callers, such as `TenantId` and `PasswordHash`, therefore keep `IllegalArgumentException`. Stored rows that fail reconstruction are data-integrity failures, not caller errors.
 
 ## Persistence and collections
 

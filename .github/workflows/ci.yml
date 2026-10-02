@@ -108,6 +108,14 @@ jobs:
         working-directory: ${{ runner.temp }}/atom-demo
         run: sh ./mvnw -B -ntp compile
 
+      - name: Verify test-only configuration is not packaged
+        working-directory: ${{ runner.temp }}/atom-demo
+        shell: bash
+        run: |
+          test -f start/target/classes/application.yml
+          test ! -e start/target/classes/application-test.yml
+          test ! -e conf/application-test.yml
+
       - name: Analyze generated project dependencies
         timeout-minutes: 10
         working-directory: ${{ runner.temp }}/atom-demo
@@ -144,8 +152,13 @@ jobs:
             exit 1
           fi
           test ! -e docs/api-reference.md
+          if [ -z "$(find . -path '*/target' -prune -o -type f -name DomainEventPublisherImpl.java -print)" ]; then
+            echo "clean-sample removed the generic domain event publisher."
+            exit 1
+          fi
           if grep -R -n -E 'api-reference|/api/v1/users|users:(read|write|delete)' \
-              README.md README.en.md AGENTS.md llms.txt infra/rest/src/main/java conf; then
+              README.md README.en.md AGENTS.md llms.txt infra/rest/src/main/java conf \
+              start/src/test/resources; then
             echo "User-specific runtime configuration remains after clean-sample."
             exit 1
           fi

@@ -1,6 +1,7 @@
 package ${package}.infra.persistence.converter;
 
 import ${package}.domain.entity.User;
+import ${package}.domain.exception.DomainException;
 import ${package}.domain.model.UserStatus;
 import ${package}.domain.valueobject.Email;
 import ${package}.domain.valueobject.PasswordHash;
@@ -20,13 +21,23 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public abstract class UserPOConverter {
 
-    /** Reconstitute a User without raising new domain events. */
+    /**
+     * Reconstitute a User without raising new domain events.
+     *
+     * <p>Stored rows are trusted state, so a row that violates domain rules is an internal
+     * data-integrity failure, never a caller error.</p>
+     */
     public User toDomain(UserPO userPO) {
         if (userPO == null) {
             return null;
         }
 
-        return User.reconstitute(toSnapshot(userPO));
+        try {
+            return User.reconstitute(toSnapshot(userPO));
+        } catch (DomainException exception) {
+            throw new IllegalStateException(
+                    "Stored user " + userPO.getId() + " violates domain rules", exception);
+        }
     }
 
     @Mapping(target = "id", expression = "java(longToUserId(userPO.getId()))")

@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * User use cases with explicit caller and tenant context.
@@ -69,28 +70,22 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void prepare() {
-                try {
-                    if (request.getPhoneNumber() != null) {
-                        user = userFactory.createUserWithPhone(
-                                tenantId,
-                                request.getUsername(),
-                                request.getEmail(),
-                                request.getPhoneNumber(),
-                                request.getPassword(),
-                                request.getRealName());
-                    } else {
-                        user = userFactory.createStandardUser(
-                                tenantId,
-                                request.getUsername(),
-                                request.getEmail(),
-                                request.getPassword(),
-                                request.getRealName());
-                    }
-                } catch (IllegalArgumentException exception) {
-                    throw new NonRetryableApplicationException(
-                            ApplicationErrorCode.PARAMETER_INVALID,
-                            "User data is invalid",
-                            exception);
+                // Invalid values raise InvalidValueException, which the template maps to PARAMETER_INVALID.
+                if (request.getPhoneNumber() != null) {
+                    user = userFactory.createUserWithPhone(
+                            tenantId,
+                            request.getUsername(),
+                            request.getEmail(),
+                            request.getPhoneNumber(),
+                            request.getPassword(),
+                            request.getRealName());
+                } else {
+                    user = userFactory.createStandardUser(
+                            tenantId,
+                            request.getUsername(),
+                            request.getEmail(),
+                            request.getPassword(),
+                            request.getRealName());
                 }
             }
 
@@ -125,16 +120,21 @@ public class UserServiceImpl implements UserService {
             }
 
             @Override
-            public UserVO execute() {
+            public Optional<UserVO> resolveWithoutTransaction() {
+                // Serve cache hits after the authority check, without borrowing a database connection.
                 UserVO cachedUser = userCacheService.getCachedUser(tenantId, id);
-                if (cachedUser != null) {
-                    if (UserStatus.DELETED.getCode().equals(cachedUser.getStatus())) {
-                        userCacheService.evictUser(tenantId, id);
-                        throw new UserNotFoundException(userId);
-                    }
-                    return cachedUser;
+                if (cachedUser == null) {
+                    return Optional.empty();
                 }
+                if (UserStatus.DELETED.getCode().equals(cachedUser.getStatus())) {
+                    userCacheService.evictUser(tenantId, id);
+                    throw new UserNotFoundException(userId);
+                }
+                return Optional.of(cachedUser);
+            }
 
+            @Override
+            public UserVO execute() {
                 User user = findVisibleUser(tenantId, id, userId);
                 UserVO userVO = UserAssembler.INSTANCE.toVO(user);
                 userCacheService.cacheUser(tenantId, userVO);

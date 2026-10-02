@@ -3,6 +3,7 @@ package ${package}.application.event.listener;
 import ${package}.domain.event.UserCreatedEvent;
 import ${package}.domain.event.UserStatusChangedEvent;
 import ${package}.application.port.out.UserNotificationPort;
+import ${package}.shared.logging.RedactedThrowable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -27,8 +28,7 @@ public class UserEventListener {
             notificationPort.sendWelcomeNotification(event.getEmail(), event.getUsername());
             log.info("User-created event processed: userId={}", event.getUserId());
         } catch (Exception e) {
-            log.error("User-created event failed: userId={}, exceptionType={}",
-                    event.getUserId(), e.getClass().getName());
+            log.error("User-created event failed: userId={}", event.getUserId(), RedactedThrowable.of(e));
         }
     }
 
@@ -58,8 +58,7 @@ public class UserEventListener {
 
             log.info("User-status event processed: userId={}", event.getUserId());
         } catch (Exception e) {
-            log.error("User-status event failed: userId={}, exceptionType={}",
-                    event.getUserId(), e.getClass().getName());
+            log.error("User-status event failed: userId={}", event.getUserId(), RedactedThrowable.of(e));
         }
     }
 }

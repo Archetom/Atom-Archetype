@@ -8,8 +8,10 @@ import ${package}.application.service.template.CommandServiceTemplate;
 import ${package}.application.service.template.QueryServiceTemplate;
 import ${package}.application.security.CallerGuard;
 import ${package}.application.transaction.AfterCommitExecutor;
+import ${package}.application.vo.UserVO;
 import ${package}.domain.entity.User;
 import ${package}.domain.event.DomainEventPublisher;
+import ${package}.domain.exception.InvalidValueException;
 import ${package}.domain.factory.UserFactory;
 import ${package}.domain.model.UserStatus;
 import ${package}.domain.repository.UserRepository;
@@ -117,12 +119,41 @@ class UserServiceImplTest {
         when(userFactory.createStandardUser(
                 new TenantId(99L), "alice", "alice@localhost",
                 "long-enough-password", null))
-                .thenThrow(new IllegalArgumentException("invalid email"));
+                .thenThrow(new InvalidValueException("Invalid email format or length"));
 
         Result<?> result = service.createUser(caller("users:write"), request);
 
         assertFailure(result, "101");
+        assertEquals("Invalid email format or length",
+                result.getErrorContext().fetchRootError().getErrorMsg());
         verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    void cacheHitIsServedWithoutOpeningTransaction() {
+        TenantId tenantId = new TenantId(99L);
+        UserId userId = new UserId(10L);
+        UserVO cachedUser = new UserVO().setId(10L).setTenantId(99L).setStatus(UserStatus.ACTIVE.getCode());
+        when(userCacheService.getCachedUser(tenantId, userId)).thenReturn(cachedUser);
+
+        Result<UserVO> result = service.getUserById(caller("users:read"), 10L);
+
+        assertTrue(result.isSuccess());
+        assertEquals(cachedUser, result.getData());
+        verify(transactionManager, never()).getTransaction(org.mockito.ArgumentMatchers.any());
+        verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    void brokenInvariantIsAnInternalFailureNotAParameterError() {
+        TenantId tenantId = new TenantId(99L);
+        UserId userId = new UserId(10L);
+        when(userRepository.findById(tenantId, userId))
+                .thenThrow(new IllegalArgumentException("User tenant does not match repository tenant"));
+
+        Result<?> result = service.getUserById(caller("users:read"), 10L);
+
+        assertFailure(result, "000");
     }
 
     @Test

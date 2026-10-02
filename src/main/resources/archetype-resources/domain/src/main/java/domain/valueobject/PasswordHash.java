@@ -20,6 +20,8 @@ public final class PasswordHash implements ValueObject<PasswordHash> {
     private final String value;
 
     private PasswordHash(String value) {
+        // Hashes come from the hashing adapter or storage, never from caller input,
+        // so an invalid value is an internal failure rather than an InvalidValueException.
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("Password hash must not be blank");
         }

@@ -14,6 +14,10 @@ assert new File(projectDir,
 assert new File(projectDir, 'infra/persistence/src/main/resources/mapper/UserMapper.xml')
         .text.contains('#{tenantId}')
 assert new File(projectDir, 'conf/logback-spring.xml').text.contains('${LOG_PATTERN}')
+// The test profile enables trusted headers, so it must stay a test resource outside the runtime jar.
+assert !new File(projectDir, 'conf/application-test.yml').exists()
+assert new File(projectDir, 'start/src/test/resources/application-test.yml')
+        .text.contains('name: generated-app-test')
 assert new File(projectDir,
         'start/src/test/java/com/example/generated/UserControllerIntegrationTest.java')
         .text.contains('jsonPath("$.username")')

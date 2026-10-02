@@ -3,6 +3,7 @@
 #set( $symbol_escape = '\' )
 package ${package}.domain.valueobject;
 
+import ${package}.domain.exception.InvalidValueException;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,10 +21,10 @@ public class PhoneNumber implements ValueObject<PhoneNumber> {
 
     public PhoneNumber(String value) {
         if (StringUtils.isBlank(value)) {
-            throw new IllegalArgumentException("Phone number cannot be blank");
+            throw new InvalidValueException("Phone number cannot be blank");
         }
         if (!PHONE_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException("Phone number must use E.164 format");
+            throw new InvalidValueException("Phone number must use E.164 format");
         }
         this.value = value;
     }

@@ -1,6 +1,7 @@
 package ${package}.infra.persistence.cache;
 
 import ${package}.application.port.out.CacheStore;
+import ${package}.shared.logging.RedactedThrowable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -33,7 +34,7 @@ public class RedisCacheService implements CacheStore {
             log.debug("Redis cache hit");
             return objectMapper.readValue(value, type);
         } catch (Exception exception) {
-            log.error("Redis cache get failure: exceptionType={}", exception.getClass().getName());
+            log.error("Redis cache get failure", RedactedThrowable.of(exception));
             return null;
         }
     }
@@ -49,7 +50,7 @@ public class RedisCacheService implements CacheStore {
             }
             log.debug("Redis cache write: ttl={}", ttl);
         } catch (Exception exception) {
-            log.error("Redis cache write failure: exceptionType={}", exception.getClass().getName());
+            log.error("Redis cache write failure", RedactedThrowable.of(exception));
         }
     }
 
@@ -59,7 +60,7 @@ public class RedisCacheService implements CacheStore {
             redisTemplate.delete(key);
             log.debug("Redis cache entry cleared");
         } catch (Exception exception) {
-            log.error("Redis cache clear failure: exceptionType={}", exception.getClass().getName());
+            log.error("Redis cache clear failure", RedactedThrowable.of(exception));
         }
     }
 }

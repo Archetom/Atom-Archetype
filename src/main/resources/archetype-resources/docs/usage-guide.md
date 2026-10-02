@@ -46,12 +46,12 @@ Work from the domain toward the adapters:
 6. Register framework-neutral factories, policies, and domain services in `application/config/DomainConfiguration` when they need runtime dependencies.
 7. Add or update the public Request, Response, and facade contract in `api`.
 8. Bind the HTTP route and its authority in `infra/rest/SecurityConfig`, then repeat the same capability check through `CallerGuard` in the use case.
-9. Add the new local capability to both `conf/application-dev.yml` and `conf/application-test.yml`; otherwise the sample development identity will receive HTTP 403.
+9. Add the new local capability to both `conf/application-dev.yml` and `start/src/test/resources/application-test.yml`; otherwise the sample development identity will receive HTTP 403.
 10. Add domain, application, persistence, REST, and integration tests as applicable. `ArchitectureBoundaryTest` must still pass.
 
 Commands use the `validate -> prepare -> execute -> onSuccess` lifecycle. `validate` and `prepare` run before `CommandServiceTemplate` opens an independent transaction for `execute` and `onSuccess`, so CPU-heavy preparation does not occupy a database connection. Register event publication and cache work as separate `AfterCommitExecutor` actions. Use a transactional outbox when delivery must survive process failure after commit.
 
-Queries also validate the caller and tenant before a repository or cache lookup. Every cache key must include tenant identity, and a cache hit must not bypass ownership checks.
+Queries also validate the caller and tenant before a repository or cache lookup. Every cache key must include tenant identity, and a cache hit must not bypass ownership checks. Return cache hits from `resolveWithoutTransaction()`, which runs after `validate`, so they do not open a read transaction or borrow a database connection; `getUserById` is the reference.
 
 ### First additional aggregate: complete checklist
 
@@ -138,7 +138,7 @@ Keep transport work in `infra/rest`:
 
 Do not accept actor ID, tenant ID, authorities, or administrator flags from an ordinary request body. Do not log passwords, tokens, or complete request objects that may contain them.
 
-Use stable public errors and the narrowest internal failure type. Unexpected exceptions are logged internally and mapped to a generic response; stack traces, SQL, credentials, class names, and arbitrary exception messages are never returned.
+Use stable public errors and the narrowest internal failure type. Unexpected exceptions are logged internally and mapped to a generic response; stack traces, SQL, credentials, class names, and arbitrary exception messages are never returned. Log them with `RedactedThrowable.of(exception)` so logs keep exception types and stack frames without copying messages that may contain credentials or personal data.
 
 ## Verify the change
 

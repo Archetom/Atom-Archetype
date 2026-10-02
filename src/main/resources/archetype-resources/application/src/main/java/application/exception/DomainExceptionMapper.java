@@ -13,6 +13,7 @@ public final class DomainExceptionMapper {
 
     public static ApplicationErrorCode toApplicationCode(DomainException exception) {
         return switch (exception.getError()) {
+            case INVALID_VALUE -> ApplicationErrorCode.PARAMETER_INVALID;
             case RULE_VIOLATION -> ApplicationErrorCode.DOMAIN_RULE_VIOLATION;
             case NOT_FOUND -> ApplicationErrorCode.RESOURCE_NOT_FOUND;
             case ALREADY_EXISTS -> ApplicationErrorCode.RESOURCE_ALREADY_EXISTS;

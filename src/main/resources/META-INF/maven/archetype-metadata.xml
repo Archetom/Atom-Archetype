@@ -205,8 +205,12 @@
                         <include>**/*.java</include>
                     </includes>
                 </fileSet>
+                <!-- Runtime profiles come from the root conf/ file set; test-only profiles stay out of the jar. -->
                 <fileSet filtered="true" encoding="UTF-8">
-                    <directory>../conf</directory>
+                    <directory>src/test/resources</directory>
+                    <includes>
+                        <include>**/*</include>
+                    </includes>
                 </fileSet>
             </fileSets>
         </module>

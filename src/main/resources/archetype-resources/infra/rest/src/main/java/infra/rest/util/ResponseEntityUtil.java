@@ -4,7 +4,9 @@ import ${package}.infra.rest.result.RestErrorResult;
 import ${package}.shared.enums.ApplicationErrorCode;
 import io.github.archetom.common.error.CommonError;
 import io.github.archetom.common.result.Result;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -45,6 +47,17 @@ public final class ResponseEntityUtil {
         } else {
             return ResponseEntityUtil.fail(result);
         }
+    }
+
+    /**
+     * Builds a failure whose HTTP status and headers were already decided by Spring MVC,
+     * such as 405 with {@code Allow}, while keeping the stable error body.
+     */
+    public static ResponseEntity<?> assembleFailure(Result<?> result, HttpStatusCode status, HttpHeaders headers) {
+        if (result.isSuccess()) {
+            throw new IllegalArgumentException("A failure response requires a failed result");
+        }
+        return ResponseEntity.status(status).headers(headers).body(fail(result).getBody());
     }
 
     private static HttpStatus resolveHttpStatus(CommonError error) {

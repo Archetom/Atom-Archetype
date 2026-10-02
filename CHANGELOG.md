@@ -4,9 +4,23 @@ All notable architecture, compatibility, and security changes are documented her
 
 ## [Unreleased]
 
+### Security
+
+- moved the generated test profile, which enables trusted development headers, to `start/src/test/resources` so it is never packaged into the application jar
+
+### Changed
+
+- value objects reject caller input with `InvalidValueException` (`DomainError.INVALID_VALUE`, HTTP 400); a bare `IllegalArgumentException` now signals a programming error and maps to HTTP 500
+- unexpected failures log exception types and stack frames through `RedactedThrowable`, still without exception messages
+- every HTTP response carries an `X-Request-Id` header, and log lines include the thread, request ID, and logger name; the request ID follows async event listeners
+- added `ServiceOperation.resolveWithoutTransaction` so results such as cache hits are served before a transaction opens; User detail cache hits no longer borrow a database connection
+
 ### Fixed
 
 - corrected the version guide to reflect that `2.0.0` is available from Maven Central
+- keep the generic `DomainEventPublisherImpl` when `make clean-sample` removes the User sample
+- report Spring MVC client errors, such as unknown routes (404) and unsupported methods (405), with their own status instead of HTTP 500
+- treat stored rows that fail domain reconstruction as internal data-integrity failures rather than caller errors
 
 ## [2.1.0] — 2026-08-08
 

@@ -73,7 +73,7 @@ Dependencies flow from `infra` to `application` to `domain`. The `domain` module
 $h2 Configuration
 
 - `conf/application-dev.yml`: local development settings.
-- `conf/application-test.yml`: automated test settings.
+- `start/src/test/resources/application-test.yml`: automated test settings, available only on the test classpath and never packaged into the application jar.
 - `conf/application-prod.yml`: production settings, with no default datasource credentials.
 
 The `X-Dev-User-Id` and `X-Dev-Tenant-Id` headers are limited to explicitly enabled `dev` and `test` environments. Production should integrate a real identity provider and map verified identities to `AuthenticatedCaller`.

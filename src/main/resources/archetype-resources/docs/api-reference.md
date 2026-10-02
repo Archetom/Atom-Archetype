@@ -64,7 +64,10 @@ Errors have a stable public shape:
 | `400` | Invalid syntax, validation failure, or unsupported status transition |
 | `401` | Authentication is missing or invalid |
 | `403` | The authenticated caller lacks the required authority |
-| `404` | The tenant-scoped resource does not exist |
+| `404` | The tenant-scoped resource or the route does not exist |
+| `405` | The route does not support the HTTP method; `Allow` lists the supported methods |
 | `409` | A unique value, aggregate version, or database lock acquisition conflicts |
 | `422` | Another stable domain rule rejected the operation |
 | `500` | Unexpected internal failure; internal details are not exposed |
+
+Every response, including errors, carries an `X-Request-Id` header. Quote it when reporting a problem so the request can be matched to server logs.

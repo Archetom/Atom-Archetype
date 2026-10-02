@@ -1,5 +1,7 @@
+#set( $dollar = '$' )
 package ${package}.infra.rest.advice;
 
+import ${package}.domain.exception.InvalidValueException;
 import ${package}.domain.exception.UserAlreadyExistsException;
 import ${package}.domain.exception.UserDomainException;
 import ${package}.domain.exception.UserNotFoundException;
@@ -11,15 +13,25 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(OutputCaptureExtension.class)
 class RestExceptionAdviceTest {
@@ -64,15 +76,23 @@ class RestExceptionAdviceTest {
     }
 
     @Test
-    void shouldMapIllegalArgumentToBadRequestWithoutLeakingValue(CapturedOutput output) {
-        String rejectedValue = "invalid phone +secret";
-        ResponseEntity<?> response = advice.illegalArgumentException(
-                new IllegalArgumentException(rejectedValue));
+    void shouldMapInvalidValueToBadRequest() {
+        ResponseEntity<?> response = advice.domainException(
+                new InvalidValueException("Phone number must use E.164 format"));
 
-        RestErrorResult error = assertError(response, HttpStatus.BAD_REQUEST, "101",
-                "Request parameters are invalid");
-        assertFalse(error.getErrMsg().contains(rejectedValue));
-        assertFalse(output.getAll().contains(rejectedValue));
+        assertError(response, HttpStatus.BAD_REQUEST, "101", "Phone number must use E.164 format");
+    }
+
+    @Test
+    void shouldTreatBareIllegalArgumentAsInternalFailureWithoutLeakingValue(CapturedOutput output) {
+        String internalDetail = "tenant 7 does not match tenant 9 password=secret";
+        ResponseEntity<?> response = advice.unexpectedException(
+                new IllegalArgumentException(internalDetail));
+
+        RestErrorResult error = assertError(response, HttpStatus.INTERNAL_SERVER_ERROR, "000",
+                ApplicationErrorCode.UNKNOWN.getDescription());
+        assertFalse(error.getErrMsg().contains(internalDetail));
+        assertFalse(output.getAll().contains(internalDetail));
     }
 
     @Test
@@ -120,6 +140,35 @@ class RestExceptionAdviceTest {
                 ApplicationErrorCode.UNKNOWN.getDescription());
         assertFalse(error.getErrMsg().contains(internalMessage));
         assertFalse(output.getAll().contains(internalMessage));
+        // The log still shows the failure type and where it was thrown.
+        assertTrue(output.getAll().contains(RuntimeException.class.getName()));
+        assertTrue(output.getAll().contains("shouldMapUnknownFailureToInternalServerErrorWithoutLeakingMessage"));
+    }
+
+    @Test
+    void shouldKeepSpringMvcClientErrorStatusInsteadOfReportingServerFailure(CapturedOutput output) throws Exception {
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new PingController())
+                .setControllerAdvice(advice)
+                .build();
+
+        mockMvc.perform(patch("/ping"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string(HttpHeaders.ALLOW, org.hamcrest.Matchers.containsString("GET")))
+                .andExpect(jsonPath("${dollar}.errMsg").value("Method Not Allowed"));
+        mockMvc.perform(get("/missing"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("${dollar}.errCode").value(org.hamcrest.Matchers.endsWith("300")));
+
+        assertFalse(output.getAll().contains("Unexpected request failure"));
+    }
+
+    @RestController
+    static class PingController {
+
+        @GetMapping("/ping")
+        String ping() {
+            return "pong";
+        }
     }
 
     private RestErrorResult assertError(

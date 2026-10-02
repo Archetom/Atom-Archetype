@@ -7,12 +7,17 @@ import ${package}.infra.rest.util.ErrorResultWrapUtil;
 import ${package}.infra.rest.util.ResponseEntityUtil;
 import ${package}.shared.enums.ApplicationErrorCode;
 import ${package}.shared.exception.ApplicationException;
+import ${package}.shared.logging.RedactedThrowable;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -66,16 +71,10 @@ public class RestExceptionAdvice {
                 ApplicationErrorCode.ACCESS_DENIED.getDescription(), appName));
     }
 
-    /** Maps invalid value-object and boundary arguments without exposing rejected values. */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> illegalArgumentException(IllegalArgumentException exception) {
-        log.warn("Request argument rejected: exceptionType={}", exception.getClass().getName());
-        return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
-                ApplicationErrorCode.PARAMETER_INVALID,
-                ApplicationErrorCode.PARAMETER_INVALID.getDescription(), appName));
-    }
-
-    /** Preserves explicit codes for domain rules, missing resources, and duplicates. */
+    /**
+     * Preserves explicit codes for invalid values, domain rules, missing resources, and duplicates.
+     * A bare {@link IllegalArgumentException} is a programming error and falls through to HTTP 500.
+     */
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<?> domainException(DomainException exception) {
         ApplicationErrorCode errorCode = DomainExceptionMapper.toApplicationCode(exception);
@@ -99,11 +98,30 @@ public class RestExceptionAdvice {
         return ResponseEntityUtil.assembleResponse(exception.result());
     }
 
-    /** Maps an unexpected failure without exposing its message or cause. */
+    /**
+     * Maps an unexpected failure without exposing its message or cause. Spring MVC's own client
+     * errors, such as an unknown route (404) or unsupported method (405), keep their status.
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> unexpectedException(Exception exception) {
-        log.error("Unexpected request failure: exceptionType={}", exception.getClass().getName());
+        if (exception instanceof ErrorResponse errorResponse && errorResponse.getStatusCode().is4xxClientError()) {
+            return frameworkClientError(exception, errorResponse.getStatusCode(), errorResponse.getHeaders());
+        }
+        log.error("Unexpected request failure", RedactedThrowable.of(exception));
         return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
                 ApplicationErrorCode.UNKNOWN, null, appName));
+    }
+
+    private ResponseEntity<?> frameworkClientError(Exception exception, HttpStatusCode status, HttpHeaders headers) {
+        log.warn("Request rejected by Spring MVC: status={}, exceptionType={}",
+                status.value(), exception.getClass().getName());
+        ApplicationErrorCode errorCode = status.value() == HttpStatus.NOT_FOUND.value()
+                ? ApplicationErrorCode.RESOURCE_NOT_FOUND
+                : ApplicationErrorCode.PARAMETER_INVALID;
+        HttpStatus knownStatus = HttpStatus.resolve(status.value());
+        // The standard reason phrase never echoes request data such as the path or media type.
+        String message = knownStatus != null ? knownStatus.getReasonPhrase() : errorCode.getDescription();
+        return ResponseEntityUtil.assembleFailure(
+                ErrorResultWrapUtil.genErrorResult(errorCode, message, appName), status, headers);
     }
 }

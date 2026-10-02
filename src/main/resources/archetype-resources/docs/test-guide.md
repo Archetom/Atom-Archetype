@@ -70,7 +70,7 @@ Reconstitution tests also verify that persisted `version` is restored without ne
 
 Test through output ports. Verify that an invalid caller or missing authority is rejected before repository access, and that the caller's `TenantId` reaches every repository and cache call.
 
-For commands, verify that `validate` and `prepare` precede the independent transaction, and that a failure rolls back before it is converted to a `Result`. For queries, verify that the read phase uses an independent read-only `REPEATABLE_READ` transaction. Post-commit work runs after commit and does not run after rollback; register event and cache callbacks independently. `CommandServiceTemplateTest`, `QueryServiceTemplateTest`, and `AfterCommitExecutorTest` are the references.
+For commands, verify that `validate` and `prepare` precede the independent transaction, and that a failure rolls back before it is converted to a `Result`. For queries, verify that the read phase uses an independent read-only `REPEATABLE_READ` transaction and that a cache hit resolved without a transaction opens none. Post-commit work runs after commit and does not run after rollback; register event and cache callbacks independently. `CommandServiceTemplateTest`, `QueryServiceTemplateTest`, and `AfterCommitExecutorTest` are the references.
 
 ### Persistence
 
@@ -91,7 +91,7 @@ Representative integration coverage includes:
 
 ### Trusted-header authentication
 
-The `test` profile enables the trusted-header adapter. Requests use positive numeric `X-Dev-User-Id` and `X-Dev-Tenant-Id` values.
+The `test` profile in `start/src/test/resources/application-test.yml` enables the trusted-header adapter. It is a test resource, so the packaged application never contains it. Requests use positive numeric `X-Dev-User-Id` and `X-Dev-Tenant-Id` values.
 
 Cover missing, incomplete, and invalid header pairs; missing authority; attempted authority or administrator escalation; and trusted headers combined with `prod`. Keep credentials out of assertion output and captured logs. These tests do not replace tests for the production authentication integration.
 

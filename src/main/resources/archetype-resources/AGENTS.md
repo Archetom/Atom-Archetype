@@ -23,8 +23,8 @@ This guide describes the generated application. Inside the archetype source tree
 - Use cases receive `AuthenticatedCaller`, validate it through `CallerGuard`, and derive `TenantId` from verified caller context, not request data.
 - Repository/cache operations require tenant scope and fail when absent; cache keys include tenant. Do not introduce identity/tenant ThreadLocals or fail-open queries.
 - Trusted `X-Dev-User-Id`/`X-Dev-Tenant-Id` headers are restricted to the guarded dev/test adapter and cannot be enabled in prod. Never accept caller-controlled roles, authorities, or administrator headers such as `X-Admin`.
-- Do not log passwords, tokens, reset codes, secrets, or sensitive request bodies. Public errors expose stable codes and safe messages.
-- Business REST endpoints use `/api/v1/`. Explicitly select profiles in `conf/`; prod requires datasource environment variables. See [docs/configuration.md](docs/configuration.md).
+- Do not log passwords, tokens, reset codes, secrets, or sensitive request bodies. Log unexpected failures with `RedactedThrowable.of(exception)`, which keeps types and stack frames but never copies exception messages. Public errors expose stable codes and safe messages.
+- Business REST endpoints use `/api/v1/`. Explicitly select runtime profiles from `conf/`; prod requires datasource environment variables. Keep test-only profiles in `start/src/test/resources` so they never ship in the jar. See [docs/configuration.md](docs/configuration.md).
 
 ## Domain, persistence, and transactions
 
@@ -32,9 +32,9 @@ This guide describes the generated application. Inside the archetype source tree
 - Repository save synchronizes the same aggregate instance to preserve collected events. Optimistic-lock conflicts must not overwrite newer data.
 - In the User example, `UserStatus.DELETED` is the only soft-delete representation; do not add `@TableLogic` or `deleted_time` to it. `clean.sh` may remove this example while retaining these guides.
 - Flyway is the only schema initializer. Add migrations; never edit applied ones. Keep schema, POs, converters, mapper XML, and reconstruction aligned. The database is authoritative; disabling Redis must preserve startup and correctness.
-- Commands use `CommandServiceTemplate`; queries use `QueryServiceTemplate`. Both run `validate` and `prepare` before an independent transaction around `execute` and `onSuccess`. Queries use a read-only `REPEATABLE_READ` snapshot; commands use a write transaction.
+- Commands use `CommandServiceTemplate`; queries use `QueryServiceTemplate`. Both run `validate` and `prepare` before an independent transaction around `execute` and `onSuccess`. Queries use a read-only `REPEATABLE_READ` snapshot; commands use a write transaction. Serve cache hits from `resolveWithoutTransaction` so they never borrow a database connection.
 - Register cache mutations and events separately through `AfterCommitExecutor`: rollback exposes neither, and one callback failure cannot suppress the other. Guaranteed cross-service delivery needs an outbox.
-- Use domain-owned `DomainException`/`DomainError` and application-owned `ApplicationException`/`NonRetryableApplicationException`, mapped at boundaries. Do not catch `Throwable` or suppress unexpected failures.
+- Use domain-owned `DomainException`/`DomainError` and application-owned `ApplicationException`/`NonRetryableApplicationException`, mapped at boundaries. Value objects reject caller input with `InvalidValueException`; a bare `IllegalArgumentException` means a bug and maps to HTTP 500. Do not catch `Throwable` or suppress unexpected failures.
 
 ## Verification
 

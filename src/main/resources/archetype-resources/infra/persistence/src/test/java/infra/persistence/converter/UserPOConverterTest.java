@@ -74,4 +74,21 @@ class UserPOConverterTest {
                 () -> assertFalse(restored.hasDomainEvents())
         );
     }
+
+    @Test
+    void storedRowThatViolatesDomainRulesIsAnInternalFailure() {
+        UserPO corrupted = new UserPO()
+                .setId(10L)
+                .setUsername("alice")
+                .setEmail("not-an-email")
+                .setPasswordHash("password-hash")
+                .setStatus(UserStatus.ACTIVE.getCode());
+        corrupted.setTenantId(2L);
+
+        IllegalStateException failure = assertThrows(
+                IllegalStateException.class, () -> converter.toDomain(corrupted));
+
+        assertTrue(failure.getMessage().contains("10"));
+        assertFalse(failure.getMessage().contains("not-an-email"));
+    }
 }

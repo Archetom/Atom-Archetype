@@ -2,13 +2,15 @@
 
 Runtime configuration lives in the repository-level `conf/` directory. The `start` module adds this directory to its classpath during the Maven build. Do not create a second configuration tree under `start/src/main/resources`.
 
+Test-only configuration lives in `start/src/test/resources`. It is on the test classpath only and is never packaged into the application jar.
+
 ## Profiles
 
 | File | Purpose | Important behavior |
 | --- | --- | --- |
 | `conf/application.yml` | Defaults shared by every environment | Flyway enabled, Redis disabled, trusted headers disabled, health-only actuator exposure |
 | `conf/application-dev.yml` | Local MySQL and optional Redis | Trusted headers remain disabled until explicitly enabled |
-| `conf/application-test.yml` | MySQL Testcontainers integration tests | Trusted headers enabled for test requests, Redis disabled |
+| `start/src/test/resources/application-test.yml` | MySQL Testcontainers integration tests | Trusted headers enabled for test requests, Redis disabled; test resource only |
 | `conf/application-prod.yml` | Production | Datasource variables required, trusted headers forced off, API documentation disabled by default |
 
 No profile is selected implicitly. Start the application with one profile:
@@ -146,7 +148,7 @@ ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
   sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-The adapter is disabled by default, requires `dev` or `test`, and refuses `prod`. The `dev` profile binds to `127.0.0.1` unless `SERVER_ADDRESS` is deliberately overridden. Never forward these headers from an internet-facing proxy.
+The adapter is disabled by default, requires `dev` or `test`, and refuses `prod`. The `dev` profile binds to `127.0.0.1` unless `SERVER_ADDRESS` is deliberately overridden. The `test` profile that enables the adapter is a test resource, so activating `test` on a packaged application does not enable it. Never forward these headers from an internet-facing proxy.
 
 ### Production authentication
 
@@ -155,6 +157,15 @@ Production must verify a real credential, including its signature, issuer, audie
 ### Password hashing
 
 `infra/security` supplies a replaceable BCrypt adapter. The `atom.security.password.bcrypt-strength` property defaults to `12`. The domain receives only a `PasswordHash`; plaintext is not stored in the aggregate or persistence object.
+
+## Logging and request correlation
+
+`conf/logback-spring.xml` writes the thread, request ID, and logger name on every line.
+
+- Every HTTP response, including authentication failures and errors, carries an `X-Request-Id` header. A well-formed incoming value from a gateway (letters, digits, `.`, `_`, or `-`, at most 64 characters) is reused; any other value is replaced so callers cannot forge log lines. The ID follows async event listeners.
+- Expected rejections, such as validation, authorization, and domain-rule failures, log one WARN line without a stack trace.
+- Unexpected failures log at ERROR with exception types and stack frames through `RedactedThrowable`. Exception messages are dropped because driver, client, and parser messages can contain credentials or personal data. Put identifiers, not values, in your own log messages.
+- Spring MVC client errors, such as an unknown route (404) or an unsupported method (405), keep their status and are not reported as internal failures.
 
 ## MyBatis-Plus
 

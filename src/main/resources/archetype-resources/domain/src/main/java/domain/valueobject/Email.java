@@ -3,6 +3,7 @@
 #set( $symbol_escape = '\' )
 package ${package}.domain.valueobject;
 
+import ${package}.domain.exception.InvalidValueException;
 import lombok.Value;
 
 import java.util.regex.Pattern;
@@ -24,7 +25,7 @@ public class Email implements ValueObject<Email> {
 
     public Email(String value) {
         if (value == null || value.length() > MAX_LENGTH || !EMAIL_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException("Invalid email format or length");
+            throw new InvalidValueException("Invalid email format or length");
         }
         this.value = value;
     }

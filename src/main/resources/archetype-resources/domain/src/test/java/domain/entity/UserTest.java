@@ -3,6 +3,7 @@ package ${package}.domain.entity;
 
 import ${package}.domain.event.UserCreatedEvent;
 import ${package}.domain.event.UserStatusChangedEvent;
+import ${package}.domain.exception.InvalidValueException;
 import ${package}.domain.exception.UserDomainException;
 import ${package}.domain.model.UserStatus;
 import ${package}.domain.valueobject.Email;
@@ -71,7 +72,7 @@ class UserTest {
         assertEquals("+8613800138000", user.getPhoneNumberValue());
         assertEquals("+861******8000", user.getMaskedPhoneNumber());
         assertEquals("+861******8000", phoneNumber.toString());
-        assertThrows(IllegalArgumentException.class, () -> new PhoneNumber("13800138000"));
+        assertThrows(InvalidValueException.class, () -> new PhoneNumber("13800138000"));
     }
 
     @Test

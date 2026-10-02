@@ -4,6 +4,8 @@ package ${package}.domain.exception;
  * Stable domain failure categories independent of transport/framework codes.
  */
 public enum DomainError {
+    /** A value object rejected caller-supplied input. */
+    INVALID_VALUE,
     RULE_VIOLATION,
     NOT_FOUND,
     ALREADY_EXISTS,

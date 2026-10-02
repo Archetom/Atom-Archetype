@@ -74,12 +74,12 @@ Persistence conversion restores state without creating domain events.
 Application use cases implement a `ServiceOperation<T>` lifecycle:
 
 ```text
-validate → prepare → execute → onSuccess
+validate → prepare → [resolveWithoutTransaction] → execute → onSuccess
 ```
 
-`CommandServiceTemplate` runs validation and preparation before an independent transaction around `execute` and `onSuccess`. Failures roll back before they are converted to a `Result`; commit-dependent work is registered from `onSuccess` through `AfterCommitExecutor`. `QueryServiceTemplate` uses the same result and error mapping without a transaction.
+`CommandServiceTemplate` runs validation and preparation before an independent transaction around `execute` and `onSuccess`. Failures roll back before they are converted to a `Result`; commit-dependent work is registered from `onSuccess` through `AfterCommitExecutor`. `QueryServiceTemplate` uses the same result and error mapping inside an independent read-only `REPEATABLE_READ` transaction. A result available without database work, such as a cache hit, is returned from `resolveWithoutTransaction` and never opens a transaction.
 
-Domain failures use `DomainException` and `DomainError`. Application failures use `ApplicationException` or `NonRetryableApplicationException`. HTTP status mapping belongs to `infra/rest`.
+Domain failures use `DomainException` and `DomainError`. Value objects reject caller input with `InvalidValueException`; a bare `IllegalArgumentException` is treated as a programming error and maps to HTTP 500. Application failures use `ApplicationException` or `NonRetryableApplicationException`. HTTP status mapping belongs to `infra/rest`.
 
 ## Transactions and events
 

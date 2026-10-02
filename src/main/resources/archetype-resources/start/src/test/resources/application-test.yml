@@ -1,7 +1,7 @@
-# test environment configuration
+# Test-only profile. It is a test resource so its trusted-header settings never ship in the application jar.
 spring:
   application:
-    name: ${artifactId}-test
+    name: ${rootArtifactId}-test
   # Redis is explicitly disabled for this profile, so avoid creating unused clients and health checks.
   autoconfigure:
     exclude:

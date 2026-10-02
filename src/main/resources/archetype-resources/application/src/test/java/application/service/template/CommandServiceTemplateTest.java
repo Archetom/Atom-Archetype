@@ -1,8 +1,13 @@
 package ${package}.application.service.template;
 
+import ${package}.domain.exception.InvalidValueException;
+import ${package}.shared.enums.ApplicationErrorCode;
 import ${package}.shared.operation.OperationCode;
 import io.github.archetom.common.result.Result;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -21,6 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(OutputCaptureExtension.class)
 class CommandServiceTemplateTest {
 
     @Test
@@ -91,6 +97,47 @@ class CommandServiceTemplateTest {
         assertEquals("201", result.getErrorContext().fetchRootError()
                 .getErrorCode().getErrorSpecific());
         assertEquals(List.of("begin", "rollback"), lifecycle);
+    }
+
+    @Test
+    void mapsInvalidValueToParameterError() {
+        CommandServiceTemplate template = new CommandServiceTemplate("test-app", transactionManager(new ArrayList<>()));
+
+        Result<String> result = template.execute(TestOperation.CREATE, new ServiceOperation<>() {
+            @Override
+            public void prepare() {
+                throw new InvalidValueException("Phone number must use E.164 format");
+            }
+
+            @Override
+            public String execute() {
+                return "unreachable";
+            }
+        });
+
+        assertFalse(result.isSuccess());
+        assertEquals("101", result.getErrorContext().fetchRootError().getErrorCode().getErrorSpecific());
+        assertEquals("Phone number must use E.164 format", result.getErrorContext().fetchRootError().getErrorMsg());
+    }
+
+    @Test
+    void treatsBareIllegalArgumentAsInternalFailure(CapturedOutput output) {
+        CommandServiceTemplate template = new CommandServiceTemplate("test-app", transactionManager(new ArrayList<>()));
+
+        Result<String> result = template.execute(TestOperation.CREATE, new ServiceOperation<>() {
+            @Override
+            public String execute() {
+                throw new IllegalArgumentException("tenant mismatch for internal call");
+            }
+        });
+
+        assertFalse(result.isSuccess());
+        assertEquals("000", result.getErrorContext().fetchRootError().getErrorCode().getErrorSpecific());
+        assertEquals(ApplicationErrorCode.UNKNOWN.getDescription(), result.getErrorContext().fetchRootError().getErrorMsg());
+        // Unexpected failures log their type and stack frames, never their message.
+        assertTrue(output.getAll().contains(IllegalArgumentException.class.getName()));
+        assertTrue(output.getAll().contains("CommandServiceTemplateTest"));
+        assertFalse(output.getAll().contains("tenant mismatch for internal call"));
     }
 
     private PlatformTransactionManager transactionManager(List<String> lifecycle) {

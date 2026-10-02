@@ -5,6 +5,7 @@ import ${package}.domain.exception.DomainException;
 import ${package}.shared.enums.ApplicationErrorCode;
 import ${package}.shared.exception.ApplicationException;
 import ${package}.shared.exception.NonRetryableApplicationException;
+import ${package}.shared.logging.RedactedThrowable;
 import ${package}.shared.operation.OperationCode;
 import ${package}.shared.util.ResultUtil;
 import io.github.archetom.common.result.Result;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.PessimisticLockingFailureException;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Shared result and exception policy for application operation templates.
@@ -39,7 +41,9 @@ abstract class OperationTemplateSupport {
         try {
             operation.validate();
             operation.prepare();
-            T data = invoke(operation);
+            Optional<T> resolved = Objects.requireNonNull(operation.resolveWithoutTransaction(),
+                    "resolveWithoutTransaction must not return null");
+            T data = resolved.isPresent() ? resolved.get() : invoke(operation);
             result.setData(data);
             result.setSuccess(true);
             return result;
@@ -52,18 +56,6 @@ abstract class OperationTemplateSupport {
             NonRetryableApplicationException mapped = new NonRetryableApplicationException(
                     DomainExceptionMapper.toApplicationCode(exception),
                     exception.getMessage(),
-                    exception);
-            return ResultUtil.genErrorResult(result, mapped, event.code(), appName);
-        } catch (IllegalArgumentException exception) {
-            if (logPolicy == OperationLogPolicy.SAFE_BACKGROUND) {
-                log.warn("Background operation rejected: event={}", event);
-            } else {
-                log.warn("Application input rejected: event={}, exceptionType={}",
-                        event, exception.getClass().getName());
-            }
-            NonRetryableApplicationException mapped = new NonRetryableApplicationException(
-                    ApplicationErrorCode.PARAMETER_INVALID,
-                    ApplicationErrorCode.PARAMETER_INVALID.getDescription(),
                     exception);
             return ResultUtil.genErrorResult(result, mapped, event.code(), appName);
         } catch (NonRetryableApplicationException exception) {
@@ -84,8 +76,7 @@ abstract class OperationTemplateSupport {
             if (logPolicy == OperationLogPolicy.SAFE_BACKGROUND) {
                 log.warn("Background operation failed: event={}", event);
             } else {
-                log.error("Unexpected application failure: event={}, exceptionType={}",
-                        event, exception.getClass().getName());
+                log.error("Unexpected application failure: event={}", event, RedactedThrowable.of(exception));
             }
             return ResultUtil.genErrorResult(exception, appName);
         } finally {

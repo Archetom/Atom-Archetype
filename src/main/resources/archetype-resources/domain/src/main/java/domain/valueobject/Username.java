@@ -1,6 +1,7 @@
 #set( $dollar = '$' )
 package ${package}.domain.valueobject;
 
+import ${package}.domain.exception.InvalidValueException;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,10 +20,10 @@ public class Username implements ValueObject<Username> {
 
     public Username(String value) {
         if (StringUtils.isBlank(value)) {
-            throw new IllegalArgumentException("Username must not be empty");
+            throw new InvalidValueException("Username must not be empty");
         }
         if (!USERNAME_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException(
+            throw new InvalidValueException(
                     "Username must contain 3-50 letters, digits, or underscores");
         }
         this.value = value;

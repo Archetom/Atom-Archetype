@@ -73,7 +73,7 @@ $h2 项目结构
 $h2 配置
 
 - `conf/application-dev.yml`：本地开发配置。
-- `conf/application-test.yml`：自动化测试配置。
+- `start/src/test/resources/application-test.yml`：自动化测试配置，仅存在于测试类路径，不会打进应用 Jar。
 - `conf/application-prod.yml`：生产配置，不提供数据源凭据默认值。
 
 `X-Dev-User-Id` 和 `X-Dev-Tenant-Id` 请求头仅用于显式启用的 `dev`、`test` 环境。生产环境应接入真实身份系统并映射为 `AuthenticatedCaller`。

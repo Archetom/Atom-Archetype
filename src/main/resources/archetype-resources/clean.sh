@@ -63,7 +63,6 @@ rm -f application/src/main/java/${PACKAGE_PATH}/application/service/impl/UserCac
 rm -f application/src/main/java/${PACKAGE_PATH}/application/vo/UserVO.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/assembler/UserAssembler.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/config/DomainConfiguration.java
-rm -f application/src/main/java/${PACKAGE_PATH}/application/event/DomainEventPublisherImpl.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/event/listener/UserEventListener.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/port/out/UserNotificationPort.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/operation/UseCaseOperation.java
@@ -114,7 +113,7 @@ if [ -f "$SECURITY_CONFIG" ]; then
 fi
 
 # Development identities remain available, but no sample-specific authorities are granted.
-for CONFIG_FILE in conf/application-dev.yml conf/application-test.yml; do
+for CONFIG_FILE in conf/application-dev.yml start/src/test/resources/application-test.yml; do
     if [ -f "$CONFIG_FILE" ]; then
         CONFIG_FILE_TMP="${CONFIG_FILE}.tmp"
         awk '{
