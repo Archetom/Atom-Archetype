@@ -57,7 +57,7 @@ The workflow accepts only `main`, a non-SNAPSHOT version that matches the POM, a
 After the intended `-SNAPSHOT` commit is merged to `main` and CI passes, run:
 
 ```bash
-gh workflow run snapshot.yml --ref main -f version=2.1.1-SNAPSHOT
+gh workflow run snapshot.yml --ref main -f version=2.2.0-SNAPSHOT
 ```
 
 The snapshot workflow accepts only `main`, a SNAPSHOT version that matches the POM, and uses the existing Portal token without GPG signing. Release and snapshot workflows share a concurrency group.
@@ -86,7 +86,7 @@ Use `-U` to resolve the latest timestamped build. To verify with an empty Maven 
 temporary_repository="$(mktemp -d)"
 ./mvnw -B -U -ntp dependency:get \
   -Dmaven.repo.local="$temporary_repository" \
-  -Dartifact=io.github.archetom:atom-archetype:2.1.1-SNAPSHOT \
+  -Dartifact=io.github.archetom:atom-archetype:2.2.0-SNAPSHOT \
   -Dtransitive=false \
   -DremoteRepositories=central-portal-snapshots::default::https://central.sonatype.com/repository/maven-snapshots/
 ```
@@ -113,7 +113,7 @@ Central releases are immutable. Publish a new version if validation or verificat
 Set the next snapshot after the release is public:
 
 ```bash
-make version VERSION=2.1.1-SNAPSHOT
+make version VERSION=2.2.0-SNAPSHOT
 ```
 
 Local snapshot uploads use `make deploy-snapshot` and skip release signing and Portal publication.
