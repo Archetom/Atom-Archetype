@@ -37,7 +37,7 @@ mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
 
 ## Key architecture facts
 
-- Generated modules: api, domain, shared, application, infra/external, infra/security, infra/persistence, infra/rest, infra/facade, and start.
+- Generated modules: api, domain, shared, application, infra/external, infra/security, infra/persistence, infra/rest, infra/facade, infra/grpc (opt-in gRPC server), and start.
 - Domain is framework-neutral and never depends on application, API, shared, or infrastructure modules.
 - Application use cases receive AuthenticatedCaller and pass a required TenantId to repositories and tenant-scoped caches.
 - CommandServiceTemplate and QueryServiceTemplate execute typed ServiceOperation lifecycles.

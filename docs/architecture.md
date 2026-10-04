@@ -5,14 +5,12 @@ Atom Archetype generates a multi-module Maven project with DDD and ports-and-ada
 ## Module dependencies
 
 ```text
-                         ┌──────────────┐
-HTTP ───────► infra/rest ───► │ application  │ ───► domain
-Facade calls ► infra/facade ─►│ use cases    │
-                         └──────┬───────┘
-                                │ output ports
-                ┌───────────────┬───────────────┐
-                ▼               ▼               ▼
-       infra/persistence  infra/external  infra/security
+HTTP ──► infra/rest ─┐
+gRPC ──► infra/grpc ─┴─► facades (api) ──► infra/facade ──► application ──► domain
+                                                                 │ output ports
+                                              ┌──────────────────┼──────────────────┐
+                                              ▼                  ▼                  ▼
+                                      infra/persistence   infra/external     infra/security
 
 api     = published boundary contracts
 shared  = result/error conventions
@@ -30,6 +28,7 @@ start   = composition root
 | `infra/external` | Third-party output-port adapters | Application orchestration |
 | `infra/security` | Password hashing, `ActorPrincipal`, and verified-caller resolution | Authentication policy and domain behavior |
 | `infra/facade` | Facade implementations served over HTTP and RPC | Persistence details and transport credentials |
+| `infra/grpc` | Opt-in gRPC server: proto contracts, bearer-JWT authentication, status mapping over the facades | Use-case logic and direct application or domain access |
 | `start` | Spring Boot entry point and runtime assembly | Reusable business logic |
 
 `domain` has no dependency on `application`, `api`, `shared`, or any `infra` module. Infrastructure depends on the inward-facing contracts it implements.

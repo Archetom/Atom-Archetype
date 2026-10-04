@@ -196,6 +196,29 @@
                 </fileSet>
             </fileSets>
         </module>
+        <!-- infra-grpc -->
+        <module id="${rootArtifactId}-infra-grpc" dir="infra/grpc" name="${rootArtifactId}-infra-grpc">
+            <fileSets>
+                <fileSet filtered="true" packaged="true" encoding="UTF-8">
+                    <directory>src/main/java</directory>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                </fileSet>
+                <fileSet filtered="true" encoding="UTF-8">
+                    <directory>src/main/proto</directory>
+                    <includes>
+                        <include>**/*.proto</include>
+                    </includes>
+                </fileSet>
+                <fileSet filtered="true" packaged="true" encoding="UTF-8">
+                    <directory>src/test/java</directory>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                </fileSet>
+            </fileSets>
+        </module>
         <!-- start -->
         <module id="${rootArtifactId}-start" dir="start" name="${rootArtifactId}-start">
             <fileSets>

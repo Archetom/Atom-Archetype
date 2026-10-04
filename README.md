@@ -63,6 +63,7 @@ curl http://localhost:8080/actuator/health
 - MyBatis-Plus 3.5.17、Flyway 和 MySQL 26.7.0。
 - Spring Security、SpringDoc OpenAPI 3.1.0 和统一的 HTTP 错误映射。
 - 默认关闭的 Redis 8.10.0 缓存适配器，以及对应的空实现。
+- 默认关闭的 gRPC 服务端（Spring Boot 内置 gRPC 支持），使用 Bearer JWT 认证，并复用与 HTTP 相同的 Facade。
 - 独立的命令事务与只读查询快照事务、事务提交后回调和 Testcontainers 集成测试。
 - 具名分页响应、稳定并发错误，以及会自动编译和测试生成项目的 Archetype 回归测试。
 
@@ -81,6 +82,7 @@ curl http://localhost:8080/actuator/health
 | `infra/external` | 第三方系统适配器 |
 | `infra/security` | 密码哈希等安全适配器 |
 | `infra/facade` | Facade 契约实现 |
+| `infra/grpc` | 可选的 gRPC 服务端（默认关闭）：proto 契约、JWT 认证和状态码映射 |
 | `start` | Spring Boot 启动入口和运行时装配 |
 
 `domain` 不依赖 `application`、`api`、`shared` 或任何 `infra` 模块。完整规则见[架构设计](docs/architecture.md)。

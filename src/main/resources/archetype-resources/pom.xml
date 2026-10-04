@@ -36,6 +36,7 @@
         <module>infra/persistence</module>
         <module>infra/rest</module>
         <module>infra/facade</module>
+        <module>infra/grpc</module>
         <module>start</module>
     </modules>
 
@@ -62,6 +63,10 @@
 
         <!-- SpringDoc -->
         <springdoc.version>3.1.0</springdoc.version>
+
+        <!-- Google libraries shared by atom-common, grpc-java, and protobuf; pinned for dependency convergence. -->
+        <guava.version>33.6.0-jre</guava.version>
+        <error-prone-annotations.version>2.45.0</error-prone-annotations.version>
     </properties>
 
     <!-- The root POM owns dependency versions; each module declares what it uses directly. -->
@@ -100,6 +105,18 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${symbol_dollar}{springdoc.version}</version>
+            </dependency>
+
+            <!-- Converged Google libraries; keep at or above the versions grpc-java and atom-common require. -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${symbol_dollar}{guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>${symbol_dollar}{error-prone-annotations.version}</version>
             </dependency>
 
             <!-- Project Modules -->
@@ -145,6 +162,11 @@
             <dependency>
                 <groupId>${groupId}</groupId>
                 <artifactId>${rootArtifactId}-infra-facade</artifactId>
+                <version>${version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${groupId}</groupId>
+                <artifactId>${rootArtifactId}-infra-grpc</artifactId>
                 <version>${version}</version>
             </dependency>
             <!-- Shared result and error contracts -->

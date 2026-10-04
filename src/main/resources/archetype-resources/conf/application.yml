@@ -13,6 +13,11 @@ spring:
   sql:
     init:
       mode: never
+  grpc:
+    server:
+      # gRPC is opt-in through atom.grpc.enabled. Enabling it also requires a JWT decoder,
+      # for example spring.security.oauth2.resourceserver.jwt.issuer-uri.
+      enabled: ${dollar}{atom.grpc.enabled:false}
 
 atom:
   api:
@@ -25,6 +30,8 @@ atom:
       enabled: false
       authorities: ""
   redis:
+    enabled: false
+  grpc:
     enabled: false
 
 management:

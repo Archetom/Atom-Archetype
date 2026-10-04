@@ -56,6 +56,14 @@ class ArchitectureBoundaryTest {
                 violations.add("REST controller bypasses facade/use-case boundary: "
                         + source.getName() + " -> " + target);
             }
+            if (sourcePackage.startsWith(ROOT_PACKAGE + ".infra.grpc")
+                    && (target.startsWith(ROOT_PACKAGE + ".domain.")
+                    || target.startsWith(ROOT_PACKAGE + ".application.")
+                    || target.startsWith(ROOT_PACKAGE + ".infra.persistence.")
+                    || target.startsWith(ROOT_PACKAGE + ".infra.rest."))) {
+                violations.add("gRPC adapter bypasses the facade boundary: "
+                        + source.getName() + " -> " + target);
+            }
         });
     }
 

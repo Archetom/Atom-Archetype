@@ -4,6 +4,11 @@ All notable architecture, compatibility, and security changes are documented her
 
 ## [Unreleased]
 
+### Added
+
+- optional `infra/grpc` module that serves the facades over gRPC with Spring Boot's built-in gRPC support; the server is disabled by default (`atom.grpc.enabled=false`), authenticates every call with a bearer JWT mapped to `ActorPrincipal`, keeps the standard health service public, and maps stable application errors to gRPC statuses with a `google.rpc.ErrorInfo` reason
+- generated projects pin `guava` and `error_prone_annotations` so atom-common and grpc-java pass dependency convergence
+
 ### Security
 
 - **breaking:** facade contracts no longer accept `AuthenticatedCaller`, so they can be served over RPC without letting clients choose their identity, tenant, or authorities; `UserFacadeImpl` resolves the verified caller through the new `AuthenticatedCallerResolver`

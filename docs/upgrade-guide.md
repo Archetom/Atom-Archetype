@@ -37,6 +37,7 @@ These changes alter generated-project contracts. Compare a project generated fro
 | Invalid values | Value objects throw `IllegalArgumentException`, mapped to HTTP 400 | Caller-facing value objects throw `InvalidValueException` (HTTP 400); a bare `IllegalArgumentException` maps to HTTP 500 |
 | Test profile | `conf/application-test.yml`, packaged into the application jar | `start/src/test/resources/application-test.yml`, test classpath only |
 | Unexpected-failure logs | Exception type only | Full exception, including message and stack trace |
+| RPC | None | Optional `infra/grpc` module: gRPC server disabled by default, bearer-JWT authentication over the facades |
 
 1. Remove `AuthenticatedCaller` parameters from facade interfaces and implementations. Resolve the caller in the facade implementation with `AuthenticatedCallerResolver` and pass it to the use case; remove `Authentication` parameters and caller mapping from controllers.
 2. Before serving a facade over RPC, authenticate every call in the RPC server adapter and put a verified `ActorPrincipal` into Spring Security's context on the invoking thread, as described under RPC exposure in the generated `docs/configuration.md`.
@@ -44,6 +45,7 @@ These changes alter generated-project contracts. Compare a project generated fro
 4. Throw `InvalidValueException` from value objects that validate caller input; keep `IllegalArgumentException` for values that never come from callers, such as `TenantId`.
 5. Move `application-test.yml` to `start/src/test/resources`.
 6. Treat logs as sensitive data now that they contain exception messages.
+7. To serve facades over gRPC, copy the `infra/grpc` module from the reference project, register it in the root and `start` POMs, add the gRPC settings from `conf/application.yml`, and configure a JWT decoder before setting `atom.grpc.enabled=true`.
 
 ## Major changes from `1.1.0`
 

@@ -88,6 +88,11 @@ rm -f infra/facade/src/main/java/${PACKAGE_PATH}/infra/facade/UserFacadeImpl.jav
 # External
 rm -f infra/external/src/main/java/${PACKAGE_PATH}/infra/external/LoggingUserNotificationAdapter.java
 
+# gRPC
+rm -f infra/grpc/src/main/proto/user/v1/user_service.proto
+rm -f infra/grpc/src/main/java/${PACKAGE_PATH}/infra/grpc/user/UserGrpcService.java
+rm -f infra/grpc/src/main/java/${PACKAGE_PATH}/infra/grpc/user/UserGrpcMapper.java
+
 # Remove User-specific authorization rules while retaining the secure generic API boundary.
 SECURITY_CONFIG="infra/rest/src/main/java/${PACKAGE_PATH}/infra/rest/config/SecurityConfig.java"
 if [ -f "$SECURITY_CONFIG" ]; then
@@ -193,6 +198,8 @@ rm -f infra/persistence/src/test/java/${PACKAGE_PATH}/infra/persistence/reposito
 rm -f infra/rest/src/test/java/${PACKAGE_PATH}/infra/rest/advice/RestExceptionAdviceTest.java
 rm -f start/src/test/java/${PACKAGE_PATH}/UserControllerIntegrationTest.java
 rm -f start/src/test/java/${PACKAGE_PATH}/PersistenceIntegrationTest.java
+rm -f start/src/test/java/${PACKAGE_PATH}/GrpcIntegrationTest.java
+rm -f infra/grpc/src/test/java/${PACKAGE_PATH}/infra/grpc/user/UserGrpcServiceTest.java
 
 # =============================================================================
 # clean directory (but retain important of directory structure)
@@ -223,6 +230,7 @@ KEEP_DIRS=(
     "infra/rest/src/main/java/${PACKAGE_PATH}/infra/rest/controller"
     "infra/facade/src/main/java/${PACKAGE_PATH}/infra/facade"
     "infra/external/src/main/java/${PACKAGE_PATH}/infra/external"
+    "infra/grpc/src/main/proto"
 )
 
 # new create important directory

@@ -21,7 +21,7 @@ This guide describes the generated application. Inside the archetype source tree
 ## Security and tenancy
 
 - Use cases receive `AuthenticatedCaller`, validate it through `CallerGuard`, and derive `TenantId` from verified caller context, not request data.
-- Facade methods never accept actor, tenant, or authority parameters, because RPC clients call them directly. `UserFacadeImpl` resolves the verified caller through `AuthenticatedCallerResolver`. An RPC transport must authenticate each call and put an `ActorPrincipal` with verified authorities into Spring Security's context on the invoking thread, then clear it.
+- Facade methods never accept actor, tenant, or authority parameters, because the opt-in `infra/grpc` adapter serves them to RPC clients. `UserFacadeImpl` resolves the verified caller through `AuthenticatedCallerResolver`. `infra/grpc` authenticates bearer JWTs into an `ActorPrincipal` and calls facades only; any other RPC transport must likewise put a verified `ActorPrincipal` into Spring Security's context on the invoking thread, then clear it.
 - Repository/cache operations require tenant scope and fail when absent; cache keys include tenant. Do not introduce identity/tenant ThreadLocals or fail-open queries.
 - Trusted `X-Dev-User-Id`/`X-Dev-Tenant-Id` headers are restricted to the guarded dev/test adapter and cannot be enabled in prod. Never accept caller-controlled roles, authorities, or administrator headers such as `X-Admin`.
 - Do not log passwords, tokens, reset codes, secrets, or sensitive request bodies, and never put them into exception messages. Log unexpected failures with the exception itself so its message and stack trace are kept; treat logs as sensitive. Public errors expose stable codes and safe messages.

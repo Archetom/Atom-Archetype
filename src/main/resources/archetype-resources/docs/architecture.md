@@ -12,9 +12,10 @@ infra/facade ─────┼──> application ──> domain
 infra/persistence ┘          │
                              └──> api and shared
 
+infra/grpc ─────────────────────────> api facades (never application or domain directly)
 infra/external ─────────────────────> application output ports
 infra/security ─────────────────────> domain security ports and application caller context
-infra/rest, infra/facade ───────────> infra/security verified-caller resolution
+infra/rest, infra/facade, infra/grpc > infra/security verified-caller resolution
 start ──────────────────────────────> all runtime adapters
 ```
 
@@ -37,6 +38,7 @@ start ────────────────────────�
 | `infra/external` | Third-party output-port adapters | Application workflow |
 | `infra/security` | Password hashing, `ActorPrincipal`, and verified-caller resolution | Domain policy, transport credential parsing |
 | `infra/facade` | Facade implementation served over HTTP and RPC, caller resolution, and API/application mapping | Persistence, transport credentials |
+| `infra/grpc` | Opt-in gRPC server: `.proto` contracts, bearer-JWT authentication, and gRPC status mapping over the facades | Use-case logic, direct application or domain access |
 | `start` | Runtime assembly and end-to-end tests | Reusable business logic |
 
 ## Request flow
@@ -110,4 +112,4 @@ Do not add `schema.sql` or container initialization SQL, and do not edit an appl
 
 See [configuration](configuration.md) for profile and security settings, and [development workflow](usage-guide.md) for adding behavior.
 
-`ArchitectureBoundaryTest` uses ArchUnit bytecode analysis to enforce inward dependencies across application, domain, API, shared, and infrastructure classes. It also rejects controller-to-repository/VO coupling, public entity setters, missing core layers, and naming violations for Request, Response, VO, PO, and repository types.
+`ArchitectureBoundaryTest` uses ArchUnit bytecode analysis to enforce inward dependencies across application, domain, API, shared, and infrastructure classes. It also rejects controller-to-repository/VO coupling, gRPC adapters that bypass the facades, public entity setters, missing core layers, and naming violations for Request, Response, VO, PO, and repository types.

@@ -66,6 +66,7 @@ $h2 Project structure
 | `infra/external` | Third-party system adapters |
 | `infra/security` | Password hashing and other security adapters |
 | `infra/facade` | Facade contract implementations |
+| `infra/grpc` | Optional gRPC server, disabled by default: proto contracts, JWT authentication, and status mapping |
 | `start` | Spring Boot composition root and integration tests |
 
 Dependencies flow from `infra` to `application` to `domain`. The `domain` module does not depend on `application`, `api`, or any `infra` module. See [Architecture](docs/architecture.md) for the complete rules.
@@ -75,6 +76,7 @@ $h2 Configuration
 - `conf/application-dev.yml`: local development settings.
 - `start/src/test/resources/application-test.yml`: automated test settings, available only on the test classpath and never packaged into the application jar.
 - `conf/application-prod.yml`: production settings, with no default datasource credentials.
+- The gRPC server is disabled by default; enable it with `ATOM_GRPC_ENABLED=true` and a JWT decoder, as described in [Configuration](docs/configuration.md).
 
 The `X-Dev-User-Id` and `X-Dev-Tenant-Id` headers are limited to explicitly enabled `dev` and `test` environments. Production should integrate a real identity provider and map verified identities to `AuthenticatedCaller`.
 

@@ -65,7 +65,8 @@ For an `Order` aggregate with one create command and one detail query, inspect o
 | `api` | Create/query Request types, `OrderResponse`, and an `OrderFacade` contract without identity parameters |
 | `infra/persistence` | `OrderPO`, `OrderPOConverter`, mapper, SQL/result map where names are exceptional, repository adapter, Flyway migration, and round-trip tests |
 | `infra/facade` | Facade implementation that resolves the caller with `AuthenticatedCallerResolver` and uses `ResultUtil.map(...)` for VO-to-Response mapping |
-| `infra/rest` | Controller, caller mapping, route authority, validation, and HTTP tests |
+| `infra/rest` | Controller, route authority, validation, and HTTP tests |
+| `infra/grpc` (when served over gRPC) | `order/v1/order_service.proto`, a `@GrpcService` that calls `OrderFacade` through `GrpcFacadeCalls`, message mapping, and service tests |
 | local security | Matching `orders:*` authorities in both dev and test YAML |
 | `start` | Integration tests and any runtime adapter needed by the new output ports |
 | documentation | Public API/configuration changes in docs and `llms.txt` |

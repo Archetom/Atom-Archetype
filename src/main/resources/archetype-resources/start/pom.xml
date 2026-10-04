@@ -59,6 +59,11 @@
             <artifactId>testcontainers-mysql</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-grpc-server-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Module -->
         <dependency>
@@ -80,6 +85,11 @@
         <dependency>
             <groupId>${groupId}</groupId>
             <artifactId>${rootArtifactId}-infra-facade</artifactId>
+        </dependency>
+        <!-- Opt-in gRPC server; disabled unless atom.grpc.enabled=true. -->
+        <dependency>
+            <groupId>${groupId}</groupId>
+            <artifactId>${rootArtifactId}-infra-grpc</artifactId>
         </dependency>
     </dependencies>
 

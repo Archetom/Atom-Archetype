@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+// gRPC contract for the bundled tenant-scoped User example.
+// Identity, tenant, and authorities come from the bearer token, never from request fields.
+package ${package}.user.v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "${package}.infra.grpc.user.v1";
+option java_outer_classname = "UserServiceProto";
+
+service UserService {
+  // Create a user inside the caller's tenant.
+  rpc CreateUser(CreateUserRequest) returns (User);
+  // Get a visible user by tenant-scoped ID.
+  rpc GetUser(GetUserRequest) returns (User);
+  // Query a bounded page of visible users.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  // Change a user's non-deleted status; DELETED is rejected.
+  rpc UpdateUserStatus(UpdateUserStatusRequest) returns (google.protobuf.Empty);
+  // Soft-delete a user.
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  optional string phone_number = 3;
+  string password = 4;
+  optional string real_name = 5;
+}
+
+message GetUserRequest {
+  int64 user_id = 1;
+}
+
+message ListUsersRequest {
+  // One-based page number; omit for the first page.
+  optional int32 page = 1;
+  // Page size; omit for the default size.
+  optional int32 size = 2;
+  optional string username = 3;
+  optional string email = 4;
+  // One of ACTIVE, INACTIVE, or LOCKED.
+  optional string status = 5;
+}
+
+message ListUsersResponse {
+  int32 page_num = 1;
+  int32 page_size = 2;
+  int64 total_num = 3;
+  repeated User users = 4;
+}
+
+message UpdateUserStatusRequest {
+  int64 user_id = 1;
+  string status = 2;
+}
+
+message DeleteUserRequest {
+  int64 user_id = 1;
+}
+
+message User {
+  int64 id = 1;
+  string username = 2;
+  string email = 3;
+  optional string masked_phone_number = 4;
+  optional string real_name = 5;
+  string status = 6;
+  string status_name = 7;
+  bool active = 8;
+  google.protobuf.Timestamp created_time = 9;
+  google.protobuf.Timestamp updated_time = 10;
+}

@@ -63,6 +63,7 @@ See [Getting started](docs/getting-started.md) for development identity headers,
 - MyBatis-Plus 3.5.17, Flyway, and MySQL 26.7.0.
 - Spring Security, SpringDoc OpenAPI 3.1.0, and consistent HTTP error mapping.
 - Redis 8.10.0 adapters, disabled by default, with a corresponding no-op implementation.
+- A gRPC server, disabled by default, built on Spring Boot's gRPC support, authenticated with bearer JWTs, and backed by the same facades as HTTP.
 - Command/query service templates, after-commit callbacks, and Testcontainers integration tests.
 
 Business APIs require authentication by default. Development identity headers are limited to explicitly enabled `dev` and `test` environments; production should integrate its own identity provider.
@@ -80,6 +81,7 @@ Business APIs require authentication by default. Development identity headers ar
 | `infra/external` | Third-party system adapters |
 | `infra/security` | Password hashing and other security adapters |
 | `infra/facade` | Facade contract implementations |
+| `infra/grpc` | Optional gRPC server, disabled by default: proto contracts, JWT authentication, and status mapping |
 | `start` | Spring Boot entry point and runtime assembly |
 
 `domain` does not depend on `application`, `api`, `shared`, or any `infra` module. See [Architecture](docs/architecture.md) for the complete rules.

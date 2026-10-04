@@ -37,6 +37,7 @@ Do not activate `dev` and `prod` together.
 | `ATOM_SECURITY_TRUSTED_HEADER_ENABLED` | Enable trusted development headers in `dev` or `test` only |
 | `SERVER_ADDRESS` | Override the development bind address |
 | `ATOM_REDIS_ENABLED` | Enable the Redis cache adapter |
+| `ATOM_GRPC_ENABLED` | Enable the gRPC server; also requires a JWT decoder, see [RPC exposure](#rpc-exposure) |
 | `SPRING_DATA_REDIS_HOST` | Redis host |
 | `SPRING_DATA_REDIS_PORT` | Redis port |
 | `SPRING_DATA_REDIS_PASSWORD` | Redis password |
@@ -156,25 +157,46 @@ Production must verify a real credential, including its signature, issuer, audie
 
 ### RPC exposure
 
-`UserFacade` is the contract published to RPC clients. Its methods carry no identity, tenant, or authority parameters; `UserFacadeImpl` resolves the caller from Spring Security's context through `AuthenticatedCallerResolver`. The RPC server adapter, such as a framework interceptor or filter, must therefore:
+The opt-in `infra/grpc` module serves the facades over gRPC. Facade methods carry no identity, tenant, or authority parameters: each call is authenticated with a bearer JWT, and `UserFacadeImpl` resolves the caller from Spring Security's context through `AuthenticatedCallerResolver`.
 
-1. Verify a real credential carried in the RPC metadata, including its signature, issuer, audience, expiry, and tenant claim. Never trust actor, tenant, or authority values sent as plain metadata or method arguments.
-2. Put the verified `ActorPrincipal` and authorities into a new security context on the thread that invokes the facade.
-3. Clear the context when the call ends, because RPC frameworks reuse pooled threads.
+gRPC is disabled by default. Enabling it requires a JWT decoder; without one, startup fails instead of serving unauthenticated calls:
 
-```java
-SecurityContext context = SecurityContextHolder.createEmptyContext();
-context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
-        new ActorPrincipal(verifiedUserId, verifiedTenantId), null, verifiedAuthorities));
-SecurityContextHolder.setContext(context);
-try {
-    return invocation.proceed();
-} finally {
-    SecurityContextHolder.clearContext();
-}
+```bash
+ATOM_GRPC_ENABLED=true \
+SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI='https://id.example.com/realms/app' \
+  java -jar start/target/*-start.jar --spring.profiles.active=prod
 ```
 
-A call without this context reaches the use case without a caller and returns `AUTHENTICATION_REQUIRED` in its `Result`. If the framework invokes the facade on a different thread than its interceptor, establish the context on that thread. Use cases still check authorities through `CallerGuard`, so RPC callers need the same `users:*` authorities as HTTP callers.
+| Property | Default | Use |
+| --- | --- | --- |
+| `atom.grpc.enabled` | `false` | Starts the gRPC server through `spring.grpc.server.enabled` |
+| `spring.grpc.server.port` | `9090` | gRPC listen port |
+| `spring.security.oauth2.resourceserver.jwt.issuer-uri`, `jwk-set-uri`, or `public-key-location` | none | Verifies token signature, issuer, and expiry |
+| `atom.grpc.security.user-id-claim` | `sub` | Claim holding the positive user ID |
+| `atom.grpc.security.tenant-claim` | `tenant_id` | Claim holding the positive tenant ID |
+| `atom.grpc.security.authorities-claim` | `scope` | Authorities as a space-separated string or a list, used verbatim |
+
+- Every method requires a valid token except the standard `grpc.health.v1.Health` service, which stays public for load-balancer probes. Server reflection also requires a token.
+- A token whose user or tenant claim is not a positive ID is rejected with `UNAUTHENTICATED`.
+- Use cases still check authorities through `CallerGuard`, so gRPC callers need the same `users:*` authorities as HTTP callers.
+- Request messages are validated against the same API constraints as HTTP requests.
+
+Failures keep the safe public message as the status description and the stable public error code as the `reason` of a `google.rpc.ErrorInfo` detail:
+
+| Public error | gRPC status |
+| --- | --- |
+| `PARAMETER_INVALID` | `INVALID_ARGUMENT` |
+| `AUTHENTICATION_REQUIRED` | `UNAUTHENTICATED` |
+| `ACCESS_DENIED` | `PERMISSION_DENIED` |
+| `RESOURCE_NOT_FOUND` | `NOT_FOUND` |
+| `RESOURCE_ALREADY_EXISTS` | `ALREADY_EXISTS` |
+| `VERSION_CONFLICT`, `CONCURRENT_OPERATION` | `ABORTED` |
+| `DOMAIN_RULE_VIOLATION`, `OPERATION_NOT_ALLOWED` | `FAILED_PRECONDITION` |
+| `UNKNOWN`, `SYSTEM` | `INTERNAL` |
+
+Contracts live in `infra/grpc/src/main/proto`. The build generates the Java stubs and embeds the `.proto` files in the module jar, so clients in any language can generate their own stubs.
+
+Any other RPC transport must follow the same rule: verify a real credential, put the verified `ActorPrincipal` and its authorities into Spring Security's context on the thread that invokes the facade, and clear the context when the call ends.
 
 ### Password hashing
 

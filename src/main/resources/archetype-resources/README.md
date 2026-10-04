@@ -66,6 +66,7 @@ $h2 项目结构
 | `infra/external` | 第三方系统适配器 |
 | `infra/security` | 密码哈希等安全适配器 |
 | `infra/facade` | Facade 契约实现 |
+| `infra/grpc` | 可选的 gRPC 服务端（默认关闭）：proto 契约、JWT 认证和状态码映射 |
 | `start` | Spring Boot 组合根和集成测试 |
 
 依赖方向为 `infra → application → domain`。`domain` 不依赖 `application`、`api` 或任何 `infra` 模块，详细规则见[架构文档](docs/architecture.md)。
@@ -75,6 +76,7 @@ $h2 配置
 - `conf/application-dev.yml`：本地开发配置。
 - `start/src/test/resources/application-test.yml`：自动化测试配置，仅存在于测试类路径，不会打进应用 Jar。
 - `conf/application-prod.yml`：生产配置，不提供数据源凭据默认值。
+- gRPC 服务端默认关闭；设置 `ATOM_GRPC_ENABLED=true` 并配置 JWT 校验后启用，详见 [配置说明](docs/configuration.md)。
 
 `X-Dev-User-Id` 和 `X-Dev-Tenant-Id` 请求头仅用于显式启用的 `dev`、`test` 环境。生产环境应接入真实身份系统并映射为 `AuthenticatedCaller`。
 

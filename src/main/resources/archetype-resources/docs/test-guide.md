@@ -18,6 +18,7 @@ sh ./mvnw -pl domain -am test
 sh ./mvnw -pl application -am test
 sh ./mvnw -pl infra/persistence -am test
 sh ./mvnw -pl infra/rest -am test
+sh ./mvnw -pl infra/grpc -am test
 ```
 
 Run Docker-backed integration tests:
@@ -38,7 +39,8 @@ CI=true sh ./mvnw test
 | Persistence converter | Full PO/aggregate round trip, version, timestamps | MapStruct mapper instance |
 | REST | Error/status mapping, authentication rejection, safe messages | Spring MVC and Security test support |
 | Security adapter | Verified-caller resolution from Spring Security's context and fail-closed handling of missing principals | Spring Security core types |
-| Start integration | Flyway, MySQL, tenant isolation, locking, HTTP flow | Spring Boot, MockMvc, Testcontainers |
+| gRPC | Bearer-JWT authentication, public health checks, request validation, and gRPC status mapping | In-process gRPC transport and test-signed JWTs |
+| Start integration | Flyway, MySQL, tenant isolation, locking, HTTP and gRPC flows | Spring Boot, MockMvc, in-process gRPC, Testcontainers |
 | Architecture | Forbidden dependencies, adapter bypasses, entity setters, naming | ArchUnit bytecode inspection and Maven Enforcer |
 
 Use the lowest layer that proves the behavior.

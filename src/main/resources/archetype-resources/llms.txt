@@ -29,6 +29,7 @@ $h2 Architecture summary
 - Cache and event side effects use independent registrations after transaction commit.
 - Redis is optional and cannot change business correctness.
 - Trusted identity headers are disabled by default and restricted to dev/test profiles.
+- gRPC is opt-in (`atom.grpc.enabled`, default off); every call needs a bearer JWT and goes through the facades.
 
 $h2 Code landmarks
 
@@ -39,6 +40,8 @@ Search these class names with `rg` because generated Java paths include the chos
 - `SecurityConfig`: route authorization and trusted-header profile guard.
 - `UserFacade`, `UserFacadeImpl`: facade contract for HTTP and RPC clients, without identity parameters.
 - `AuthenticatedCallerResolver`: verified HTTP or RPC principal to the use-case caller context.
+- `UserGrpcService`, `user_service.proto`: User gRPC contract and adapter in `infra/grpc`.
+- `GrpcSecurityConfig`, `GrpcFacadeCalls`: gRPC bearer-JWT authentication and status mapping.
 - `UserServiceImpl`: explicit caller/tenant command and query orchestration.
 - `CommandServiceTemplate`, `QueryServiceTemplate`, `ServiceOperation`: use-case execution policy.
 - `AfterCommitExecutor`: post-commit cache and event effects.
