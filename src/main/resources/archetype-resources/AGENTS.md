@@ -21,11 +21,12 @@ This guide describes the generated application. Inside the archetype source tree
 ## Security and tenancy
 
 - Use cases receive `AuthenticatedCaller`, validate it through `CallerGuard`, and derive `TenantId` from verified caller context, not request data.
+- Declare HTTP route authorities in one `ApiRouteAuthorization` bean per API area, not in `SecurityConfig`, and check the same constants (such as `UserAuthorities`) in the use case.
 - Facade methods never accept actor, tenant, or authority parameters, because the opt-in `infra/grpc` adapter serves them to RPC clients. `UserFacadeImpl` resolves the verified caller through `AuthenticatedCallerResolver`. `infra/grpc` authenticates bearer JWTs into an `ActorPrincipal` and calls facades only; any other RPC transport must likewise put a verified `ActorPrincipal` into Spring Security's context on the invoking thread, then clear it.
 - Repository/cache operations require tenant scope and fail when absent; cache keys include tenant. Do not introduce identity/tenant ThreadLocals or fail-open queries.
-- Trusted `X-Dev-User-Id`/`X-Dev-Tenant-Id` headers are restricted to the guarded dev/test adapter and cannot be enabled in prod. Never accept caller-controlled roles, authorities, or administrator headers such as `X-Admin`.
+- Production authenticates HTTP and gRPC with bearer JWTs from the configured issuer; `ActorJwtAuthenticationConverter` maps the `atom.security.jwt.*` claims to `ActorPrincipal`. Trusted `X-Dev-User-Id`/`X-Dev-Tenant-Id` headers are restricted to the guarded dev/test adapter and cannot be enabled in prod. Never accept caller-controlled roles, authorities, or administrator headers such as `X-Admin`.
 - Do not log passwords, tokens, reset codes, secrets, or sensitive request bodies, and never put them into exception messages. Log unexpected failures with the exception itself so its message and stack trace are kept; treat logs as sensitive. Public errors expose stable codes and safe messages.
-- Business REST endpoints use `/api/v1/`. Explicitly select runtime profiles from `conf/`; prod requires datasource environment variables. Keep test-only profiles in `start/src/test/resources` so they never ship in the jar. See [docs/configuration.md](docs/configuration.md).
+- Business REST endpoints use `/api/v1/`. Explicitly select runtime profiles from `conf/`; prod requires datasource environment variables. Shared settings belong in `application.yml`; profiles hold only environment differences. Keep test-only profiles in `start/src/test/resources` so they never ship in the jar. See [docs/configuration.md](docs/configuration.md).
 
 ## Domain, persistence, and transactions
 

@@ -26,7 +26,7 @@ start   = composition root
 | `infra/rest` | HTTP transport, Spring Security, OpenAPI | Business invariants |
 | `infra/persistence` | Repository adapters, PO conversion, MyBatis, Flyway, Redis adapters | Public API contracts |
 | `infra/external` | Third-party output-port adapters | Application orchestration |
-| `infra/security` | Password hashing, `ActorPrincipal`, and verified-caller resolution | Authentication policy and domain behavior |
+| `infra/security` | Password hashing, `ActorPrincipal`, JWT claim mapping, and verified-caller resolution | Domain behavior and transport-specific wiring |
 | `infra/facade` | Facade implementations served over HTTP and RPC | Persistence details and transport credentials |
 | `infra/grpc` | Opt-in gRPC server: proto contracts, bearer-JWT authentication, status mapping over the facades | Use-case logic and direct application or domain access |
 | `start` | Spring Boot entry point and runtime assembly | Reusable business logic |
@@ -53,7 +53,7 @@ Controller or RPC endpoint → Facade (no identity parameters)
 
 `AuthenticatedCaller` is server-side context. It is not part of the HTTP or RPC contract, is not deserialized from a request body or RPC argument, and is not populated from client-controlled role headers. Application use cases check their required authority, and repository operations require a non-null `TenantId`.
 
-The trusted-header filter is a development and test adapter. It is available only under `(dev | test) & !prod` and only when enabled. Production replaces the authentication adapter while keeping the same `AuthenticatedCaller` contract.
+The trusted-header filter is a development and test adapter. It is available only under `(dev | test) & !prod` and only when enabled. Production authenticates HTTP and gRPC with bearer JWTs from a configured issuer; one converter maps the claims to `ActorPrincipal`, so the `AuthenticatedCaller` contract is the same for every transport.
 
 ## Domain model
 

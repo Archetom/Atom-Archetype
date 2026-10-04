@@ -10,13 +10,11 @@ Start MySQL:
 docker compose up -d mysql
 ```
 
-Build the project, then run the `start` module with the `dev` profile and trusted development headers enabled:
+Run the `start` module with the `dev` profile and trusted development headers enabled. `-am` compiles the modules that `start` depends on first, so every run uses the current sources without a prior `install`; `make run` is the same command without the header flag:
 
 ```bash
-sh ./mvnw clean install
-
 ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
-  sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+  sh ./mvnw -pl start -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 Protected endpoints require both development identity headers:
@@ -40,12 +38,12 @@ Work from the domain toward the adapters:
 
 1. Add the domain behavior, value objects, policy, and domain error.
 2. Add the use-case/error-scene identifier to `application/operation/UseCaseOperation`.
-3. Add an application service method that accepts `AuthenticatedCaller`, calls `CallerGuard.requireTenant(...)`, and never derives tenant identity from request data.
+3. Add an application service method that accepts `AuthenticatedCaller`, calls `CallerGuard.requireTenant(...)` with a constant from an authorities class such as `application/security/UserAuthorities`, and never derives tenant identity from request data.
 4. Use `CommandServiceTemplate` for state changes and `QueryServiceTemplate` for reads; call domain behavior from the application service, not a controller or repository.
 5. Define only repository, security, or output-port methods consumed by the use case, then implement the adapter in the appropriate `infra` module.
 6. Register framework-neutral factories, policies, and domain services in `application/config/DomainConfiguration` when they need runtime dependencies.
 7. Add or update the public Request, Response, and facade contract in `api`. Facade methods are also served over RPC, so they never take actor, tenant, or authority parameters.
-8. Bind the HTTP route and its authority in `infra/rest/SecurityConfig`, then repeat the same capability check through `CallerGuard` in the use case.
+8. Declare the HTTP route authorities in an `ApiRouteAuthorization` bean, as `infra/rest/security/UserRouteAuthorization` does, using the same constants the use case checks through `CallerGuard`. `SecurityConfig` itself needs no change.
 9. Add the new local capability to both `conf/application-dev.yml` and `start/src/test/resources/application-test.yml`; otherwise the sample development identity will receive HTTP 403.
 10. Add domain, application, persistence, REST, and integration tests as applicable. `ArchitectureBoundaryTest` must still pass.
 
@@ -60,12 +58,12 @@ For an `Order` aggregate with one create command and one detail query, inspect o
 | Area | Required work |
 | --- | --- |
 | `domain` | `Order`, `OrderId`, status/value objects, events/errors, `OrderRepository`, creation factory or method, and domain tests |
-| `application` | `OrderService`, implementation, `OrderVO`, `OrderAssembler`, `UseCaseOperation` codes, `CallerGuard` checks, output ports, and application tests |
+| `application` | `OrderService`, implementation, `OrderVO`, `OrderAssembler`, `UseCaseOperation` codes, `OrderAuthorities`, `CallerGuard` checks, output ports, and application tests |
 | domain wiring | Beans in `DomainConfiguration` for factories, policies, or services with constructor dependencies |
 | `api` | Create/query Request types, `OrderResponse`, and an `OrderFacade` contract without identity parameters |
 | `infra/persistence` | `OrderPO`, `OrderPOConverter`, mapper, SQL/result map where names are exceptional, repository adapter, Flyway migration, and round-trip tests |
 | `infra/facade` | Facade implementation that resolves the caller with `AuthenticatedCallerResolver` and uses `ResultUtil.map(...)` for VO-to-Response mapping |
-| `infra/rest` | Controller, route authority, validation, and HTTP tests |
+| `infra/rest` | Controller, an `OrderRouteAuthorization` bean, validation, and HTTP tests |
 | `infra/grpc` (when served over gRPC) | `order/v1/order_service.proto`, a `@GrpcService` that calls `OrderFacade` through `GrpcFacadeCalls`, message mapping, and service tests |
 | local security | Matching `orders:*` authorities in both dev and test YAML |
 | `start` | Integration tests and any runtime adapter needed by the new output ports |
@@ -79,10 +77,10 @@ For a command such as “change user email,” make one coherent vertical change
 
 1. Add a validated `UserEmailUpdateRequest` and a facade method `updateUserEmail(userId, request)` in `api`, without identity parameters.
 2. Add `UserService.updateUserEmail(caller, userId, request)` and a `USER_EMAIL_UPDATE` operation code.
-3. In `validate`, call `CallerGuard.requireTenant(caller, "users:write")`; in `prepare`, load the visible tenant-owned aggregate.
+3. In `validate`, call `CallerGuard.requireTenant(caller, UserAuthorities.WRITE)`; in `prepare`, load the visible tenant-owned aggregate.
 4. In transactional `execute`, call `user.changeEmail(...)` and save through `UserRepository`.
 5. In `onSuccess`, pull events, register event publication, and independently register `userCacheService.invalidateUser(...)`.
-6. Add the facade delegation, which passes the caller resolved by `AuthenticatedCallerResolver`, the controller route, and the same `users:write` route rule in `SecurityConfig`.
+6. Add the facade delegation, which passes the caller resolved by `AuthenticatedCallerResolver`, and a `PUT` controller route. `UserRouteAuthorization` already requires `UserAuthorities.WRITE` for `PUT`; a route with another HTTP method, such as `PATCH`, needs its own rule there, or it is only authenticated.
 7. Test the domain transition, caller/tenant rejection, persistence round trip, cache invalidation, HTTP contract, and optimistic-lock conflict.
 
 This path does not require a new repository method: update the loaded aggregate and persist it through `save`.
@@ -134,7 +132,7 @@ Keep transport work in `infra/rest`:
 1. Bind and validate Request data.
 2. Call the facade without identity arguments; it resolves the verified caller from Spring Security's context.
 3. Map the result to an HTTP response.
-4. Add route authorization in `SecurityConfig` and repeat the capability check in the application use case.
+4. Add route authorization in an `ApiRouteAuthorization` bean and repeat the capability check in the application use case.
 
 Do not accept actor ID, tenant ID, authorities, or administrator flags from an ordinary request body. Do not log passwords, tokens, or complete request objects that may contain them.
 

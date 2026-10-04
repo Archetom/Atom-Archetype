@@ -13,11 +13,37 @@ spring:
   sql:
     init:
       mode: never
+  task:
+    execution:
+      # Runs @Async work such as application event listeners.
+      thread-name-prefix: ${rootArtifactId}-task-
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 100
+        keep-alive: 60s
+      shutdown:
+        # Let in-flight post-commit work finish during graceful shutdown.
+        await-termination: true
+        await-termination-period: 30s
   grpc:
     server:
       # gRPC is opt-in through atom.grpc.enabled. Enabling it also requires a JWT decoder,
       # for example spring.security.oauth2.resourceserver.jwt.issuer-uri.
       enabled: ${dollar}{atom.grpc.enabled:false}
+
+logging:
+  file:
+    # Directory for the rolling files written by logback-spring.xml.
+    path: ./logs/app
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+  mapper-locations: classpath*:mapper/**/*.xml
 
 atom:
   api:

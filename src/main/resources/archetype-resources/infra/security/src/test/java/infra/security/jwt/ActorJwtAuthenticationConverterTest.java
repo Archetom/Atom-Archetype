@@ -1,4 +1,4 @@
-package ${package}.infra.grpc.security;
+package ${package}.infra.security.jwt;
 
 import ${package}.infra.security.ActorPrincipal;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ActorJwtAuthenticationConverterTest {
 
     private final ActorJwtAuthenticationConverter converter =
-            new ActorJwtAuthenticationConverter(new GrpcSecurityProperties("sub", "tenant_id", "scope"));
+            new ActorJwtAuthenticationConverter(new JwtClaimsProperties("sub", "tenant_id", "scope"));
 
     @Test
     void mapsVerifiedClaimsToTheActorAndItsAuthorities() {
@@ -35,7 +35,7 @@ class ActorJwtAuthenticationConverterTest {
     @Test
     void acceptsAuthoritiesAsAListAndConfiguredClaimNames() {
         ActorJwtAuthenticationConverter custom = new ActorJwtAuthenticationConverter(
-                new GrpcSecurityProperties("uid", "org", "roles"));
+                new JwtClaimsProperties("uid", "org", "roles"));
 
         AbstractAuthenticationToken authentication = custom.convert(
                 jwt(Map.of("uid", 7, "org", "11", "roles", List.of("orders:read"))));

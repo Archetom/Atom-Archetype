@@ -45,7 +45,7 @@ docker compose up -d mysql
 sh ./mvnw clean install
 
 ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
-  sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+  sh ./mvnw -pl start -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 After startup, check the health endpoint:
@@ -60,13 +60,15 @@ See [Getting started](docs/getting-started.md) for development identity headers,
 
 - Dependency boundaries between `domain`, `application`, `api`, and infrastructure modules.
 - Explicit `AuthenticatedCaller` and `TenantId` values for tenant-scoped repository and cache access.
-- MyBatis-Plus 3.5.17, Flyway, and MySQL 26.7.0.
-- Spring Security, SpringDoc OpenAPI 3.1.0, and consistent HTTP error mapping.
-- Redis 8.10.0 adapters, disabled by default, with a corresponding no-op implementation.
+- MyBatis-Plus, Flyway, and MySQL.
+- Spring Security, SpringDoc OpenAPI, and consistent HTTP error mapping.
+- Redis adapters, disabled by default, with a corresponding no-op implementation.
 - A gRPC server, disabled by default, built on Spring Boot's gRPC support, authenticated with bearer JWTs, and backed by the same facades as HTTP.
 - Command/query service templates, after-commit callbacks, and Testcontainers integration tests.
 
-Business APIs require authentication by default. Development identity headers are limited to explicitly enabled `dev` and `test` environments; production should integrate its own identity provider.
+Exact dependency versions are pinned in the generated `pom.xml` and `docker-compose.yml`.
+
+Business APIs require authentication by default. In production, configure the JWT issuer and both HTTP and gRPC authenticate bearer JWTs; development identity headers are limited to explicitly enabled `dev` and `test` environments.
 
 ## Project structure
 

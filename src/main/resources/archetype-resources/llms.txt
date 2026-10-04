@@ -37,9 +37,12 @@ Search these class names with `rg` because generated Java paths include the chos
 
 - `Bootstrap`: application composition and entry point.
 - `UserController`, `UserPageResponse`, `UserResponse`: typed REST contracts under `/api/v1/users`.
-- `SecurityConfig`: route authorization and trusted-header profile guard.
+- `SecurityConfig`: HTTP authentication, the authenticated `/api/**` fallback, and the trusted-header profile guard.
+- `ApiRouteAuthorization`: one bean per API area declares its route authorities.
+- `UserRouteAuthorization`, `UserAuthorities`: User route rules and the authority constants the use cases check.
 - `UserFacade`, `UserFacadeImpl`: facade contract for HTTP and RPC clients, without identity parameters.
 - `AuthenticatedCallerResolver`: verified HTTP or RPC principal to the use-case caller context.
+- `ActorJwtAuthenticationConverter`, `JwtAuthenticationConfig`: bearer JWT claims to `ActorPrincipal` for HTTP and gRPC.
 - `UserGrpcService`, `user_service.proto`: User gRPC contract and adapter in `infra/grpc`.
 - `GrpcSecurityConfig`, `GrpcFacadeCalls`: gRPC bearer-JWT authentication and status mapping.
 - `UserServiceImpl`: explicit caller/tenant command and query orchestration.
@@ -58,4 +61,4 @@ See [AGENTS.md](AGENTS.md#verification) for check selection and commands, includ
 
 $h2 Security warning
 
-`X-Dev-User-Id` and `X-Dev-Tenant-Id` are local development/test credentials, not a production authentication protocol. Never allow untrusted clients or a public proxy to establish identity, tenant, authorities, or administrator state through headers or request bodies.
+`X-Dev-User-Id` and `X-Dev-Tenant-Id` are local development/test credentials, not a production authentication protocol; production uses bearer JWTs from a configured issuer. Never allow untrusted clients or a public proxy to establish identity, tenant, authorities, or administrator state through headers or request bodies.

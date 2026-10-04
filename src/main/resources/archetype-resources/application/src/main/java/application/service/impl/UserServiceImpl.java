@@ -7,6 +7,7 @@ import ${package}.application.assembler.UserAssembler;
 import ${package}.application.operation.UseCaseOperation;
 import ${package}.application.security.AuthenticatedCaller;
 import ${package}.application.security.CallerGuard;
+import ${package}.application.security.UserAuthorities;
 import ${package}.application.service.UserService;
 import ${package}.application.service.template.CommandServiceTemplate;
 import ${package}.application.service.template.QueryServiceTemplate;
@@ -61,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = callerGuard.requireTenant(caller, "users:write");
+                tenantId = callerGuard.requireTenant(caller, UserAuthorities.WRITE);
                 if (request == null) {
                     throw new NonRetryableApplicationException(ApplicationErrorCode.PARAMETER_INVALID,
                             "Request parameters must not be empty");
@@ -115,7 +116,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = callerGuard.requireTenant(caller, "users:read");
+                tenantId = callerGuard.requireTenant(caller, UserAuthorities.READ);
                 id = requireUserId(userId);
             }
 
@@ -128,14 +129,14 @@ public class UserServiceImpl implements UserService {
                 }
                 if (UserStatus.DELETED.getCode().equals(cachedUser.getStatus())) {
                     userCacheService.evictUser(tenantId, id);
-                    throw new UserNotFoundException(userId);
+                    throw new UserNotFoundException();
                 }
                 return Optional.of(cachedUser);
             }
 
             @Override
             public UserVO execute() {
-                User user = findVisibleUser(tenantId, id, userId);
+                User user = findVisibleUser(tenantId, id);
                 UserVO userVO = UserAssembler.INSTANCE.toVO(user);
                 userCacheService.cacheUser(tenantId, userVO);
                 return userVO;
@@ -151,7 +152,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = callerGuard.requireTenant(caller, "users:read");
+                tenantId = callerGuard.requireTenant(caller, UserAuthorities.READ);
                 if (request == null) {
                     throw new NonRetryableApplicationException(ApplicationErrorCode.PARAMETER_INVALID,
                             "Query request must not be empty");
@@ -196,7 +197,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = callerGuard.requireTenant(caller, "users:write");
+                tenantId = callerGuard.requireTenant(caller, UserAuthorities.WRITE);
                 id = requireUserId(userId);
                 if (status == null) {
                     throw new NonRetryableApplicationException(
@@ -212,7 +213,7 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void prepare() {
-                user = findVisibleUser(tenantId, id, userId);
+                user = findVisibleUser(tenantId, id);
             }
 
             @Override
@@ -241,13 +242,13 @@ public class UserServiceImpl implements UserService {
 
             @Override
             public void validate() {
-                tenantId = callerGuard.requireTenant(caller, "users:delete");
+                tenantId = callerGuard.requireTenant(caller, UserAuthorities.DELETE);
                 id = requireUserId(userId);
             }
 
             @Override
             public void prepare() {
-                user = findVisibleUser(tenantId, id, userId);
+                user = findVisibleUser(tenantId, id);
             }
 
             @Override
@@ -288,10 +289,10 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private User findVisibleUser(TenantId tenantId, UserId id, Long rawUserId) {
+    private User findVisibleUser(TenantId tenantId, UserId id) {
         return userRepository.findById(tenantId, id)
                 .filter(user -> !user.isDeleted())
-                .orElseThrow(() -> new UserNotFoundException(rawUserId));
+                .orElseThrow(UserNotFoundException::new);
     }
 
 }

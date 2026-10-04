@@ -5,9 +5,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.Optional;
-
 /** Stable four-digit identifiers for application operations and public error codes. */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum UseCaseOperation implements OperationCode {
@@ -32,12 +29,5 @@ public enum UseCaseOperation implements OperationCode {
     @Override
     public String code() {
         return code;
-    }
-
-    /** Find an operation by its stable code. */
-    public static Optional<UseCaseOperation> findByCode(String code) {
-        return Arrays.stream(values())
-                .filter(value -> value.code.equals(code))
-                .findFirst();
     }
 }

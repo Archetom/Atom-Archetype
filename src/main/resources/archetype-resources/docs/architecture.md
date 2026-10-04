@@ -36,7 +36,7 @@ start ────────────────────────�
 | `infra/rest` | HTTP transport, authentication, status mapping | Business decisions |
 | `infra/persistence` | PO mapping, MyBatis, Flyway, cache adapters | Caller discovery, use-case orchestration |
 | `infra/external` | Third-party output-port adapters | Application workflow |
-| `infra/security` | Password hashing, `ActorPrincipal`, and verified-caller resolution | Domain policy, transport credential parsing |
+| `infra/security` | Password hashing, `ActorPrincipal`, JWT claim mapping, and verified-caller resolution | Domain policy, transport-specific wiring |
 | `infra/facade` | Facade implementation served over HTTP and RPC, caller resolution, and API/application mapping | Persistence, transport credentials |
 | `infra/grpc` | Opt-in gRPC server: `.proto` contracts, bearer-JWT authentication, and gRPC status mapping over the facades | Use-case logic, direct application or domain access |
 | `start` | Runtime assembly and end-to-end tests | Reusable business logic |
@@ -68,7 +68,7 @@ validate -> prepare -> [resolveWithoutTransaction] -> execute -> onSuccess
 
 `CommandServiceTemplate` runs `validate` and `prepare` before opening an independent transaction for `execute` and `onSuccess`. Slow preparation such as password hashing therefore does not hold a database connection. A failure rolls that transaction back before it is converted to a `Result`, so an outer transaction is neither marked rollback-only nor surprised by `UnexpectedRollbackException`. Treat each command as its own atomic use case; do not use it when several commands must share one transaction.
 
-`QueryServiceTemplate` runs `validate` and `prepare` before opening an independent read-only `REPEATABLE_READ` transaction for `execute` and `onSuccess`. Multi-query reads therefore observe one database snapshot without inheriting a caller transaction. A result that needs no database work, such as a cache hit, is returned from `resolveWithoutTransaction` after `validate`; no transaction opens, no connection is borrowed, and `execute` and `onSuccess` are skipped. Database lock acquisition failures are mapped to the stable `CONCURRENT_OPERATION` public error and HTTP 409. A deliberate pre-transaction rejection retains its use-case-specific error scene.
+`QueryServiceTemplate` runs `validate` and `prepare` before opening an independent read-only `REPEATABLE_READ` transaction for `execute` and `onSuccess`. Multi-query reads therefore observe one database snapshot without inheriting a caller transaction. A result that needs no database work, such as a cache hit, is returned from `resolveWithoutTransaction` after `validate`; no transaction opens, no connection is borrowed, and `execute` and `onSuccess` are skipped. Database lock acquisition failures are mapped to the stable `CONCURRENT_OPERATION` public error and HTTP 409.
 
 The relational database is the source of truth. `AfterCommitExecutor` delays cache writes, cache invalidation, and in-process event publication until commit. Events and cache actions use separate registrations so one callback failure cannot skip the other. Cache invalidation installs a short refill fence before eviction so a concurrent stale reader cannot repopulate a 30-minute entry after the write commits.
 
@@ -102,9 +102,10 @@ Do not add `schema.sql` or container initialization SQL, and do not edit an appl
 ## Security boundaries
 
 - Application APIs reject anonymous requests.
-- HTTP routes and application use cases both check authorities.
+- HTTP routes, through `ApiRouteAuthorization` beans, and application use cases both check authorities, using the same constants.
 - Tenant identity comes from verified authentication, never ordinary request data.
 - Facade methods accept no identity, tenant, or authority parameters, so exposing them over RPC cannot let a client act as another user. Each RPC call must still be authenticated by the transport; see [RPC exposure](configuration.md#rpc-exposure).
+- Production authenticates HTTP and gRPC with bearer JWTs from a configured issuer, mapped to `ActorPrincipal` by one shared converter; without an issuer every API request is rejected.
 - Production cannot install the trusted-header development adapter.
 - Request headers cannot grant authorities or administrator state.
 - Passwords, reset tokens, authentication credentials, and full request objects must not be logged.

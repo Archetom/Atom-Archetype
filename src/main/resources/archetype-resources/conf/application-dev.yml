@@ -4,8 +4,6 @@ server:
   address: ${dollar}{SERVER_ADDRESS:127.0.0.1}
 
 spring:
-  application:
-    name: ${rootArtifactId}
   datasource:
     url: jdbc:mysql://localhost:3306/atom_db?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
     username: atom_user
@@ -22,37 +20,6 @@ spring:
       host: localhost
       port: 6379
       timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
-# logging configuration
-logging:
-  config: classpath:logback-spring.xml
-  level:
-    root: info
-  file:
-    path: ./logs/app
-
-# mybatis-plus
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-    cache-enabled: false
-    call-setters-on-nulls: true
-    jdbc-type-for-null: 'null'
-  mapper-locations: classpath*:mapper/**/*.xml
-
-# thread pool configuration
-task:
-  executor:
-    core-pool-size: 5
-    max-pool-size: 10
-    queue-capacity: 100
-    keep-alive-seconds: 60
-    thread-name-prefix: ${rootArtifactId}-task-
 
 # Trusted headers are for explicit local development only.
 atom:

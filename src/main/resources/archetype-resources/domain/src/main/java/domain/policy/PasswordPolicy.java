@@ -34,30 +34,4 @@ public class PasswordPolicy {
             throw new UserDomainException("Password exceeds the BCrypt 72-byte input limit");
         }
     }
-
-    /**
-     * check password
-     */
-    public PasswordStrength checkStrength(String password) {
-        if (password == null) {
-            return PasswordStrength.WEAK;
-        }
-
-        int characterCount = password.codePointCount(0, password.length());
-        if (characterCount < MIN_LENGTH
-                || characterCount > MAX_LENGTH
-                || password.getBytes(StandardCharsets.UTF_8).length > BCRYPT_MAX_BYTES) {
-            return PasswordStrength.WEAK;
-        }
-
-        if (characterCount >= 16) {
-            return PasswordStrength.STRONG;
-        }
-
-        return PasswordStrength.MEDIUM;
-    }
-
-    public enum PasswordStrength {
-        WEAK, MEDIUM, STRONG
-    }
 }

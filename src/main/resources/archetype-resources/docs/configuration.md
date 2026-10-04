@@ -8,15 +8,17 @@ Test-only configuration lives in `start/src/test/resources`. It is on the test c
 
 | File | Purpose | Important behavior |
 | --- | --- | --- |
-| `conf/application.yml` | Defaults shared by every environment | Flyway enabled, Redis disabled, trusted headers disabled, health-only actuator exposure |
+| `conf/application.yml` | Defaults shared by every environment, including MyBatis-Plus, logging, and the async executor | Flyway enabled, Redis disabled, trusted headers disabled, health-only actuator exposure |
 | `conf/application-dev.yml` | Local MySQL and optional Redis | Trusted headers remain disabled until explicitly enabled |
 | `start/src/test/resources/application-test.yml` | MySQL Testcontainers integration tests | Trusted headers enabled for test requests, Redis disabled; test resource only |
 | `conf/application-prod.yml` | Production | Datasource variables required, trusted headers forced off, API documentation disabled by default |
 
+Profile files hold only what differs by environment. Put a shared setting in `application.yml`, so tests exercise the same value as production.
+
 No profile is selected implicitly. Start the application with one profile:
 
 ```bash
-sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+sh ./mvnw -pl start -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 For a packaged application:
@@ -37,6 +39,7 @@ Do not activate `dev` and `prod` together.
 | `ATOM_SECURITY_TRUSTED_HEADER_ENABLED` | Enable trusted development headers in `dev` or `test` only |
 | `SERVER_ADDRESS` | Override the development bind address |
 | `ATOM_REDIS_ENABLED` | Enable the Redis cache adapter |
+| `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI` | Trusted JWT issuer for HTTP and gRPC bearer tokens |
 | `ATOM_GRPC_ENABLED` | Enable the gRPC server; also requires a JWT decoder, see [RPC exposure](#rpc-exposure) |
 | `SPRING_DATA_REDIS_HOST` | Redis host |
 | `SPRING_DATA_REDIS_PORT` | Redis port |
@@ -64,7 +67,7 @@ docker compose up -d mysql
 
 These credentials are local examples only.
 
-The generated Compose file pins MySQL 26.7.0. Before reusing a data volume created by an older MySQL release, back it up and follow MySQL's supported upgrade path; for disposable development data, create a fresh volume instead.
+The generated Compose file pins the MySQL image, and the integration tests read the same image from it. Before reusing a data volume created by an older MySQL release, back it up and follow MySQL's supported upgrade path; for disposable development data, create a fresh volume instead.
 
 ## Production settings
 
@@ -78,6 +81,8 @@ SPRING_DATASOURCE_PASSWORD='use-a-secret-manager' \
 ```
 
 Store production values in a secret manager or deployment platform. Do not commit passwords, tokens, private keys, or connection strings.
+
+Configure the trusted JWT issuer as well, for example `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI`; otherwise every API request is rejected with HTTP 401. See [Production authentication](#production-authentication).
 
 The generated `LoggingUserNotificationAdapter` is for local development and tests. It is disabled in `prod` and never reports successful delivery. Implement `application.port.out.UserNotificationPort` in `infra/external` before production startup; without a production adapter, startup fails with a missing-bean error.
 
@@ -126,9 +131,7 @@ The default route policy is fail-closed:
 
 - health is public;
 - OpenAPI discovery is public only while its endpoints are enabled;
-- user reads require `users:read`;
-- user creation and updates require `users:write`;
-- user deletion requires `users:delete`;
+- routes declared by an `ApiRouteAuthorization` bean require its authorities; the sample `UserRouteAuthorization` requires `users:read` for reads, `users:write` for creation and updates, and `users:delete` for deletion;
 - unmatched API requests require authentication;
 - all other unmatched routes are denied.
 
@@ -146,20 +149,35 @@ Enable it locally:
 
 ```bash
 ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
-  sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+  sh ./mvnw -pl start -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 The adapter is disabled by default, requires `dev` or `test`, and refuses `prod`. The `dev` profile binds to `127.0.0.1` unless `SERVER_ADDRESS` is deliberately overridden. The `test` profile that enables the adapter is a test resource, so activating `test` on a packaged application does not enable it. Never forward these headers from an internet-facing proxy.
 
 ### Production authentication
 
-Production must verify a real credential, including its signature, issuer, audience, expiry, and required claims. Map the verified subject and tenant claim to an `ActorPrincipal`, map verified scopes or roles to the three user authorities, and put the resulting authentication into Spring Security's context; `AuthenticatedCallerResolver` turns it into the use-case caller. Never construct `AuthenticatedCaller` from request JSON, RPC arguments, or arbitrary client headers.
+HTTP and gRPC accept bearer JWTs whenever Spring Boot can build a JWT decoder. Configure the trusted issuer with one of the standard properties:
+
+```bash
+SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI='https://id.example.com/realms/app' \
+  java -jar start/target/*-start.jar --spring.profiles.active=prod
+```
+
+`spring.security.oauth2.resourceserver.jwt.jwk-set-uri` or `public-key-location` work as well; add `audiences` when your issuer serves several applications. The decoder verifies the signature, issuer, and expiry. `ActorJwtAuthenticationConverter` then maps the claims to an `ActorPrincipal`, and `AuthenticatedCallerResolver` turns it into the use-case caller:
+
+| Property | Default | Use |
+| --- | --- | --- |
+| `atom.security.jwt.user-id-claim` | `sub` | Claim holding the positive user ID |
+| `atom.security.jwt.tenant-claim` | `tenant_id` | Claim holding the positive tenant ID |
+| `atom.security.jwt.authorities-claim` | `scope` | Authorities as a space-separated string or a list, used verbatim, for example `users:read` |
+
+A token whose user or tenant claim is not a positive ID is rejected. Missing or invalid tokens receive HTTP 401 with a `WWW-Authenticate: Bearer` header; `ApiRouteAuthorization` route rules and the use cases check the token's authorities. Without a decoder and without the dev/test trusted-header adapter, startup logs a warning and every API request returns HTTP 401. Never construct `AuthenticatedCaller` from request JSON, RPC arguments, or arbitrary client headers.
 
 ### RPC exposure
 
 The opt-in `infra/grpc` module serves the facades over gRPC. Facade methods carry no identity, tenant, or authority parameters: each call is authenticated with a bearer JWT, and `UserFacadeImpl` resolves the caller from Spring Security's context through `AuthenticatedCallerResolver`.
 
-gRPC is disabled by default. Enabling it requires a JWT decoder; without one, startup fails instead of serving unauthenticated calls:
+gRPC is disabled by default. It uses the same JWT decoder and claim mapping as HTTP (see [Production authentication](#production-authentication)); enabling it without a decoder fails at startup instead of serving unauthenticated calls:
 
 ```bash
 ATOM_GRPC_ENABLED=true \
@@ -171,13 +189,10 @@ SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI='https://id.example.com/rea
 | --- | --- | --- |
 | `atom.grpc.enabled` | `false` | Starts the gRPC server through `spring.grpc.server.enabled` |
 | `spring.grpc.server.port` | `9090` | gRPC listen port |
-| `spring.security.oauth2.resourceserver.jwt.issuer-uri`, `jwk-set-uri`, or `public-key-location` | none | Verifies token signature, issuer, and expiry |
-| `atom.grpc.security.user-id-claim` | `sub` | Claim holding the positive user ID |
-| `atom.grpc.security.tenant-claim` | `tenant_id` | Claim holding the positive tenant ID |
-| `atom.grpc.security.authorities-claim` | `scope` | Authorities as a space-separated string or a list, used verbatim |
+| `spring.security.oauth2.resourceserver.jwt.issuer-uri`, `jwk-set-uri`, or `public-key-location` | none | Verifies token signature, issuer, and expiry for HTTP and gRPC |
 
 - Every method requires a valid token except the standard `grpc.health.v1.Health` service, which stays public for load-balancer probes. Server reflection also requires a token.
-- A token whose user or tenant claim is not a positive ID is rejected with `UNAUTHENTICATED`.
+- Missing or invalid tokens, including tokens whose user or tenant claim is not a positive ID, are rejected with `UNAUTHENTICATED`.
 - Use cases still check authorities through `CallerGuard`, so gRPC callers need the same `users:*` authorities as HTTP callers.
 - Request messages are validated against the same API constraints as HTTP requests.
 
@@ -204,7 +219,7 @@ Any other RPC transport must follow the same rule: verify a real credential, put
 
 ## Logging and request correlation
 
-`conf/logback-spring.xml` writes the thread, request ID, and logger name on every line.
+`conf/logback-spring.xml` writes the thread, request ID, and logger name on every line, to the console and to rolling files under `logging.file.path` (default `./logs/app`).
 
 - Every HTTP response, including authentication failures and errors, carries an `X-Request-Id` header. A well-formed incoming value from a gateway (letters, digits, `.`, `_`, or `-`, at most 64 characters) is reused; any other value is replaced so callers cannot forge log lines. The ID follows async event listeners.
 - Expected rejections, such as validation, authorization, and domain-rule failures, log one WARN line without a stack trace.
@@ -212,6 +227,10 @@ Any other RPC transport must follow the same rule: verify a real credential, put
 - Logs are therefore sensitive. Driver and client messages can contain personal data, such as the duplicate value in a unique-key error. Restrict log access and retention, and never put credentials or secrets into your own exception or log messages.
 - Malformed request bodies are logged without parser details, because those messages can echo request content such as passwords.
 - Spring MVC client errors, such as an unknown route (404) or an unsupported method (405), keep their status and are not reported as internal failures.
+
+## Async execution
+
+`@Async` work, such as application event listeners, runs on Spring Boot's application task executor. Size it with `spring.task.execution.*` in `conf/application.yml`: 5 core threads, 10 maximum threads, and a queue of 100 tasks by default. During graceful shutdown the executor waits up to 30 seconds for queued work. `TaskConfig` registers a `TaskDecorator` that carries the request ID into each task. Work that must survive a process crash needs a transactional outbox, not this executor.
 
 ## MyBatis-Plus
 

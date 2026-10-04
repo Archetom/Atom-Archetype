@@ -87,7 +87,7 @@ Java fields use camelCase and SQL columns use snake_case:
 | `tenantId` | `tenant_id` |
 | `phoneNumber` | `phone_number` |
 | `externalUser` | `is_external_user` |
-| `passwordHash` | `password` (explicit legacy mapping) |
+| `passwordHash` | `password_hash` |
 | `createdTime` | `created_time` |
 | `updatedTime` | `updated_time` |
 

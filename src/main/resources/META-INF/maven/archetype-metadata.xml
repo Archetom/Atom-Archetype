@@ -120,9 +120,6 @@
                         <include>**/*.java</include>
                     </includes>
                 </fileSet>
-                <fileSet filtered="true" encoding="UTF-8">
-                    <directory>src/main/resources</directory>
-                </fileSet>
             </fileSets>
         </module>
         <!-- infra-security -->
@@ -159,6 +156,9 @@
                 </fileSet>
                 <fileSet filtered="true" encoding="UTF-8">
                     <directory>src/main/resources</directory>
+                    <includes>
+                        <include>**/*</include>
+                    </includes>
                 </fileSet>
             </fileSets>
         </module>
@@ -177,9 +177,6 @@
                         <include>**/*.java</include>
                     </includes>
                 </fileSet>
-                <fileSet filtered="true" encoding="UTF-8">
-                    <directory>src/main/resources</directory>
-                </fileSet>
             </fileSets>
         </module>
         <!-- infra-facade -->
@@ -190,9 +187,6 @@
                     <includes>
                         <include>**/*.java</include>
                     </includes>
-                </fileSet>
-                <fileSet filtered="true" encoding="UTF-8">
-                    <directory>src/main/resources</directory>
                 </fileSet>
             </fileSets>
         </module>

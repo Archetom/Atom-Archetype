@@ -1,8 +1,6 @@
 #set( $dollar = '$' )
 ######################## production environment ####################
 spring:
-  application:
-    name: ${rootArtifactId}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${dollar}{SPRING_DATASOURCE_URL}
@@ -16,6 +14,8 @@ springdoc:
   swagger-ui:
     enabled: ${dollar}{SPRINGDOC_SWAGGER_UI_ENABLED:false}
 
+# Bearer JWT authentication for HTTP and gRPC comes from Spring Boot's resource-server settings,
+# for example SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI. Without them every API request returns 401.
 # Production never trusts caller-controlled identity headers.
 atom:
   security:
@@ -24,29 +24,3 @@ atom:
       authorities: ""
   redis:
     enabled: ${dollar}{ATOM_REDIS_ENABLED:false}
-
-# logging configuration
-logging:
-  config: classpath:logback-spring.xml
-  level:
-    root: info
-  file:
-    path: ./logs/app
-
-# mybatis-plus
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-    cache-enabled: false
-    call-setters-on-nulls: true
-    jdbc-type-for-null: 'null'
-  mapper-locations: classpath*:mapper/**/*.xml
-
-# thread pool configuration
-task:
-  executor:
-    core-pool-size: 5
-    max-pool-size: 10
-    queue-capacity: 100
-    keep-alive-seconds: 60
-    thread-name-prefix: ${artifactId}-task-

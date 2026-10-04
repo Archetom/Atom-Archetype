@@ -5,7 +5,7 @@ CREATE TABLE t_user
     username         VARCHAR(50)  NOT NULL,
     email            VARCHAR(254) NOT NULL,
     phone_number     VARCHAR(20)  NULL,
-    password         VARCHAR(255) NOT NULL,
+    password_hash    VARCHAR(255) NOT NULL,
     real_name        VARCHAR(100) NULL,
     status           VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
     external_id      VARCHAR(100) NULL,

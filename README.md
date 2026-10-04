@@ -45,7 +45,7 @@ docker compose up -d mysql
 sh ./mvnw clean install
 
 ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
-  sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+  sh ./mvnw -pl start -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 应用启动后可检查健康端点：
@@ -60,14 +60,16 @@ curl http://localhost:8080/actuator/health
 
 - `domain`、`application`、`api` 与基础设施模块之间的依赖边界。
 - 显式的 `AuthenticatedCaller` 和 `TenantId`，仓储与缓存按租户访问。
-- MyBatis-Plus 3.5.17、Flyway 和 MySQL 26.7.0。
-- Spring Security、SpringDoc OpenAPI 3.1.0 和统一的 HTTP 错误映射。
-- 默认关闭的 Redis 8.10.0 缓存适配器，以及对应的空实现。
+- MyBatis-Plus、Flyway 和 MySQL。
+- Spring Security、SpringDoc OpenAPI 和统一的 HTTP 错误映射。
+- 默认关闭的 Redis 缓存适配器，以及对应的空实现。
 - 默认关闭的 gRPC 服务端（Spring Boot 内置 gRPC 支持），使用 Bearer JWT 认证，并复用与 HTTP 相同的 Facade。
 - 独立的命令事务与只读查询快照事务、事务提交后回调和 Testcontainers 集成测试。
 - 具名分页响应、稳定并发错误，以及会自动编译和测试生成项目的 Archetype 回归测试。
 
-业务 API 默认需要认证。开发身份请求头仅适用于显式启用的 `dev`、`test` 环境；生产环境应接入自己的身份系统。
+具体依赖版本以生成项目的 `pom.xml` 和 `docker-compose.yml` 为准。
+
+业务 API 默认需要认证。生产环境配置 JWT 签发方后，HTTP 与 gRPC 都使用 Bearer JWT 认证；开发身份请求头仅适用于显式启用的 `dev`、`test` 环境。
 
 ## 项目结构
 

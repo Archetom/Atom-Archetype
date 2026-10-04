@@ -1,4 +1,5 @@
 # Test-only profile. It is a test resource so its trusted-header settings never ship in the application jar.
+# Shared settings come from application.yml, so tests exercise the production configuration.
 spring:
   application:
     name: ${rootArtifactId}-test
@@ -28,22 +29,6 @@ springdoc:
   swagger-ui:
     enabled: false
 
-# MyBatis-Plus configuration
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-  mapper-locations: classpath*:mapper/**/*.xml
-  type-aliases-package: ${package}.infra.persistence.mysql.po
-
-# thread pool configuration
-task:
-  executor:
-    core-pool-size: 2
-    max-pool-size: 4
-    queue-capacity: 50
-    keep-alive-seconds: 30
-    thread-name-prefix: "test-task-"
-
 # logging configuration
 logging:
   level:
@@ -57,22 +42,10 @@ logging:
     org.springframework.data.redis: WARN
     org.testcontainers: INFO
     com.github.dockerjava: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}:%line] - %msg%n"
 
 # server configuration
 server:
   port: 0 # random port, avoid test conflicts
-
-# management endpoint configuration
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: when-authorized
 
 # Trusted-header authentication is explicitly enabled for integration tests.
 atom:
@@ -82,20 +55,3 @@ atom:
       authorities: "users:read,users:write,users:delete"
   redis:
     enabled: false
-
-# transaction configuration
-spring.transaction:
-  default-timeout: 30
-  rollback-on-commit-failure: true
-
-# Jackson configuration
-spring.jackson:
-  default-property-inclusion: NON_NULL
-  serialization:
-    fail-on-empty-beans: false
-  deserialization:
-    fail-on-unknown-properties: false
-  datatype:
-    datetime:
-      write-dates-as-timestamps: false
-  time-zone: UTC

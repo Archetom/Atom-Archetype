@@ -80,11 +80,6 @@ public abstract class UserPOConverter {
         return userPOs.stream().map(this::toDomain).collect(Collectors.toList());
     }
 
-    /**
-     * User List -> UserPO List
-     */
-    public abstract List<UserPO> toPOList(List<User> users);
-
     // ========== Value conversions ==========
 
     /**

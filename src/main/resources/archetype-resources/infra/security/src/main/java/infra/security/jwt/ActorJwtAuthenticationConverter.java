@@ -1,4 +1,4 @@
-package ${package}.infra.grpc.security;
+package ${package}.infra.security.jwt;
 
 import ${package}.infra.security.ActorPrincipal;
 import org.springframework.core.convert.converter.Converter;
@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Maps a verified JWT to the {@link ActorPrincipal} that facades resolve as the caller.
+ * Maps a verified JWT from an HTTP or gRPC request to the {@link ActorPrincipal} that facades
+ * resolve as the caller.
  *
  * <p>The user and tenant claims must hold positive IDs and the authorities claim lists the
  * caller's authorities verbatim. A token without a usable actor or tenant is rejected, so a
@@ -23,9 +24,9 @@ import java.util.stream.Stream;
  */
 public class ActorJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
-    private final GrpcSecurityProperties properties;
+    private final JwtClaimsProperties properties;
 
-    public ActorJwtAuthenticationConverter(GrpcSecurityProperties properties) {
+    public ActorJwtAuthenticationConverter(JwtClaimsProperties properties) {
         this.properties = properties;
     }
 

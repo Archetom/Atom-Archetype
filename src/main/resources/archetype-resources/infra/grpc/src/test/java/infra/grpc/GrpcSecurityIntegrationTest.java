@@ -2,6 +2,7 @@ package ${package}.infra.grpc;
 
 import ${package}.infra.grpc.config.GrpcSecurityConfig;
 import ${package}.infra.security.AuthenticatedCallerResolver;
+import ${package}.infra.security.jwt.JwtAuthenticationConfig;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -141,7 +142,7 @@ class GrpcSecurityIntegrationTest {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
-    @Import({GrpcSecurityConfig.class, AuthenticatedCallerResolver.class})
+    @Import({GrpcSecurityConfig.class, JwtAuthenticationConfig.class, AuthenticatedCallerResolver.class})
     static class TestApplication {
 
         @Bean

@@ -1,9 +1,6 @@
 #set( $dollar = '$' )
 package ${package}.application.service.template;
 
-import ${package}.shared.exception.ApplicationException;
-import ${package}.shared.operation.OperationCode;
-import io.github.archetom.common.result.Result;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -26,11 +23,6 @@ public class QueryServiceTemplate extends OperationTemplateSupport {
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
         transactionTemplate.setReadOnly(true);
-    }
-
-    /** Returns a normal use-case failure before opening the read transaction. */
-    public <T> Result<T> reject(OperationCode event, ApplicationException exception) {
-        return rejected(event, exception);
     }
 
     @Override

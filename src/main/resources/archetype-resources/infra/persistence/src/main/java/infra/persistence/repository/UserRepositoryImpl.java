@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -61,7 +60,7 @@ public class UserRepositoryImpl implements UserRepository {
                 log.info("Updated user: id={}, tenantId={}", userPO.getId(), tenantId.getValue());
             }
         } catch (DuplicateKeyException exception) {
-            throw translateDuplicateKey(user, exception);
+            throw translateDuplicateKey(exception);
         }
 
         user.onPersisted(
@@ -134,16 +133,16 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
-    private UserAlreadyExistsException translateDuplicateKey(User user, DuplicateKeyException exception) {
+    private UserAlreadyExistsException translateDuplicateKey(DuplicateKeyException exception) {
         if (causeContains(exception, EMAIL_UNIQUE_CONSTRAINT)) {
-            return UserAlreadyExistsException.byEmail(user.getEmailValue());
+            return UserAlreadyExistsException.byEmail();
         }
         if (causeContains(exception, USERNAME_UNIQUE_CONSTRAINT)) {
-            return new UserAlreadyExistsException(user.getUsernameValue());
+            return UserAlreadyExistsException.byUsername();
         }
         // The current schema has only username/email unique keys. Preserve a
         // stable conflict response if a driver omits the constraint name.
-        return new UserAlreadyExistsException(user.getUsernameValue());
+        return UserAlreadyExistsException.byUsername();
     }
 
     private boolean causeContains(Throwable exception, String fragment) {

@@ -51,7 +51,7 @@ docker compose ps
 
 MySQL listens on `localhost:3306`. Flyway applies migrations from `infra/persistence/src/main/resources/db/migration` when the application starts.
 
-The generated Compose file pins MySQL 26.7.0. Back up persistent data and follow MySQL's supported upgrade path before attaching an older data volume, or create a fresh volume for disposable development data.
+The generated Compose file pins the MySQL image, and the integration tests use the same image. Back up persistent data and follow MySQL's supported upgrade path before attaching a data volume created by an older MySQL release, or create a fresh volume for disposable development data.
 
 Redis is disabled by default. To enable the Redis adapter locally:
 
@@ -80,7 +80,7 @@ No Spring profile is active by default. Start the application with the `dev` pro
 SPRING_PROFILES_ACTIVE=dev \
 ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
 ATOM_REDIS_ENABLED=${ATOM_REDIS_ENABLED:-false} \
-sh ./mvnw -f start/pom.xml spring-boot:run
+sh ./mvnw -pl start -am spring-boot:run
 ```
 
 Available development endpoints:
@@ -102,7 +102,7 @@ curl -i -X POST http://localhost:8080/api/v1/users \
   -d '{
     "username": "alice_01",
     "email": "alice@example.com",
-    "password": "Password1!",
+    "password": "correct horse battery staple",
     "realName": "Alice"
   }'
 ```

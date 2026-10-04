@@ -53,13 +53,6 @@ public abstract class AggregateRoot<ID> {
     }
 
     /**
-     * remove domain event
-     */
-    protected void removeDomainEvent(DomainEvent event) {
-        domainEvents.remove(event);
-    }
-
-    /**
      * check whether domain event
      */
     public boolean hasDomainEvents() {

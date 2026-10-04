@@ -28,7 +28,7 @@ package:
 	@CI=false ${dollar}(MVN) clean package
 
 run:
-	@${dollar}(MVN) -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+	@${dollar}(MVN) -pl start -am spring-boot:run -Dspring-boot.run.profiles=dev
 
 infra-up:
 	@docker compose up -d mysql redis

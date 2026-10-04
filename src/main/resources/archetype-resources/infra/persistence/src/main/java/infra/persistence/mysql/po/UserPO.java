@@ -40,8 +40,8 @@ public class UserPO extends BasePO {
     @TableField("phone_number")
     private String phoneNumber;
 
-    /** One-way password hash stored in the legacy {@code password} column. */
-    @TableField("password")
+    /** One-way password hash; never a plaintext password. */
+    @TableField("password_hash")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private String passwordHash;

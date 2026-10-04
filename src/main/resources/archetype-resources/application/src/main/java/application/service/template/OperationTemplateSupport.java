@@ -27,14 +27,8 @@ abstract class OperationTemplateSupport {
     }
 
     public final <T> Result<T> execute(OperationCode event, ServiceOperation<T> operation) {
-        return execute(event, operation, OperationLogPolicy.DEFAULT);
-    }
-
-    public final <T> Result<T> execute(OperationCode event, ServiceOperation<T> operation,
-                                       OperationLogPolicy logPolicy) {
         Objects.requireNonNull(event, "event must not be null");
         Objects.requireNonNull(operation, "operation must not be null");
-        Objects.requireNonNull(logPolicy, "logPolicy must not be null");
 
         Result<T> result = new Result<>();
         try {
@@ -47,11 +41,7 @@ abstract class OperationTemplateSupport {
             result.setSuccess(true);
             return result;
         } catch (DomainException exception) {
-            if (logPolicy == OperationLogPolicy.SAFE_BACKGROUND) {
-                log.warn("Background operation rejected: event={}", event);
-            } else {
-                log.warn("Domain operation rejected: event={}, error={}", event, exception.getError());
-            }
+            log.warn("Domain operation rejected: event={}, error={}", event, exception.getError());
             NonRetryableApplicationException mapped = new NonRetryableApplicationException(
                     DomainExceptionMapper.toApplicationCode(exception),
                     exception.getMessage(),
@@ -72,24 +62,12 @@ abstract class OperationTemplateSupport {
                     ApplicationErrorCode.CONCURRENT_OPERATION.getDescription(), exception);
             return ResultUtil.genErrorResult(result, mapped, event.code(), appName);
         } catch (RuntimeException exception) {
-            if (logPolicy == OperationLogPolicy.SAFE_BACKGROUND) {
-                log.warn("Background operation failed: event={}", event);
-            } else {
-                log.error("Unexpected application failure: event={}", event, exception);
-            }
+            log.error("Unexpected application failure: event={}", event, exception);
             return ResultUtil.genErrorResult(exception, appName);
         } finally {
             log.info("Application operation completed: event={}, success={}",
                     event, result.isSuccess());
         }
-    }
-
-    /** Maps a deliberate pre-transaction rejection to its operation-scoped public result. */
-    protected final <T> Result<T> rejected(OperationCode event, ApplicationException exception) {
-        Objects.requireNonNull(event, "event must not be null");
-        Objects.requireNonNull(exception, "exception must not be null");
-        Result<T> result = new Result<>();
-        return ResultUtil.genErrorResult(result, exception, event.code(), appName);
     }
 
     protected <T> T invoke(ServiceOperation<T> operation) {

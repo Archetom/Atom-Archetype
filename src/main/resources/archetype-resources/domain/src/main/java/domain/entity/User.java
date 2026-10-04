@@ -242,11 +242,6 @@ public class User extends AggregateRoot<UserId> {
         }
     }
 
-    /** Activate the user. */
-    public void activate() {
-        changeStatus(UserStatus.ACTIVE, "user activated");
-    }
-
     /** Lock the user for the supplied business reason. */
     public void lock(String reason) {
         changeStatus(UserStatus.LOCKED, reason);

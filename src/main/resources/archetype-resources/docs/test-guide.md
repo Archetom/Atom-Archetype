@@ -27,7 +27,7 @@ Run Docker-backed integration tests:
 CI=true sh ./mvnw test
 ```
 
-`CI=true` enables the generated integration test classes. Docker must be available. Testcontainers starts MySQL 26.7.0; Redis remains disabled.
+`CI=true` enables the generated integration test classes. Docker must be available. Testcontainers starts the MySQL image pinned in `docker-compose.yml`, so tests and local development share one version; Redis remains disabled.
 
 ## Test layers
 
@@ -37,7 +37,7 @@ CI=true sh ./mvnw test
 | Domain | Value validation, aggregate transitions, policies, events | JUnit and assertions only |
 | Application | Authority checks, tenant propagation, orchestration, post-commit scheduling | Mocks or small port fakes |
 | Persistence converter | Full PO/aggregate round trip, version, timestamps | MapStruct mapper instance |
-| REST | Error/status mapping, authentication rejection, safe messages | Spring MVC and Security test support |
+| REST | Error/status mapping, bearer JWT and anonymous rejection, safe messages | Spring MVC and Security test support |
 | Security adapter | Verified-caller resolution from Spring Security's context and fail-closed handling of missing principals | Spring Security core types |
 | gRPC | Bearer-JWT authentication, public health checks, request validation, and gRPC status mapping | In-process gRPC transport and test-signed JWTs |
 | Start integration | Flyway, MySQL, tenant isolation, locking, HTTP and gRPC flows | Spring Boot, MockMvc, in-process gRPC, Testcontainers |
@@ -91,6 +91,10 @@ Representative integration coverage includes:
 - soft deletion through `status=DELETED` without physical row removal;
 - authentication, capability separation, validation, and safe error responses;
 - Redis-disabled health and generated OpenAPI metadata.
+
+### Bearer JWT authentication
+
+`TestTokens` signs JWTs with a per-run test key, and `@Import(TestTokens.TrustedIssuer.class)` makes the application trust it. `BearerTokenIntegrationTest` covers HTTP authentication and `GrpcIntegrationTest` covers gRPC; unit tests cover the claim mapping in `ActorJwtAuthenticationConverterTest`.
 
 ### Trusted-header authentication
 

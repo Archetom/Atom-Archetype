@@ -38,3 +38,8 @@ updates:
       interval: weekly
       day: monday
       timezone: Asia/Shanghai
+    ignore:
+      # A MySQL data directory upgrade is one-way, so a major version change is a deliberate release decision.
+      - dependency-name: mysql
+        update-types:
+          - version-update:semver-major

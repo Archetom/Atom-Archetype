@@ -66,6 +66,7 @@ rm -f application/src/main/java/${PACKAGE_PATH}/application/config/DomainConfigu
 rm -f application/src/main/java/${PACKAGE_PATH}/application/event/listener/UserEventListener.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/port/out/UserNotificationPort.java
 rm -f application/src/main/java/${PACKAGE_PATH}/application/operation/UseCaseOperation.java
+rm -f application/src/main/java/${PACKAGE_PATH}/application/security/UserAuthorities.java
 
 # =============================================================================
 # Infrastructure layer sample code
@@ -81,6 +82,7 @@ rm -f infra/persistence/src/main/resources/mapper/UserMapper.xml
 
 # Rest
 rm -f infra/rest/src/main/java/${PACKAGE_PATH}/infra/rest/controller/UserController.java
+rm -f infra/rest/src/main/java/${PACKAGE_PATH}/infra/rest/security/UserRouteAuthorization.java
 
 # Facade
 rm -f infra/facade/src/main/java/${PACKAGE_PATH}/infra/facade/UserFacadeImpl.java
@@ -92,30 +94,6 @@ rm -f infra/external/src/main/java/${PACKAGE_PATH}/infra/external/LoggingUserNot
 rm -f infra/grpc/src/main/proto/user/v1/user_service.proto
 rm -f infra/grpc/src/main/java/${PACKAGE_PATH}/infra/grpc/user/UserGrpcService.java
 rm -f infra/grpc/src/main/java/${PACKAGE_PATH}/infra/grpc/user/UserGrpcMapper.java
-
-# Remove User-specific authorization rules while retaining the secure generic API boundary.
-SECURITY_CONFIG="infra/rest/src/main/java/${PACKAGE_PATH}/infra/rest/config/SecurityConfig.java"
-if [ -f "$SECURITY_CONFIG" ]; then
-    SECURITY_CONFIG_TMP="${SECURITY_CONFIG}.tmp"
-    awk '
-        /^[[:space:]]*import org\.springframework\.http\.HttpMethod;[[:space:]]*$/ { next }
-        /\.requestMatchers\(HttpMethod\.GET, "\/api\/v1\/users\/\*\*"\)/ {
-            dropping_user_rules = 1
-            next
-        }
-        dropping_user_rules && /\.hasAuthority\("users:delete"\)/ {
-            dropping_user_rules = 0
-            next
-        }
-        dropping_user_rules { next }
-        { print }
-    ' "$SECURITY_CONFIG" > "$SECURITY_CONFIG_TMP"
-    if cmp -s "$SECURITY_CONFIG" "$SECURITY_CONFIG_TMP"; then
-        rm -f "$SECURITY_CONFIG_TMP"
-    else
-        mv "$SECURITY_CONFIG_TMP" "$SECURITY_CONFIG"
-    fi
-fi
 
 # Development identities remain available, but no sample-specific authorities are granted.
 for CONFIG_FILE in conf/application-dev.yml start/src/test/resources/application-test.yml; do
@@ -185,17 +163,15 @@ fi
 # test code
 # =============================================================================
 echo " clean test code..."
-rm -f shared/src/test/java/${PACKAGE_PATH}/shared/util/PageUtilTest.java
-rm -f shared/src/test/java/${PACKAGE_PATH}/shared/util/ResultUtilTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/entity/UserTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/policy/PasswordPolicyTest.java
+rm -f domain/src/test/java/${PACKAGE_PATH}/domain/factory/UserFactoryTest.java
 rm -f domain/src/test/java/${PACKAGE_PATH}/domain/package-info.java
 rm -f application/src/test/java/${PACKAGE_PATH}/application/assembler/UserAssemblerTest.java
 rm -f application/src/test/java/${PACKAGE_PATH}/application/service/impl/UserCacheServiceTest.java
 rm -f application/src/test/java/${PACKAGE_PATH}/application/service/impl/UserServiceImplTest.java
 rm -f infra/persistence/src/test/java/${PACKAGE_PATH}/infra/persistence/converter/UserPOConverterTest.java
 rm -f infra/persistence/src/test/java/${PACKAGE_PATH}/infra/persistence/repository/UserRepositoryImplTest.java
-rm -f infra/rest/src/test/java/${PACKAGE_PATH}/infra/rest/advice/RestExceptionAdviceTest.java
 rm -f start/src/test/java/${PACKAGE_PATH}/UserControllerIntegrationTest.java
 rm -f start/src/test/java/${PACKAGE_PATH}/PersistenceIntegrationTest.java
 rm -f start/src/test/java/${PACKAGE_PATH}/GrpcIntegrationTest.java

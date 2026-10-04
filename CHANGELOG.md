@@ -6,6 +6,7 @@ All notable architecture, compatibility, and security changes are documented her
 
 ### Added
 
+- HTTP bearer JWT authentication whenever a JWT decoder is configured (for example `spring.security.oauth2.resourceserver.jwt.issuer-uri`); HTTP and gRPC share one claim mapping (`atom.security.jwt.*`) to `ActorPrincipal`, and startup warns when no authentication is configured
 - optional `infra/grpc` module that serves the facades over gRPC with Spring Boot's built-in gRPC support; the server is disabled by default (`atom.grpc.enabled=false`), authenticates every call with a bearer JWT mapped to `ActorPrincipal`, keeps the standard health service public, and maps stable application errors to gRPC statuses with a `google.rpc.ErrorInfo` reason
 - generated projects pin `guava` and `error_prone_annotations` so atom-common and grpc-java pass dependency convergence
 
@@ -21,6 +22,16 @@ All notable architecture, compatibility, and security changes are documented her
 - unexpected failures log the full exception at ERROR, including message and stack trace; public error responses still never expose internal details
 - every HTTP response carries an `X-Request-Id` header, and log lines include the thread, request ID, and logger name; the request ID follows async event listeners
 - added `ServiceOperation.resolveWithoutTransaction` so results such as cache hits are served before a transaction opens; User detail cache hits no longer borrow a database connection
+- **breaking:** HTTP route authorities are declared by `ApiRouteAuthorization` beans instead of rules inside `SecurityConfig`; the sample `UserRouteAuthorization` and the use cases share the `UserAuthorities` constants, and `make clean-sample` deletes the sample rule instead of editing `SecurityConfig`
+- **breaking:** `@Async` work runs on Spring Boot's application task executor, sized with `spring.task.execution.*`; the custom `task.executor.*` properties and `TaskExecutorProperties` are removed, and `TaskConfig` only adds the logging-context `TaskDecorator`
+- the sample `t_user` migration names the hash column `password_hash` instead of `password`
+- renamed `UserDomainService.encryptPassword` to `hashPassword`; `UserAlreadyExistsException.byUsername()`/`byEmail()` and `UserNotFoundException()` no longer take arguments they never used
+- `UserFactory` validates the password policy before querying the repository for username and email uniqueness
+- shared MyBatis-Plus and logging settings live once in `application.yml`; the test profile no longer overrides Jackson, transaction, or MyBatis-Plus settings, so integration tests run with the production configuration
+- `make run` runs `start` with `-pl start -am spring-boot:run`, compiling the current sources without a prior `install`; only `start` is runnable
+- integration tests start the MySQL image pinned in `docker-compose.yml`, and Dependabot no longer proposes MySQL major upgrades
+- `infra/rest` declares `spring-boot-starter-validation` itself instead of relying on SpringDoc to bring a Bean Validation provider
+- the archetype CI runs the fast suite during `install` and the Docker suite once; the no-op dependency analysis step is removed
 
 ### Fixed
 
@@ -28,6 +39,15 @@ All notable architecture, compatibility, and security changes are documented her
 - keep the generic `DomainEventPublisherImpl` when `make clean-sample` removes the User sample
 - report Spring MVC client errors, such as unknown routes (404) and unsupported methods (405), with their own status instead of HTTP 500
 - treat stored rows that fail domain reconstruction as internal data-integrity failures rather than caller errors
+- `make clean-sample` keeps the generic `RestExceptionAdviceTest`, `PageUtilTest`, and `ResultUtilTest`
+- the getting-started example password now satisfies the 12-character password policy
+- removed the malformed `.gitignore` entry and the empty resource file sets that made generation warn "Don't override file"
+- removed hard-coded component versions from the READMEs and guides; the POMs and `docker-compose.yml` are the version sources
+
+### Removed
+
+- unused template APIs: `OperationLogPolicy` with the three-argument `execute`, `QueryServiceTemplate.reject`, `ResultResponseException`, `ErrorUtil.makeErrorCode`, `UseCaseOperation.findByCode`, `PasswordPolicy.checkStrength`, `AggregateRoot.removeDomainEvent`, `UserPOConverter.toPOList`, and `User.activate`
+- the explicit `spring-jdbc` and `atom-common` dependencies of `start`; both still reach the executable jar through the modules
 
 ## [2.1.0] — 2026-08-08
 

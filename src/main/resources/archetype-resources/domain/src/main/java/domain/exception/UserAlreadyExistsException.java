@@ -1,20 +1,21 @@
 package ${package}.domain.exception;
 
 /**
- * user already exists exception
- * @author hanfeng
+ * Raised when another user in the tenant already holds the username or email.
+ *
+ * <p>The message names only the conflicting field, never its value.</p>
  */
 public class UserAlreadyExistsException extends UserDomainException {
 
-    public UserAlreadyExistsException(String username) {
-        super(DomainError.ALREADY_EXISTS, "Username already exists");
+    private UserAlreadyExistsException(String message) {
+        super(DomainError.ALREADY_EXISTS, message);
     }
 
-    public static UserAlreadyExistsException byEmail(String email) {
-        return new UserAlreadyExistsException();
+    public static UserAlreadyExistsException byUsername() {
+        return new UserAlreadyExistsException("Username already exists");
     }
 
-    private UserAlreadyExistsException() {
-        super(DomainError.ALREADY_EXISTS, "Email already exists");
+    public static UserAlreadyExistsException byEmail() {
+        return new UserAlreadyExistsException("Email already exists");
     }
 }

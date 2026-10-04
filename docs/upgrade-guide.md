@@ -38,6 +38,12 @@ These changes alter generated-project contracts. Compare a project generated fro
 | Test profile | `conf/application-test.yml`, packaged into the application jar | `start/src/test/resources/application-test.yml`, test classpath only |
 | Unexpected-failure logs | Exception type only | Full exception, including message and stack trace |
 | RPC | None | Optional `infra/grpc` module: gRPC server disabled by default, bearer-JWT authentication over the facades |
+| Production HTTP authentication | None; every API request returns 401 until you add an adapter | Bearer JWTs whenever a JWT decoder is configured, mapped by `ActorJwtAuthenticationConverter` (`atom.security.jwt.*`) |
+| HTTP route authorities | Rules inside `SecurityConfig` | `ApiRouteAuthorization` beans, such as `UserRouteAuthorization`, sharing constants such as `UserAuthorities` with the use cases |
+| Async executor | Custom `taskExecutor` bean, `task.executor.*` properties | Spring Boot's application task executor, `spring.task.execution.*` properties |
+| Sample password column | `t_user.password` | `t_user.password_hash` |
+| Local run | `-f start/pom.xml spring-boot:run` after `install` | `make run`, or `-pl start -am spring-boot:run`, from the current sources |
+| Integration-test MySQL image | Hard-coded in `BaseIntegrationTest` | Read from `docker-compose.yml` |
 
 1. Remove `AuthenticatedCaller` parameters from facade interfaces and implementations. Resolve the caller in the facade implementation with `AuthenticatedCallerResolver` and pass it to the use case; remove `Authentication` parameters and caller mapping from controllers.
 2. Before serving a facade over RPC, authenticate every call in the RPC server adapter and put a verified `ActorPrincipal` into Spring Security's context on the invoking thread, as described under RPC exposure in the generated `docs/configuration.md`.
@@ -45,7 +51,12 @@ These changes alter generated-project contracts. Compare a project generated fro
 4. Throw `InvalidValueException` from value objects that validate caller input; keep `IllegalArgumentException` for values that never come from callers, such as `TenantId`.
 5. Move `application-test.yml` to `start/src/test/resources`.
 6. Treat logs as sensitive data now that they contain exception messages.
-7. To serve facades over gRPC, copy the `infra/grpc` module from the reference project, register it in the root and `start` POMs, add the gRPC settings from `conf/application.yml`, and configure a JWT decoder before setting `atom.grpc.enabled=true`.
+7. To authenticate HTTP with bearer JWTs, copy `infra/security/src/main/java/.../infra/security/jwt` and its POM dependencies, add `spring-boot-starter-security-oauth2-resource-server` to `infra/rest`, apply the `SecurityConfig` changes, and configure the issuer, for example with `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI`.
+8. To serve facades over gRPC, copy the `infra/grpc` module from the reference project, register it in the root and `start` POMs, add the gRPC settings from `conf/application.yml`, and configure a JWT decoder before setting `atom.grpc.enabled=true`.
+9. Move the route rules out of `SecurityConfig` into one `ApiRouteAuthorization` bean per API area, keep the authority strings in one constants class per area, and use those constants in `CallerGuard` checks.
+10. Replace `task.executor.*` with `spring.task.execution.*` (`thread-name-prefix`, `pool.core-size`, `pool.max-size`, `pool.queue-capacity`, `pool.keep-alive`). Delete the custom executor bean and `TaskExecutorProperties`, and keep the logging-context decorator as a `TaskDecorator` bean.
+11. Keep an applied `V1` migration unchanged. To adopt the new column name, add a migration such as `ALTER TABLE t_user RENAME COLUMN password TO password_hash;` and update `UserPO` and the mapper XML in the same change.
+12. To run `start` from the reactor, set `<skip>true</skip>` for `spring-boot-maven-plugin` in the root `pluginManagement` and `<skip>false</skip>` in `start`, then use `sh ./mvnw -pl start -am spring-boot:run`.
 
 ## Major changes from `1.1.0`
 

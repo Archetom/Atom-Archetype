@@ -29,7 +29,7 @@ Run the application with the `dev` profile:
 
 ```bash
 ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
-  sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+  sh ./mvnw -pl start -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 Check the health endpoint:
@@ -78,7 +78,7 @@ $h2 Configuration
 - `conf/application-prod.yml`: production settings, with no default datasource credentials.
 - The gRPC server is disabled by default; enable it with `ATOM_GRPC_ENABLED=true` and a JWT decoder, as described in [Configuration](docs/configuration.md).
 
-The `X-Dev-User-Id` and `X-Dev-Tenant-Id` headers are limited to explicitly enabled `dev` and `test` environments. Production should integrate a real identity provider and map verified identities to `AuthenticatedCaller`.
+The `X-Dev-User-Id` and `X-Dev-Tenant-Id` headers are limited to explicitly enabled `dev` and `test` environments. In production, configure the JWT issuer (for example `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI`) and both HTTP and gRPC authenticate bearer JWTs.
 
 Enable Redis with `atom.redis.enabled`; the default is a no-op cache implementation. Flyway migrations live in `infra/persistence/src/main/resources/db/migration`; add a new migration for database changes instead of editing an applied migration.
 

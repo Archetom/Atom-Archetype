@@ -10,18 +10,21 @@ import ${package}.api.dto.response.UserResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /** End-to-end tests for the User HTTP, security, and persistence contract. */
 @DisplayName("User controller integration")
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@Import(TestTokens.TrustedIssuer.class)
 class UserControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test
@@ -343,6 +346,17 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         // Then
         result.andExpect(status().isNotFound())
               .andExpect(jsonPath("${symbol_dollar}.errMsg").value(org.hamcrest.Matchers.containsString("User does not exist")));
+    }
+
+    @Test
+    @DisplayName("bearer token authorities - grant only the matching user routes")
+    void bearerTokenAuthorities_GrantMatchingRoutes() throws Exception {
+        String readOnlyToken = "Bearer " + TestTokens.token(7L, 999999L, "users:read");
+
+        mockMvc.perform(get("/api/v1/users").header(AUTHORIZATION, readOnlyToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/v1/users/{userId}", 1L).header(AUTHORIZATION, readOnlyToken))
+                .andExpect(status().isForbidden());
     }
 
     @Override

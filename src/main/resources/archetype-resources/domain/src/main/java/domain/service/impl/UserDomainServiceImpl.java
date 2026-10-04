@@ -35,16 +35,16 @@ public class UserDomainServiceImpl implements UserDomainService {
     @Override
     public void validateUserCreation(TenantId tenantId, Username username, Email email) {
         if (!isUsernameAvailable(tenantId, username)) {
-            throw new UserAlreadyExistsException(username.getValue());
+            throw UserAlreadyExistsException.byUsername();
         }
 
         if (!isEmailAvailable(tenantId, email)) {
-            throw UserAlreadyExistsException.byEmail(email.getValue());
+            throw UserAlreadyExistsException.byEmail();
         }
     }
 
     @Override
-    public PasswordHash encryptPassword(String plainPassword) {
+    public PasswordHash hashPassword(String plainPassword) {
         if (plainPassword == null || plainPassword.trim().isEmpty()) {
             throw new UserDomainException("Password must not be empty");
         }

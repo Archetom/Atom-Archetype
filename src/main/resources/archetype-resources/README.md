@@ -29,7 +29,7 @@ sh ./mvnw clean install
 
 ```bash
 ATOM_SECURITY_TRUSTED_HEADER_ENABLED=true \
-  sh ./mvnw -f start/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+  sh ./mvnw -pl start -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 检查健康端点：
@@ -78,7 +78,7 @@ $h2 配置
 - `conf/application-prod.yml`：生产配置，不提供数据源凭据默认值。
 - gRPC 服务端默认关闭；设置 `ATOM_GRPC_ENABLED=true` 并配置 JWT 校验后启用，详见 [配置说明](docs/configuration.md)。
 
-`X-Dev-User-Id` 和 `X-Dev-Tenant-Id` 请求头仅用于显式启用的 `dev`、`test` 环境。生产环境应接入真实身份系统并映射为 `AuthenticatedCaller`。
+`X-Dev-User-Id` 和 `X-Dev-Tenant-Id` 请求头仅用于显式启用的 `dev`、`test` 环境。生产环境配置 JWT 签发方（例如 `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI`）后，HTTP 与 gRPC 都使用 Bearer JWT 认证。
 
 Redis 通过 `atom.redis.enabled` 启用，默认使用空缓存实现。Flyway 迁移脚本位于 `infra/persistence/src/main/resources/db/migration`；数据库变更应新增迁移文件，不要修改已执行的迁移。
 

@@ -184,6 +184,11 @@
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <!-- Only start is runnable and sets this to false, so
+                             `-pl start -am spring-boot:run` can build its upstream modules. -->
+                        <skip>true</skip>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -216,7 +221,6 @@
                     </configuration>
                     <executions>
                         <execution>
-                            <phase>compile</phase>
                             <goals>
                                 <goal>jar-no-fork</goal>
                             </goals>

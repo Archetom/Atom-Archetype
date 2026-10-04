@@ -35,7 +35,7 @@ java -version
 **Fix:** Select one when starting the application:
 
 ```bash
-SPRING_PROFILES_ACTIVE=dev sh ./mvnw -f start/pom.xml spring-boot:run
+SPRING_PROFILES_ACTIVE=dev sh ./mvnw -pl start -am spring-boot:run
 ```
 
 For `prod`, also set all three required datasource environment variables. Missing production credentials stop startup.
@@ -56,7 +56,7 @@ X-Dev-Tenant-Id: 42
 
 Both IDs must be positive integers. `X-User-Id`, `X-Tenant-Id`, and `X-Admin` are ignored.
 
-**Fix:** Enable the adapter only for local `dev` or `test` use. Under `prod`, configure Spring Security and map the verified principal to `AuthenticatedCaller`; trusted headers remain unavailable.
+**Fix:** Enable the adapter only for local `dev` or `test` use. Under `prod`, configure the JWT issuer, for example `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI`, and send bearer tokens; trusted headers remain unavailable.
 
 ## API requests return 403 Forbidden
 

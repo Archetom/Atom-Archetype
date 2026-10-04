@@ -1,12 +1,10 @@
 #set( $dollar = '$' )
 package ${package}.infra.rest.advice;
 
+import ${package}.domain.exception.DomainError;
+import ${package}.domain.exception.DomainException;
 import ${package}.domain.exception.InvalidValueException;
-import ${package}.domain.exception.UserAlreadyExistsException;
-import ${package}.domain.exception.UserDomainException;
-import ${package}.domain.exception.UserNotFoundException;
 import ${package}.infra.rest.result.RestErrorResult;
-import ${package}.infra.rest.util.ErrorResultWrapUtil;
 import ${package}.shared.enums.ApplicationErrorCode;
 import ${package}.shared.exception.ApplicationException;
 import org.junit.jupiter.api.Test;
@@ -41,19 +39,9 @@ class RestExceptionAdviceTest {
     @Test
     void shouldMapParameterErrorToBadRequest() {
         ResponseEntity<?> response = advice.applicationException(
-                new ApplicationException(ApplicationErrorCode.PARAMETER_INVALID, "User ID must be positive"));
+                new ApplicationException(ApplicationErrorCode.PARAMETER_INVALID, "ID must be positive"));
 
-        assertError(response, HttpStatus.BAD_REQUEST, "101", "User ID must be positive");
-    }
-
-    @Test
-    void shouldPreserveOperationScopedFailureResult() {
-        var result = ErrorResultWrapUtil.genErrorResult(
-                ApplicationErrorCode.PARAMETER_INVALID, "Safe validation failure", "test-app");
-
-        ResponseEntity<?> response = advice.resultResponseException(new ResultResponseException(result));
-
-        assertError(response, HttpStatus.BAD_REQUEST, "101", "Safe validation failure");
+        assertError(response, HttpStatus.BAD_REQUEST, "101", "ID must be positive");
     }
 
     @Test
@@ -97,26 +85,35 @@ class RestExceptionAdviceTest {
 
     @Test
     void shouldMapNotFoundToNotFound() {
-        ResponseEntity<?> response = advice.domainException(new UserNotFoundException(42L));
+        ResponseEntity<?> response = advice.domainException(
+                new TestDomainException(DomainError.NOT_FOUND, "Resource does not exist"));
 
-        assertError(response, HttpStatus.NOT_FOUND, "300", "User does not exist");
+        assertError(response, HttpStatus.NOT_FOUND, "300", "Resource does not exist");
     }
 
     @Test
-    void shouldMapEmailDuplicateToConflictWithCorrectMessage() {
+    void shouldMapDuplicateToConflictWithItsMessage() {
         ResponseEntity<?> response = advice.domainException(
-                UserAlreadyExistsException.byEmail("person@example.com"));
+                new TestDomainException(DomainError.ALREADY_EXISTS, "Email already exists"));
 
         assertError(response, HttpStatus.CONFLICT, "302", "Email already exists");
     }
 
     @Test
+    void shouldMapVersionConflictToConflict() {
+        ResponseEntity<?> response = advice.domainException(
+                new TestDomainException(DomainError.VERSION_CONFLICT, "Resource version conflict"));
+
+        assertError(response, HttpStatus.CONFLICT, "200", "Resource version conflict");
+    }
+
+    @Test
     void shouldMapGenericDomainRuleToUnprocessableContent() {
         ResponseEntity<?> response = advice.domainException(
-                new UserDomainException("Deleted users cannot change status"));
+                new TestDomainException(DomainError.RULE_VIOLATION, "Deleted records cannot change status"));
 
         assertError(response, HttpStatus.UNPROCESSABLE_CONTENT, "303",
-                "Deleted users cannot change status");
+                "Deleted records cannot change status");
     }
 
     @Test
@@ -159,6 +156,14 @@ class RestExceptionAdviceTest {
                 .andExpect(jsonPath("${dollar}.errCode").value(org.hamcrest.Matchers.endsWith("300")));
 
         assertFalse(output.getAll().contains("Unexpected request failure"));
+    }
+
+    /** Generic domain failure, so these tests do not depend on the removable User sample. */
+    private static final class TestDomainException extends DomainException {
+
+        private TestDomainException(DomainError error, String message) {
+            super(error, message);
+        }
     }
 
     @RestController

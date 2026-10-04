@@ -67,6 +67,9 @@ jobs:
 
       - name: Install archetype under test
         timeout-minutes: 10
+        # The archetype IT runs the fast suite; the Docker suite runs once, in its own step below.
+        env:
+          CI: 'false'
         run: ./mvnw -B -ntp clean install -Dgpg.skip=true
 
       - name: Verify Central publication artifacts
@@ -115,11 +118,6 @@ jobs:
           test -f start/target/classes/application.yml
           test ! -e start/target/classes/application-test.yml
           test ! -e conf/application-test.yml
-
-      - name: Analyze generated project dependencies
-        timeout-minutes: 10
-        working-directory: ${{ runner.temp }}/atom-demo
-        run: sh ./mvnw -B -ntp test-compile dependency:analyze -DfailOnWarning=false
 
       - name: Run generated project tests without Docker
         timeout-minutes: 10

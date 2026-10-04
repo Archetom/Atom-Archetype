@@ -9,7 +9,7 @@
         <result column="username" property="username" />
         <result column="email" property="email" />
         <result column="phone_number" property="phoneNumber" />
-        <result column="password" property="passwordHash" />
+        <result column="password_hash" property="passwordHash" />
         <result column="real_name" property="realName" />
         <result column="status" property="status" />
         <result column="external_id" property="externalId" />
@@ -23,7 +23,7 @@
 
     <!-- common query result column -->
     <sql id="Base_Column_List">
-        id, tenant_id, username, email, phone_number, password, real_name, status,
+        id, tenant_id, username, email, phone_number, password_hash, real_name, status,
         external_id, is_external_user, is_admin, version, created_time, updated_time
     </sql>
 

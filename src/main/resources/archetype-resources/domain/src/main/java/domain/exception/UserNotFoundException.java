@@ -1,16 +1,13 @@
 package ${package}.domain.exception;
 
 /**
- * user not to exception
- * @author hanfeng
+ * Raised when a user does not exist, is deleted, or belongs to another tenant.
+ *
+ * <p>All three cases share one message so callers cannot probe other tenants.</p>
  */
 public class UserNotFoundException extends UserDomainException {
 
-    public UserNotFoundException(Long userId) {
-        super(DomainError.NOT_FOUND, "User does not exist");
-    }
-
-    public UserNotFoundException(String username) {
+    public UserNotFoundException() {
         super(DomainError.NOT_FOUND, "User does not exist");
     }
 }

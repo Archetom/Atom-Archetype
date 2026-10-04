@@ -19,7 +19,7 @@ public interface UserDomainService {
     void validateUserCreation(TenantId tenantId, Username username, Email email);
 
     /** Hash plaintext through the configured security output port. */
-    PasswordHash encryptPassword(String plainPassword);
+    PasswordHash hashPassword(String plainPassword);
 
     /** Return whether domain rules permit deleting the user. */
     boolean canDeleteUser(User user);

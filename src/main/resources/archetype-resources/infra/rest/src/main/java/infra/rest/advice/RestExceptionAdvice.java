@@ -90,13 +90,6 @@ public class RestExceptionAdvice {
                 exception.getErrorCode(), exception.getMessage(), appName));
     }
 
-    /** Preserves an already-classified, operation-scoped failure at the REST boundary. */
-    @ExceptionHandler(ResultResponseException.class)
-    public ResponseEntity<?> resultResponseException(ResultResponseException exception) {
-        log.warn("Application result rejected at REST boundary");
-        return ResponseEntityUtil.assembleResponse(exception.result());
-    }
-
     /**
      * Maps an unexpected failure without exposing its message or cause. Spring MVC's own client
      * errors, such as an unknown route (404) or unsupported method (405), keep their status.

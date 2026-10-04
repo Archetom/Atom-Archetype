@@ -14,10 +14,19 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -31,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration test scaffold backed by MySQL Testcontainers.
  *
  * <ul>
- * <li>MySQL managed by Testcontainers</li>
+ * <li>MySQL managed by Testcontainers, using the image pinned in {@code docker-compose.yml}</li>
  * <li>dynamic Spring Boot datasource configuration</li>
  * <li>MockMvc HTTP helpers</li>
  * <li>real transaction commits and explicit database cleanup</li>
@@ -47,7 +56,7 @@ public abstract class BaseIntegrationTest {
 
     // ======= Shared Testcontainers configuration =======
 
-    protected static final MySQLContainer MYSQL = new MySQLContainer(DockerImageName.parse("mysql:26.7.0"))
+    protected static final MySQLContainer MYSQL = new MySQLContainer(composeImage("mysql"))
             .withDatabaseName("test_db")
             .withUsername("test_user")
             .withPassword("test_password")
@@ -61,6 +70,37 @@ public abstract class BaseIntegrationTest {
 
     /** Return the shared MySQL test container for advanced assertions. */
     protected static MySQLContainer mysqlContainer() { return MYSQL; }
+
+    /**
+     * Reads a service image from the project's {@code docker-compose.yml}, so local development,
+     * tests, and Dependabot updates share one pinned version.
+     */
+    private static DockerImageName composeImage(String service) {
+        Path composeFile = findComposeFile();
+        try (Reader reader = Files.newBufferedReader(composeFile, StandardCharsets.UTF_8)) {
+            Map<String, Map<String, Map<String, Object>>> compose =
+                    new Yaml(new SafeConstructor(new LoaderOptions())).load(reader);
+            Map<String, Object> definition = compose.get("services").get(service);
+            if (definition == null || !(definition.get("image") instanceof String image)) {
+                throw new IllegalStateException(composeFile + " does not define services." + service + ".image");
+            }
+            return DockerImageName.parse(image);
+        } catch (IOException exception) {
+            throw new UncheckedIOException(exception);
+        }
+    }
+
+    /** Searches upward from the working directory, which is the module directory under Maven. */
+    private static Path findComposeFile() {
+        Path start = Path.of("").toAbsolutePath();
+        for (Path directory = start; directory != null; directory = directory.getParent()) {
+            Path candidate = directory.resolve("docker-compose.yml");
+            if (Files.isRegularFile(candidate)) {
+                return candidate;
+            }
+        }
+        throw new IllegalStateException("docker-compose.yml not found in " + start + " or its parents");
+    }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

@@ -27,7 +27,8 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- Test -->
+        <!-- Test. Spring JDBC and atom-common already arrive with compile scope through the
+             modules; redeclaring either with test scope would drop it from the executable jar. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -43,14 +44,6 @@
             <artifactId>archunit</artifactId>
             <version>${symbol_dollar}{archunit.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jdbc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.archetom</groupId>
-            <artifactId>atom-common</artifactId>
         </dependency>
 
         <!-- Testcontainers -->
@@ -119,6 +112,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <skip>false</skip>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

@@ -1,34 +1,25 @@
 package ${package}.application.config;
 
-import ${package}.application.properties.TaskExecutorProperties;
 import org.slf4j.MDC;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.TaskDecorator;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.Map;
 
 /**
- * Configures the executor used by application event listeners.
+ * Runs {@code @Async} work, such as application event listeners, on Spring Boot's application
+ * task executor. Size it with {@code spring.task.execution.*}.
  */
 @Configuration(proxyBeanMethods = false)
 @EnableAsync
-@EnableConfigurationProperties(TaskExecutorProperties.class)
 public class TaskConfig {
 
-    @Bean("taskExecutor")
-    public TaskExecutor taskExecutor(TaskExecutorProperties props) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(props.getCorePoolSize());
-        executor.setMaxPoolSize(props.getMaxPoolSize());
-        executor.setQueueCapacity(props.getQueueCapacity());
-        executor.setKeepAliveSeconds(props.getKeepAliveSeconds());
-        executor.setThreadNamePrefix(props.getThreadNamePrefix());
-        executor.setTaskDecorator(TaskConfig::propagateLoggingContext);
-        return executor;
+    /** Spring Boot applies every {@link TaskDecorator} bean to its application task executor. */
+    @Bean
+    public TaskDecorator loggingContextTaskDecorator() {
+        return TaskConfig::propagateLoggingContext;
     }
 
     /**

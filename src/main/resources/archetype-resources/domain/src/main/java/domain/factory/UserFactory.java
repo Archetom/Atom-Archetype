@@ -23,15 +23,18 @@ public class UserFactory {
         this.passwordPolicy = passwordPolicy;
     }
 
-    /** Creates a standard user after validating identity uniqueness and password policy. */
+    /**
+     * Creates a standard user after validating the password policy and identity uniqueness.
+     * Input is validated first, so a rejected request never queries the repository.
+     */
     public User createStandardUser(TenantId tenantId, String username, String email, String password, String realName) {
         Username usernameValue = new Username(username);
         Email emailValue = new Email(email);
-
-        userDomainService.validateUserCreation(tenantId, usernameValue, emailValue);
         passwordPolicy.validate(password);
 
-        PasswordHash passwordHash = userDomainService.encryptPassword(password);
+        userDomainService.validateUserCreation(tenantId, usernameValue, emailValue);
+
+        PasswordHash passwordHash = userDomainService.hashPassword(password);
         return User.createWithPasswordHash(
                 tenantId, usernameValue, emailValue, passwordHash, realName);
     }
@@ -42,11 +45,11 @@ public class UserFactory {
         Username usernameValue = new Username(username);
         Email emailValue = new Email(email);
         PhoneNumber phoneNumberValue = new PhoneNumber(phoneNumber);
-
-        userDomainService.validateUserCreation(tenantId, usernameValue, emailValue);
         passwordPolicy.validate(password);
 
-        PasswordHash passwordHash = userDomainService.encryptPassword(password);
+        userDomainService.validateUserCreation(tenantId, usernameValue, emailValue);
+
+        PasswordHash passwordHash = userDomainService.hashPassword(password);
         return User.createWithPasswordHash(
                 tenantId, usernameValue, emailValue, phoneNumberValue, passwordHash, realName);
     }
