@@ -44,7 +44,7 @@ Work from the domain toward the adapters:
 4. Use `CommandServiceTemplate` for state changes and `QueryServiceTemplate` for reads; call domain behavior from the application service, not a controller or repository.
 5. Define only repository, security, or output-port methods consumed by the use case, then implement the adapter in the appropriate `infra` module.
 6. Register framework-neutral factories, policies, and domain services in `application/config/DomainConfiguration` when they need runtime dependencies.
-7. Add or update the public Request, Response, and facade contract in `api`.
+7. Add or update the public Request, Response, and facade contract in `api`. Facade methods are also served over RPC, so they never take actor, tenant, or authority parameters.
 8. Bind the HTTP route and its authority in `infra/rest/SecurityConfig`, then repeat the same capability check through `CallerGuard` in the use case.
 9. Add the new local capability to both `conf/application-dev.yml` and `start/src/test/resources/application-test.yml`; otherwise the sample development identity will receive HTTP 403.
 10. Add domain, application, persistence, REST, and integration tests as applicable. `ArchitectureBoundaryTest` must still pass.
@@ -62,9 +62,9 @@ For an `Order` aggregate with one create command and one detail query, inspect o
 | `domain` | `Order`, `OrderId`, status/value objects, events/errors, `OrderRepository`, creation factory or method, and domain tests |
 | `application` | `OrderService`, implementation, `OrderVO`, `OrderAssembler`, `UseCaseOperation` codes, `CallerGuard` checks, output ports, and application tests |
 | domain wiring | Beans in `DomainConfiguration` for factories, policies, or services with constructor dependencies |
-| `api` | Create/query Request types, `OrderResponse`, and `OrderFacade` contract |
+| `api` | Create/query Request types, `OrderResponse`, and an `OrderFacade` contract without identity parameters |
 | `infra/persistence` | `OrderPO`, `OrderPOConverter`, mapper, SQL/result map where names are exceptional, repository adapter, Flyway migration, and round-trip tests |
-| `infra/facade` | Facade implementation using `ResultUtil.map(...)` for VO-to-Response mapping |
+| `infra/facade` | Facade implementation that resolves the caller with `AuthenticatedCallerResolver` and uses `ResultUtil.map(...)` for VO-to-Response mapping |
 | `infra/rest` | Controller, caller mapping, route authority, validation, and HTTP tests |
 | local security | Matching `orders:*` authorities in both dev and test YAML |
 | `start` | Integration tests and any runtime adapter needed by the new output ports |
@@ -76,12 +76,12 @@ Do not pre-populate speculative repository searches, locks, specifications, or a
 
 For a command such as “change user email,” make one coherent vertical change:
 
-1. Add a validated `UserEmailUpdateRequest` and facade method in `api`.
+1. Add a validated `UserEmailUpdateRequest` and a facade method `updateUserEmail(userId, request)` in `api`, without identity parameters.
 2. Add `UserService.updateUserEmail(caller, userId, request)` and a `USER_EMAIL_UPDATE` operation code.
 3. In `validate`, call `CallerGuard.requireTenant(caller, "users:write")`; in `prepare`, load the visible tenant-owned aggregate.
 4. In transactional `execute`, call `user.changeEmail(...)` and save through `UserRepository`.
 5. In `onSuccess`, pull events, register event publication, and independently register `userCacheService.invalidateUser(...)`.
-6. Add the facade delegation, controller route, and the same `users:write` route rule in `SecurityConfig`.
+6. Add the facade delegation, which passes the caller resolved by `AuthenticatedCallerResolver`, the controller route, and the same `users:write` route rule in `SecurityConfig`.
 7. Test the domain transition, caller/tenant rejection, persistence round trip, cache invalidation, HTTP contract, and optimistic-lock conflict.
 
 This path does not require a new repository method: update the loaded aggregate and persist it through `save`.
@@ -131,14 +131,13 @@ Flyway is the only schema source. Do not add `schema.sql`, Docker init SQL, or a
 Keep transport work in `infra/rest`:
 
 1. Bind and validate Request data.
-2. Receive Spring Security `Authentication` and map it with `AuthenticatedCallerMapper`.
-3. Call the facade.
-4. Map the result to an HTTP response.
-5. Add route authorization in `SecurityConfig` and repeat the capability check in the application use case.
+2. Call the facade without identity arguments; it resolves the verified caller from Spring Security's context.
+3. Map the result to an HTTP response.
+4. Add route authorization in `SecurityConfig` and repeat the capability check in the application use case.
 
 Do not accept actor ID, tenant ID, authorities, or administrator flags from an ordinary request body. Do not log passwords, tokens, or complete request objects that may contain them.
 
-Use stable public errors and the narrowest internal failure type. Unexpected exceptions are logged internally and mapped to a generic response; stack traces, SQL, credentials, class names, and arbitrary exception messages are never returned. Log them with `RedactedThrowable.of(exception)` so logs keep exception types and stack frames without copying messages that may contain credentials or personal data.
+Use stable public errors and the narrowest internal failure type. Unexpected exceptions are logged internally and mapped to a generic response; stack traces, SQL, credentials, class names, and arbitrary exception messages are never returned. Log them with the exception itself so the message and stack trace are kept. Logs are sensitive: never put credentials or secrets into your own exception messages.
 
 ## Verify the change
 

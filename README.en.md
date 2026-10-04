@@ -71,7 +71,7 @@ Business APIs require authentication by default. Development identity headers ar
 
 | Module | Responsibility |
 |---|---|
-| `api` | Public requests, responses, facade contracts, and caller context |
+| `api` | Public requests, responses, and facade contracts shared by HTTP and RPC clients, without identity parameters |
 | `domain` | Aggregates, value objects, domain events, repository and domain-service ports |
 | `shared` | Framework-neutral result and error types |
 | `application` | Use-case orchestration, command/query templates, transaction callbacks, and output ports |

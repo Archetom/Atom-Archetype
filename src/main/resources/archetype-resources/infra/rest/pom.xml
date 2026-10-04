@@ -64,6 +64,11 @@
             <groupId>${groupId}</groupId>
             <artifactId>${rootArtifactId}-shared</artifactId>
         </dependency>
+        <!-- Shared verified-actor principal for HTTP authentication adapters. -->
+        <dependency>
+            <groupId>${groupId}</groupId>
+            <artifactId>${rootArtifactId}-infra-security</artifactId>
+        </dependency>
 
         <!-- Security test support -->
         <dependency>

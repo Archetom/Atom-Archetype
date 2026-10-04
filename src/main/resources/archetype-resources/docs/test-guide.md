@@ -37,6 +37,7 @@ CI=true sh ./mvnw test
 | Application | Authority checks, tenant propagation, orchestration, post-commit scheduling | Mocks or small port fakes |
 | Persistence converter | Full PO/aggregate round trip, version, timestamps | MapStruct mapper instance |
 | REST | Error/status mapping, authentication rejection, safe messages | Spring MVC and Security test support |
+| Security adapter | Verified-caller resolution from Spring Security's context and fail-closed handling of missing principals | Spring Security core types |
 | Start integration | Flyway, MySQL, tenant isolation, locking, HTTP flow | Spring Boot, MockMvc, Testcontainers |
 | Architecture | Forbidden dependencies, adapter bypasses, entity setters, naming | ArchUnit bytecode inspection and Maven Enforcer |
 

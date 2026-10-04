@@ -1,6 +1,5 @@
 package ${package}.application.security;
 
-import ${package}.api.context.AuthenticatedCaller;
 import ${package}.shared.enums.ApplicationErrorCode;
 import ${package}.shared.exception.NonRetryableApplicationException;
 import org.junit.jupiter.api.Test;

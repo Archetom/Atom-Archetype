@@ -12,7 +12,7 @@ This guide describes the generated application. Inside the archetype source tree
 ## Architecture and naming
 
 - `domain` owns aggregates, values, events, and repository ports. It depends on none of `api`, `application`, `shared`, `infra`, Spring, MyBatis, or Redis.
-- `api` owns transport/facade contracts and `AuthenticatedCaller`; `shared` owns boundary conventions. Both are framework-neutral and independent of domain, application, and adapters.
+- `api` owns the request, response, and facade contracts published to HTTP and RPC clients, and never contains identity types; `shared` owns boundary conventions. Both are framework-neutral and independent of domain, application, and adapters.
 - `application` owns use cases/output ports, depending on domain, api, and shared. `infra` implements adapters; `start` composes them. Controllers use use cases/facades, not repositories, and return API responses, not VOs.
 - Names: API `*Request`/`*Response`, application `*VO`, persistence `*PO` extending `BasePO`, boundary mapping `*Assembler`, aggregate/PO mapping `*POConverter`, repository port/adapter `*Repository`/`*RepositoryImpl`.
 - Application operation/error scenes use `application.operation.UseCaseOperation`; domain facts use `*Event`. See [docs/object-layering.md](docs/object-layering.md) for naming and ownership.
@@ -21,9 +21,10 @@ This guide describes the generated application. Inside the archetype source tree
 ## Security and tenancy
 
 - Use cases receive `AuthenticatedCaller`, validate it through `CallerGuard`, and derive `TenantId` from verified caller context, not request data.
+- Facade methods never accept actor, tenant, or authority parameters, because RPC clients call them directly. `UserFacadeImpl` resolves the verified caller through `AuthenticatedCallerResolver`. An RPC transport must authenticate each call and put an `ActorPrincipal` with verified authorities into Spring Security's context on the invoking thread, then clear it.
 - Repository/cache operations require tenant scope and fail when absent; cache keys include tenant. Do not introduce identity/tenant ThreadLocals or fail-open queries.
 - Trusted `X-Dev-User-Id`/`X-Dev-Tenant-Id` headers are restricted to the guarded dev/test adapter and cannot be enabled in prod. Never accept caller-controlled roles, authorities, or administrator headers such as `X-Admin`.
-- Do not log passwords, tokens, reset codes, secrets, or sensitive request bodies. Log unexpected failures with `RedactedThrowable.of(exception)`, which keeps types and stack frames but never copies exception messages. Public errors expose stable codes and safe messages.
+- Do not log passwords, tokens, reset codes, secrets, or sensitive request bodies, and never put them into exception messages. Log unexpected failures with the exception itself so its message and stack trace are kept; treat logs as sensitive. Public errors expose stable codes and safe messages.
 - Business REST endpoints use `/api/v1/`. Explicitly select runtime profiles from `conf/`; prod requires datasource environment variables. Keep test-only profiles in `start/src/test/resources` so they never ship in the jar. See [docs/configuration.md](docs/configuration.md).
 
 ## Domain, persistence, and transactions

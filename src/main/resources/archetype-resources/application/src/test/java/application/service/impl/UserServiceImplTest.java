@@ -1,11 +1,11 @@
 package ${package}.application.service.impl;
 
-import ${package}.api.context.AuthenticatedCaller;
 import ${package}.api.dto.request.QueryRequest;
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
 import ${package}.application.service.template.CommandServiceTemplate;
 import ${package}.application.service.template.QueryServiceTemplate;
+import ${package}.application.security.AuthenticatedCaller;
 import ${package}.application.security.CallerGuard;
 import ${package}.application.transaction.AfterCommitExecutor;
 import ${package}.application.vo.UserVO;

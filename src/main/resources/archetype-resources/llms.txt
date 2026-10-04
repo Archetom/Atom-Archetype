@@ -37,7 +37,8 @@ Search these class names with `rg` because generated Java paths include the chos
 - `Bootstrap`: application composition and entry point.
 - `UserController`, `UserPageResponse`, `UserResponse`: typed REST contracts under `/api/v1/users`.
 - `SecurityConfig`: route authorization and trusted-header profile guard.
-- `AuthenticatedCallerMapper`: verified Spring Security principal to API context.
+- `UserFacade`, `UserFacadeImpl`: facade contract for HTTP and RPC clients, without identity parameters.
+- `AuthenticatedCallerResolver`: verified HTTP or RPC principal to the use-case caller context.
 - `UserServiceImpl`: explicit caller/tenant command and query orchestration.
 - `CommandServiceTemplate`, `QueryServiceTemplate`, `ServiceOperation`: use-case execution policy.
 - `AfterCommitExecutor`: post-commit cache and event effects.

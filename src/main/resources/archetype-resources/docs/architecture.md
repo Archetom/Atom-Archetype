@@ -13,7 +13,8 @@ infra/persistence ┘          │
                              └──> api and shared
 
 infra/external ─────────────────────> application output ports
-infra/security ─────────────────────> domain security ports
+infra/security ─────────────────────> domain security ports and application caller context
+infra/rest, infra/facade ───────────> infra/security verified-caller resolution
 start ──────────────────────────────> all runtime adapters
 ```
 
@@ -27,33 +28,33 @@ start ────────────────────────�
 
 | Module | Owns | Must not own |
 | --- | --- | --- |
-| `api` | Public contracts and authenticated caller context | Domain behavior, persistence models |
+| `api` | Request, response, and facade contracts published to HTTP and RPC clients | Identity parameters, domain behavior, persistence models |
 | `domain` | Aggregates, value objects, policies, domain services, events, repository ports | Spring MVC, SQL, Redis, API DTOs |
-| `application` | Use cases, authorization, transactions, output ports | HTTP parsing, mapper XML, vendor clients |
+| `application` | Use cases, `AuthenticatedCaller`, authorization, transactions, output ports | HTTP parsing, mapper XML, vendor clients |
 | `shared` | Boundary result and error primitives | User or tenant behavior |
 | `infra/rest` | HTTP transport, authentication, status mapping | Business decisions |
 | `infra/persistence` | PO mapping, MyBatis, Flyway, cache adapters | Caller discovery, use-case orchestration |
 | `infra/external` | Third-party output-port adapters | Application workflow |
-| `infra/security` | Password hashing and other security adapters | Domain policy |
-| `infra/facade` | Facade implementation and API/application mapping | Persistence |
+| `infra/security` | Password hashing, `ActorPrincipal`, and verified-caller resolution | Domain policy, transport credential parsing |
+| `infra/facade` | Facade implementation served over HTTP and RPC, caller resolution, and API/application mapping | Persistence, transport credentials |
 | `start` | Runtime assembly and end-to-end tests | Reusable business logic |
 
 ## Request flow
 
 ```text
-HTTP request
-  -> Spring Security verifies or rejects identity
-  -> AuthenticatedCallerMapper creates AuthenticatedCaller
-  -> UserFacade maps the public contract
+HTTP request or RPC call
+  -> the transport verifies the credential and puts an ActorPrincipal into Spring Security's context
+  -> UserController or the RPC endpoint calls UserFacade, which has no identity parameters
+  -> UserFacadeImpl resolves AuthenticatedCaller through AuthenticatedCallerResolver
   -> UserService selects CommandServiceTemplate or QueryServiceTemplate
   -> application checks authority and derives TenantId
   -> aggregate or domain service enforces business rules
   -> tenant-scoped repository queries or persists
   -> facade maps the result to an API response
-  -> REST maps stable errors to HTTP status codes
+  -> REST maps stable errors to HTTP status codes; RPC returns the Result
 ```
 
-`AuthenticatedCaller` is an explicit input. Identity and tenant ownership are not read from a domain `ThreadLocal`.
+`AuthenticatedCaller` is an explicit input. Only inbound adapters read the transport's security context, and they pass the caller explicitly inward; identity and tenant ownership are not read from a domain `ThreadLocal`. A call without a verified caller reaches the use case as `null` and fails with `AUTHENTICATION_REQUIRED`.
 
 ## Transactions and events
 
@@ -101,6 +102,7 @@ Do not add `schema.sql` or container initialization SQL, and do not edit an appl
 - Application APIs reject anonymous requests.
 - HTTP routes and application use cases both check authorities.
 - Tenant identity comes from verified authentication, never ordinary request data.
+- Facade methods accept no identity, tenant, or authority parameters, so exposing them over RPC cannot let a client act as another user. Each RPC call must still be authenticated by the transport; see [RPC exposure](configuration.md#rpc-exposure).
 - Production cannot install the trusted-header development adapter.
 - Request headers cannot grant authorities or administrator state.
 - Passwords, reset tokens, authentication credentials, and full request objects must not be logged.

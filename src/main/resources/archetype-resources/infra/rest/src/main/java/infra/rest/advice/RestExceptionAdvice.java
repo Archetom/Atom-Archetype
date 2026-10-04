@@ -7,7 +7,6 @@ import ${package}.infra.rest.util.ErrorResultWrapUtil;
 import ${package}.infra.rest.util.ResponseEntityUtil;
 import ${package}.shared.enums.ApplicationErrorCode;
 import ${package}.shared.exception.ApplicationException;
-import ${package}.shared.logging.RedactedThrowable;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -107,7 +106,7 @@ public class RestExceptionAdvice {
         if (exception instanceof ErrorResponse errorResponse && errorResponse.getStatusCode().is4xxClientError()) {
             return frameworkClientError(exception, errorResponse.getStatusCode(), errorResponse.getHeaders());
         }
-        log.error("Unexpected request failure", RedactedThrowable.of(exception));
+        log.error("Unexpected request failure", exception);
         return ResponseEntityUtil.assembleResponse(ErrorResultWrapUtil.genErrorResult(
                 ApplicationErrorCode.UNKNOWN, null, appName));
     }

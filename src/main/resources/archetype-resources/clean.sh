@@ -203,7 +203,6 @@ echo " clean directory..."
 KEEP_DIRS=(
     "api/src/main/java/${PACKAGE_PATH}/api/dto/request"
     "api/src/main/java/${PACKAGE_PATH}/api/dto/response"
-    "api/src/main/java/${PACKAGE_PATH}/api/context"
     "api/src/main/java/${PACKAGE_PATH}/api/facade"
     "domain/src/main/java/${PACKAGE_PATH}/domain/entity"
     "domain/src/main/java/${PACKAGE_PATH}/domain/repository"

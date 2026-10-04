@@ -54,7 +54,7 @@ class AfterCommitExecutorTest {
         AtomicBoolean secondActionExecuted = new AtomicBoolean();
 
         executor.execute(() -> {
-            throw new IllegalStateException("simulated side-effect failure for alice@example.com");
+            throw new IllegalStateException("simulated side-effect failure");
         });
         executor.execute(() -> secondActionExecuted.set(true));
 
@@ -62,9 +62,8 @@ class AfterCommitExecutorTest {
                 .forEach(synchronization -> synchronization.afterCommit());
 
         assertTrue(secondActionExecuted.get());
-        // The failed side effect is diagnosable from its type and stack frames without its message.
-        assertTrue(output.getAll().contains(IllegalStateException.class.getName()));
+        // The failed side effect is logged in full for diagnosis.
+        assertTrue(output.getAll().contains("simulated side-effect failure"));
         assertTrue(output.getAll().contains("AfterCommitExecutorTest"));
-        assertFalse(output.getAll().contains("alice@example.com"));
     }
 }

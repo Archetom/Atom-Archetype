@@ -3,14 +3,12 @@
 #set( $symbol_escape = '\' )
 package ${package}.infra.rest.controller;
 
-import ${package}.api.context.AuthenticatedCaller;
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
 import ${package}.api.dto.response.UserPageResponse;
 import ${package}.api.dto.response.UserResponse;
 import ${package}.api.facade.UserFacade;
 import ${package}.infra.rest.result.RestErrorResult;
-import ${package}.infra.rest.security.AuthenticatedCallerMapper;
 import ${package}.infra.rest.util.ResponseEntityUtil;
 import io.github.archetom.common.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,14 +20,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-/** HTTP adapter for the bundled tenant-scoped User example. */
-@Slf4j
+/**
+ * HTTP adapter for the bundled tenant-scoped User example.
+ *
+ * <p>Spring Security authenticates the request before it reaches this controller; the facade
+ * resolves the verified caller itself, exactly as it does for RPC calls.</p>
+ */
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -37,7 +37,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserFacade userFacade;
-    private final AuthenticatedCallerMapper callerMapper;
 
     @Operation(summary = "Create a user")
     @ApiResponses({
@@ -49,11 +48,8 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = RestErrorResult.class)))
     })
     @PostMapping
-    public ResponseEntity<?> createUser(Authentication authentication,
-                                        @RequestBody @Validated UserCreateRequest request) {
-        AuthenticatedCaller caller = callerMapper.from(authentication);
-        log.info("Create user operation: tenantId={}", caller.tenantId());
-        Result<UserResponse> result = userFacade.createUser(caller, request);
+    public ResponseEntity<?> createUser(@RequestBody @Validated UserCreateRequest request) {
+        Result<UserResponse> result = userFacade.createUser(request);
         return ResponseEntityUtil.assembleResponse(result);
     }
 
@@ -66,11 +62,9 @@ public class UserController {
     })
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUserById(
-            Authentication authentication,
             @Parameter(description = "Positive tenant-scoped user ID", example = "42")
             @PathVariable Long userId) {
-        AuthenticatedCaller caller = callerMapper.from(authentication);
-        Result<UserResponse> result = userFacade.getUserById(caller, userId);
+        Result<UserResponse> result = userFacade.getUserById(userId);
         return ResponseEntityUtil.assembleResponse(result);
     }
 
@@ -82,9 +76,8 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = RestErrorResult.class)))
     })
     @GetMapping
-    public ResponseEntity<?> queryUsers(Authentication authentication, @Valid UserQueryRequest request) {
-        AuthenticatedCaller caller = callerMapper.from(authentication);
-        Result<UserPageResponse> result = userFacade.queryUsers(caller, request);
+    public ResponseEntity<?> queryUsers(@Valid UserQueryRequest request) {
+        Result<UserPageResponse> result = userFacade.queryUsers(request);
         return ResponseEntityUtil.assembleResponse(result);
     }
 
@@ -101,15 +94,13 @@ public class UserController {
     })
     @PutMapping("/{userId}/status")
     public ResponseEntity<?> updateUserStatus(
-        Authentication authentication,
         @Parameter(description = "Positive tenant-scoped user ID", example = "42")
         @PathVariable Long userId,
         @Parameter(description = "Target status", example = "INACTIVE",
                 schema = @Schema(allowableValues = {"ACTIVE", "INACTIVE", "LOCKED"}))
         @RequestParam String status
     ) {
-        AuthenticatedCaller caller = callerMapper.from(authentication);
-        Result<Void> result = userFacade.updateUserStatus(caller, userId, status);
+        Result<Void> result = userFacade.updateUserStatus(userId, status);
         return ResponseEntityUtil.assembleResponse(result);
     }
 
@@ -125,11 +116,9 @@ public class UserController {
     })
     @DeleteMapping("/{userId}")
     public ResponseEntity<?> deleteUser(
-            Authentication authentication,
             @Parameter(description = "Positive tenant-scoped user ID", example = "42")
             @PathVariable Long userId) {
-        AuthenticatedCaller caller = callerMapper.from(authentication);
-        Result<Void> result = userFacade.deleteUser(caller, userId);
+        Result<Void> result = userFacade.deleteUser(userId);
         return ResponseEntityUtil.assembleResponse(result);
     }
 }

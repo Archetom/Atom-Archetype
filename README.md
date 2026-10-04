@@ -72,7 +72,7 @@ curl http://localhost:8080/actuator/health
 
 | 模块 | 职责 |
 |---|---|
-| `api` | 对外请求、响应、Facade 契约和调用者上下文 |
+| `api` | 对外请求、响应和 Facade 契约（HTTP 与 RPC 共用，不含身份参数） |
 | `domain` | 聚合、值对象、领域事件、仓储与领域服务端口 |
 | `shared` | 框架中立的结果与错误类型 |
 | `application` | 用例编排、命令/查询模板、事务回调和输出端口 |

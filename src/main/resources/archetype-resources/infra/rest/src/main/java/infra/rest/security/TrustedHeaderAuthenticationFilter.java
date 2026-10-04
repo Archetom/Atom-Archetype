@@ -1,5 +1,6 @@
 package ${package}.infra.rest.security;
 
+import ${package}.infra.security.ActorPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

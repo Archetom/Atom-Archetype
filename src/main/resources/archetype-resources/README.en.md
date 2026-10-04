@@ -57,7 +57,7 @@ $h2 Project structure
 
 | Module | Responsibility |
 |---|---|
-| `api` | Public requests, responses, facade contracts, and `AuthenticatedCaller` |
+| `api` | Public requests, responses, and facade contracts shared by HTTP and RPC clients, without identity parameters |
 | `domain` | Aggregates, value objects, domain events, repository and domain-service ports |
 | `application` | Use-case orchestration, command/query templates, output ports, and transaction callbacks |
 | `shared` | Framework-neutral result and error types |

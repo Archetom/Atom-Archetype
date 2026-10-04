@@ -84,15 +84,15 @@ class RestExceptionAdviceTest {
     }
 
     @Test
-    void shouldTreatBareIllegalArgumentAsInternalFailureWithoutLeakingValue(CapturedOutput output) {
-        String internalDetail = "tenant 7 does not match tenant 9 password=secret";
+    void shouldTreatBareIllegalArgumentAsInternalFailure(CapturedOutput output) {
+        String internalDetail = "tenant 7 does not match tenant 9";
         ResponseEntity<?> response = advice.unexpectedException(
                 new IllegalArgumentException(internalDetail));
 
         RestErrorResult error = assertError(response, HttpStatus.INTERNAL_SERVER_ERROR, "000",
                 ApplicationErrorCode.UNKNOWN.getDescription());
         assertFalse(error.getErrMsg().contains(internalDetail));
-        assertFalse(output.getAll().contains(internalDetail));
+        assertTrue(output.getAll().contains(internalDetail));
     }
 
     @Test
@@ -132,17 +132,16 @@ class RestExceptionAdviceTest {
     }
 
     @Test
-    void shouldMapUnknownFailureToInternalServerErrorWithoutLeakingMessage(CapturedOutput output) {
-        String internalMessage = "database password=secret";
+    void shouldHideUnexpectedFailureFromClientButLogItInFull(CapturedOutput output) {
+        String internalMessage = "lock wait timeout on t_user row 42";
         ResponseEntity<?> response = advice.unexpectedException(new RuntimeException(internalMessage));
 
         RestErrorResult error = assertError(response, HttpStatus.INTERNAL_SERVER_ERROR, "000",
                 ApplicationErrorCode.UNKNOWN.getDescription());
         assertFalse(error.getErrMsg().contains(internalMessage));
-        assertFalse(output.getAll().contains(internalMessage));
-        // The log still shows the failure type and where it was thrown.
-        assertTrue(output.getAll().contains(RuntimeException.class.getName()));
-        assertTrue(output.getAll().contains("shouldMapUnknownFailureToInternalServerErrorWithoutLeakingMessage"));
+        // Logs are internal: they keep the message and the stack trace for diagnosis.
+        assertTrue(output.getAll().contains(internalMessage));
+        assertTrue(output.getAll().contains("shouldHideUnexpectedFailureFromClientButLogItInFull"));
     }
 
     @Test

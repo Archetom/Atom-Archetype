@@ -1,6 +1,5 @@
 package ${package}.application.transaction;
 
-import ${package}.shared.logging.RedactedThrowable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -39,7 +38,7 @@ public class AfterCommitExecutor {
         } catch (RuntimeException exception) {
             // The database commit has already succeeded. Record the failure for
             // retry/alerting instead of reporting the business transaction as failed.
-            log.error("Post-commit action failed", RedactedThrowable.of(exception));
+            log.error("Post-commit action failed", exception);
         }
     }
 }

@@ -1,6 +1,7 @@
 package ${package}.infra.rest.security;
 
 import ${package}.infra.rest.config.SecurityConfig;
+import ${package}.infra.security.ActorPrincipal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

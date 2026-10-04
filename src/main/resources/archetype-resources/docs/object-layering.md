@@ -8,7 +8,7 @@ Names identify both meaning and architectural ownership. Prefer a domain or boun
 | --- | --- | --- | --- |
 | `*Request` | `api` | Public input contract and transport validation | `UserCreateRequest` |
 | `*Response` | `api` | Public output contract | `UserResponse` |
-| `AuthenticatedCaller` | `api` | Verified actor, tenant, and authorities | `AuthenticatedCaller` |
+| `AuthenticatedCaller` | `application` | Verified actor, tenant, and authorities; never part of an HTTP or RPC contract | `AuthenticatedCaller` |
 | `*VO` | `application` | Use-case output before facade mapping | `UserVO` |
 | Aggregate/entity | `domain` | Identity, state, invariants, and behavior | `User` |
 | Value object | `domain` | Immutable validated concept | `TenantId`, `Email`, `Username` |
@@ -26,8 +26,8 @@ HTTP JSON -> Request -> application use case -> aggregate -> PO -> MySQL
 MySQL -> PO -> reconstituted aggregate -> VO -> Response -> HTTP JSON
 ```
 
-- `infra/rest` binds JSON and maps verified authentication to `AuthenticatedCaller`.
-- `infra/facade` owns the public Request/Response boundary and maps VO to Response without exposing domain objects.
+- `infra/rest` binds JSON; the HTTP or RPC transport puts a verified `ActorPrincipal` into Spring Security's context.
+- `infra/facade` owns the public Request/Response boundary, resolves `AuthenticatedCaller` through `AuthenticatedCallerResolver`, and maps VO to Response without exposing domain objects.
 - `application` validates Request input, creates domain value objects, and uses an Assembler only for aggregate -> VO -> Response output mapping.
 - `infra/persistence` maps aggregate to PO and calls `reconstitute` on reads.
 - MapStruct handles mechanical field mapping only; validation, defaults, identity, version restoration, and event registration remain explicit.
@@ -41,7 +41,7 @@ MySQL -> PO -> reconstituted aggregate -> VO -> Response -> HTTP JSON
 
 Aggregates do not expose public setters or use Lombok `@Data`. Define equality from aggregate identity or value-object value, not every mutable field.
 
-`AuthenticatedCaller` stays at the API/application boundary. The application validates its tenant and passes a `TenantId` explicitly to domain, repository, and cache operations. Ordinary request bodies do not carry tenant identity, and repositories do not recover it from a `ThreadLocal`.
+`AuthenticatedCaller` stays at the facade/application boundary and never appears in facade signatures. The application validates its tenant and passes a `TenantId` explicitly to domain, repository, and cache operations. Ordinary request bodies do not carry tenant identity, and repositories do not recover it from a `ThreadLocal`.
 
 ## Naming conventions
 

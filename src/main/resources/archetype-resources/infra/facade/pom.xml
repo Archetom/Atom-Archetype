@@ -12,7 +12,7 @@
 
     <artifactId>${artifactId}</artifactId>
     <name>${artifactId}</name>
-    <description>Adapter implementations for the public facade contracts</description>
+    <description>Adapter implementations for the public facade contracts exposed to HTTP and RPC</description>
 
     <dependencies>
         <dependency>
@@ -40,6 +40,11 @@
         <dependency>
             <groupId>${groupId}</groupId>
             <artifactId>${rootArtifactId}-api</artifactId>
+        </dependency>
+        <!-- Resolves the verified caller of an HTTP or RPC call. -->
+        <dependency>
+            <groupId>${groupId}</groupId>
+            <artifactId>${rootArtifactId}-infra-security</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -26,12 +26,31 @@ cd ..
   -Dversion=1.0.0-SNAPSHOT
 ```
 
+## Changes in `2.2.0` (unreleased)
+
+These changes alter generated-project contracts. Compare a project generated from `2.1.0` with a reference project generated from the current `main`.
+
+| Area | `2.1.0` | Current template |
+|---|---|---|
+| Facade contract | `UserFacade` methods take `AuthenticatedCaller` | No identity parameters; `UserFacadeImpl` resolves the caller through `AuthenticatedCallerResolver` |
+| Caller types | `api.context.AuthenticatedCaller`, `infra.rest.security.ActorPrincipal`, `AuthenticatedCallerMapper` | `application.security.AuthenticatedCaller`, `infra.security.ActorPrincipal`, `infra.security.AuthenticatedCallerResolver` |
+| Invalid values | Value objects throw `IllegalArgumentException`, mapped to HTTP 400 | Caller-facing value objects throw `InvalidValueException` (HTTP 400); a bare `IllegalArgumentException` maps to HTTP 500 |
+| Test profile | `conf/application-test.yml`, packaged into the application jar | `start/src/test/resources/application-test.yml`, test classpath only |
+| Unexpected-failure logs | Exception type only | Full exception, including message and stack trace |
+
+1. Remove `AuthenticatedCaller` parameters from facade interfaces and implementations. Resolve the caller in the facade implementation with `AuthenticatedCallerResolver` and pass it to the use case; remove `Authentication` parameters and caller mapping from controllers.
+2. Before serving a facade over RPC, authenticate every call in the RPC server adapter and put a verified `ActorPrincipal` into Spring Security's context on the invoking thread, as described under RPC exposure in the generated `docs/configuration.md`.
+3. Update imports for the relocated caller types.
+4. Throw `InvalidValueException` from value objects that validate caller input; keep `IllegalArgumentException` for values that never come from callers, such as `TenantId`.
+5. Move `application-test.yml` to `start/src/test/resources`.
+6. Treat logs as sensitive data now that they contain exception messages.
+
 ## Major changes from `1.1.0`
 
 | Area | `1.1.0` | 2.x architecture |
 |---|---|---|
 | Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `v2.0.0`, JDK 25 on `2.1.0` |
-| Caller context | Domain `UserContextHolder` | Explicit API `AuthenticatedCaller` |
+| Caller context | Domain `UserContextHolder` | Explicit `AuthenticatedCaller` passed to use cases |
 | Tenant scope | Header/ThreadLocal-derived | Validated `TenantId` passed to repositories and caches |
 | Development identity | `X-User-Id`, `X-Tenant-Id`, `X-Admin` | `X-Dev-User-Id`, `X-Dev-Tenant-Id`; dev/test only and explicitly enabled |
 | HTTP security | Legacy permissive paths | Authentication and per-operation authorities |
@@ -56,7 +75,7 @@ Do not combine the old Boot BOM with individually upgraded Boot 4 artifacts.
 
 ### 2. Replace caller and tenant handling
 
-- Add `AuthenticatedCaller` to API and use-case contracts.
+- Add `AuthenticatedCaller` to use-case contracts and resolve it in inbound adapters from verified authentication; do not expose it in API or facade contracts.
 - Introduce a validated `TenantId` value object.
 - Pass `TenantId` to every repository and cache operation.
 - Apply tenant predicates unconditionally in SQL.

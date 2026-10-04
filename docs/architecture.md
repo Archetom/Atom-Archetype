@@ -21,15 +21,15 @@ start   = composition root
 
 | Module | Owns | Excludes |
 |---|---|---|
-| `api` | Requests, responses, facade contracts, `AuthenticatedCaller` | Domain rules and persistence types |
+| `api` | Requests, responses, and facade contracts published to HTTP and RPC clients | Identity parameters, domain rules, and persistence types |
 | `domain` | Aggregates, value objects, policies, events, repository and service contracts | Spring, HTTP, MyBatis, and cache clients |
 | `shared` | Result and error types shared across boundaries | Use cases and infrastructure helpers |
-| `application` | Use cases, authorization, command/query execution, output ports | SQL, servlet types, and Redis implementations |
-| `infra/rest` | HTTP transport, Spring Security, principal mapping, OpenAPI | Business invariants |
+| `application` | Use cases, `AuthenticatedCaller`, authorization, command/query execution, output ports | SQL, servlet types, and Redis implementations |
+| `infra/rest` | HTTP transport, Spring Security, OpenAPI | Business invariants |
 | `infra/persistence` | Repository adapters, PO conversion, MyBatis, Flyway, Redis adapters | Public API contracts |
 | `infra/external` | Third-party output-port adapters | Application orchestration |
-| `infra/security` | Password hashing and security adapters | Authentication policy and domain behavior |
-| `infra/facade` | Facade contract implementations | Persistence details |
+| `infra/security` | Password hashing, `ActorPrincipal`, and verified-caller resolution | Authentication policy and domain behavior |
+| `infra/facade` | Facade implementations served over HTTP and RPC | Persistence details and transport credentials |
 | `start` | Spring Boot entry point and runtime assembly | Reusable business logic |
 
 `domain` has no dependency on `application`, `api`, `shared`, or any `infra` module. Infrastructure depends on the inward-facing contracts it implements.
@@ -37,23 +37,22 @@ start   = composition root
 ## Request flow
 
 ```text
-credential
+HTTP or RPC credential
+   │ verified by the transport
+   ▼
+Spring Security context with ActorPrincipal
    │
    ▼
-Spring Security Authentication
-   │ verified principal
-   ▼
-AuthenticatedCallerMapper
-   │ actorId + tenantId + authorities
-   ▼
-Controller → Facade → Application service
-                         │
-                         ├─ check authority and TenantId
-                         ├─ invoke domain behavior
-                         └─ call a tenant-scoped repository or cache port
+Controller or RPC endpoint → Facade (no identity parameters)
+                               │ AuthenticatedCallerResolver: actorId + tenantId + authorities
+                               ▼
+                             Application service
+                               ├─ check authority and TenantId
+                               ├─ invoke domain behavior
+                               └─ call a tenant-scoped repository or cache port
 ```
 
-`AuthenticatedCaller` is server-side context. It is not deserialized from a request body or populated from client-controlled role headers. Application use cases check their required authority, and repository operations require a non-null `TenantId`.
+`AuthenticatedCaller` is server-side context. It is not part of the HTTP or RPC contract, is not deserialized from a request body or RPC argument, and is not populated from client-controlled role headers. Application use cases check their required authority, and repository operations require a non-null `TenantId`.
 
 The trusted-header filter is a development and test adapter. It is available only under `(dev | test) & !prod` and only when enabled. Production replaces the authentication adapter while keeping the same `AuthenticatedCaller` contract.
 

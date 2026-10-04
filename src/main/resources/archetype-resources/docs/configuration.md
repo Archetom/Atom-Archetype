@@ -152,7 +152,29 @@ The adapter is disabled by default, requires `dev` or `test`, and refuses `prod`
 
 ### Production authentication
 
-Production must verify a real credential, including its signature, issuer, audience, expiry, and required claims. Map the verified subject and tenant claim to the infrastructure principal, map verified scopes or roles to the three user authorities, and let `AuthenticatedCallerMapper` create the API context. Never construct `AuthenticatedCaller` from request JSON or arbitrary client headers.
+Production must verify a real credential, including its signature, issuer, audience, expiry, and required claims. Map the verified subject and tenant claim to an `ActorPrincipal`, map verified scopes or roles to the three user authorities, and put the resulting authentication into Spring Security's context; `AuthenticatedCallerResolver` turns it into the use-case caller. Never construct `AuthenticatedCaller` from request JSON, RPC arguments, or arbitrary client headers.
+
+### RPC exposure
+
+`UserFacade` is the contract published to RPC clients. Its methods carry no identity, tenant, or authority parameters; `UserFacadeImpl` resolves the caller from Spring Security's context through `AuthenticatedCallerResolver`. The RPC server adapter, such as a framework interceptor or filter, must therefore:
+
+1. Verify a real credential carried in the RPC metadata, including its signature, issuer, audience, expiry, and tenant claim. Never trust actor, tenant, or authority values sent as plain metadata or method arguments.
+2. Put the verified `ActorPrincipal` and authorities into a new security context on the thread that invokes the facade.
+3. Clear the context when the call ends, because RPC frameworks reuse pooled threads.
+
+```java
+SecurityContext context = SecurityContextHolder.createEmptyContext();
+context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
+        new ActorPrincipal(verifiedUserId, verifiedTenantId), null, verifiedAuthorities));
+SecurityContextHolder.setContext(context);
+try {
+    return invocation.proceed();
+} finally {
+    SecurityContextHolder.clearContext();
+}
+```
+
+A call without this context reaches the use case without a caller and returns `AUTHENTICATION_REQUIRED` in its `Result`. If the framework invokes the facade on a different thread than its interceptor, establish the context on that thread. Use cases still check authorities through `CallerGuard`, so RPC callers need the same `users:*` authorities as HTTP callers.
 
 ### Password hashing
 
@@ -164,7 +186,9 @@ Production must verify a real credential, including its signature, issuer, audie
 
 - Every HTTP response, including authentication failures and errors, carries an `X-Request-Id` header. A well-formed incoming value from a gateway (letters, digits, `.`, `_`, or `-`, at most 64 characters) is reused; any other value is replaced so callers cannot forge log lines. The ID follows async event listeners.
 - Expected rejections, such as validation, authorization, and domain-rule failures, log one WARN line without a stack trace.
-- Unexpected failures log at ERROR with exception types and stack frames through `RedactedThrowable`. Exception messages are dropped because driver, client, and parser messages can contain credentials or personal data. Put identifiers, not values, in your own log messages.
+- Unexpected failures log the full exception at ERROR, including its message, causes, and stack trace. Public error responses still never expose these details.
+- Logs are therefore sensitive. Driver and client messages can contain personal data, such as the duplicate value in a unique-key error. Restrict log access and retention, and never put credentials or secrets into your own exception or log messages.
+- Malformed request bodies are logged without parser details, because those messages can echo request content such as passwords.
 - Spring MVC client errors, such as an unknown route (404) or an unsupported method (405), keep their status and are not reported as internal failures.
 
 ## MyBatis-Plus

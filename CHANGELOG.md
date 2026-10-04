@@ -6,12 +6,14 @@ All notable architecture, compatibility, and security changes are documented her
 
 ### Security
 
+- **breaking:** facade contracts no longer accept `AuthenticatedCaller`, so they can be served over RPC without letting clients choose their identity, tenant, or authorities; `UserFacadeImpl` resolves the verified caller through the new `AuthenticatedCallerResolver`
 - moved the generated test profile, which enables trusted development headers, to `start/src/test/resources` so it is never packaged into the application jar
 
 ### Changed
 
 - value objects reject caller input with `InvalidValueException` (`DomainError.INVALID_VALUE`, HTTP 400); a bare `IllegalArgumentException` now signals a programming error and maps to HTTP 500
-- unexpected failures log exception types and stack frames through `RedactedThrowable`, still without exception messages
+- **breaking:** moved `AuthenticatedCaller` from `api.context` to `application.security`, and `ActorPrincipal` from `infra/rest` to `infra/security`; `AuthenticatedCallerResolver` replaces `AuthenticatedCallerMapper`
+- unexpected failures log the full exception at ERROR, including message and stack trace; public error responses still never expose internal details
 - every HTTP response carries an `X-Request-Id` header, and log lines include the thread, request ID, and logger name; the request ID follows async event listeners
 - added `ServiceOperation.resolveWithoutTransaction` so results such as cache hits are served before a transaction opens; User detail cache hits no longer borrow a database connection
 

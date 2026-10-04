@@ -5,7 +5,6 @@ import ${package}.domain.exception.DomainException;
 import ${package}.shared.enums.ApplicationErrorCode;
 import ${package}.shared.exception.ApplicationException;
 import ${package}.shared.exception.NonRetryableApplicationException;
-import ${package}.shared.logging.RedactedThrowable;
 import ${package}.shared.operation.OperationCode;
 import ${package}.shared.util.ResultUtil;
 import io.github.archetom.common.result.Result;
@@ -76,7 +75,7 @@ abstract class OperationTemplateSupport {
             if (logPolicy == OperationLogPolicy.SAFE_BACKGROUND) {
                 log.warn("Background operation failed: event={}", event);
             } else {
-                log.error("Unexpected application failure: event={}", event, RedactedThrowable.of(exception));
+                log.error("Unexpected application failure: event={}", event, exception);
             }
             return ResultUtil.genErrorResult(exception, appName);
         } finally {

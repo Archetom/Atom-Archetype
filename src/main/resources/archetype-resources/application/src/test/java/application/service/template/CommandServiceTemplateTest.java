@@ -134,10 +134,9 @@ class CommandServiceTemplateTest {
         assertFalse(result.isSuccess());
         assertEquals("000", result.getErrorContext().fetchRootError().getErrorCode().getErrorSpecific());
         assertEquals(ApplicationErrorCode.UNKNOWN.getDescription(), result.getErrorContext().fetchRootError().getErrorMsg());
-        // Unexpected failures log their type and stack frames, never their message.
-        assertTrue(output.getAll().contains(IllegalArgumentException.class.getName()));
+        // Unexpected failures are logged in full, including message and stack trace.
+        assertTrue(output.getAll().contains("tenant mismatch for internal call"));
         assertTrue(output.getAll().contains("CommandServiceTemplateTest"));
-        assertFalse(output.getAll().contains("tenant mismatch for internal call"));
     }
 
     private PlatformTransactionManager transactionManager(List<String> lifecycle) {

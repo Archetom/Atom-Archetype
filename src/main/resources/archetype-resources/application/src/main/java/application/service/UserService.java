@@ -3,9 +3,9 @@
 #set( $symbol_escape = '\' )
 package ${package}.application.service;
 
-import ${package}.api.context.AuthenticatedCaller;
 import ${package}.api.dto.request.UserCreateRequest;
 import ${package}.api.dto.request.UserQueryRequest;
+import ${package}.application.security.AuthenticatedCaller;
 import ${package}.application.vo.UserVO;
 import io.github.archetom.common.result.Pager;
 import io.github.archetom.common.result.Result;
