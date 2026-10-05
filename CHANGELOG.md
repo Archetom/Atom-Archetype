@@ -12,6 +12,7 @@ All notable architecture, compatibility, and security changes are documented her
 
 ### Security
 
+- generated projects manage Guava at `33.7.2-jre`, fixing uncontrolled memory allocation during native Java deserialization (GHSA-xxph-c9ww-hj94)
 - **breaking:** facade contracts no longer accept `AuthenticatedCaller`, so they can be served over RPC without letting clients choose their identity, tenant, or authorities; `UserFacadeImpl` resolves the verified caller through the new `AuthenticatedCallerResolver`
 - moved the generated test profile, which enables trusted development headers, to `start/src/test/resources` so it is never packaged into the application jar
 

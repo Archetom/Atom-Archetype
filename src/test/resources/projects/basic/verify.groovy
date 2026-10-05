@@ -8,6 +8,13 @@ assert new File(projectDir,
 assert new File(projectDir, 'README.md').text.contains('## 快速开始')
 
 assert new File(projectDir, 'pom.xml').text.contains('<version>${atom.common.version}</version>')
+// GHSA-xxph-c9ww-hj94 is fixed in Guava 33.7.2; generated dependency management must not downgrade it.
+def generatedPom = new File(projectDir, 'pom.xml').text
+def guavaVersion = (generatedPom =~ /<guava.version>([^<]+)<\/guava.version>/)[0][1]
+assert guavaVersion.endsWith('-jre')
+assert new org.apache.maven.artifact.versioning.ComparableVersion(guavaVersion) >=
+        new org.apache.maven.artifact.versioning.ComparableVersion('33.7.2-jre')
+assert generatedPom.contains('<version>${guava.version}</version>')
 assert new File(projectDir,
         'application/src/main/java/com/example/generated/application/service/template/CommandServiceTemplate.java')
         .text.contains('@Value("${spring.application.name}")')
