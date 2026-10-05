@@ -14,11 +14,11 @@ The generated result is a standard Maven project. Dependency boundaries between 
 
 ## Versions
 
-- `2.1.0` is the current stable release; both archetype development and generated projects use JDK 25.
+- `2.2.0` is the current stable release; both archetype development and generated projects use JDK 25. It contains breaking changes, so read the [upgrade guide](docs/upgrade-guide.md) before upgrading from `2.1.0`.
 - [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) is the older Java 21 tag.
 - Maven Central `1.1.0` uses the legacy Spring Boot 3.5 architecture.
 
-The quick start below uses `2.1.0` directly from Maven Central.
+The quick start below uses `2.2.0` directly from Maven Central.
 
 ## Quick start
 
@@ -30,7 +30,7 @@ You need JDK 25, Docker, and Docker Compose v2. The repository and generated pro
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.1.0 \
+  -DarchetypeVersion=2.2.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \

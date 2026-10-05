@@ -1,6 +1,6 @@
 # Troubleshooting
 
-## Maven cannot find the 2.1.0 archetype
+## Maven cannot find the 2.2.0 archetype
 
 **Check:** Force Maven to refresh Central metadata and use the exact stable version:
 
@@ -8,7 +8,7 @@
 mvn -U -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.1.0 \
+  -DarchetypeVersion=2.2.0 \
   -DgroupId=com.example.demo \
   -DartifactId=demo-service \
   -Dpackage=com.example.demo \
@@ -19,7 +19,7 @@ mvn -U -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
 
 ## The generated project uses the wrong Java version
 
-**Check:** Maven may use a different JDK from the shell. `v2.0.0` targets JDK 21; release `2.1.0` requires JDK 25.
+**Check:** Maven may use a different JDK from the shell. `2.0.0` targets JDK 21; `2.1.0` and later require JDK 25.
 
 ```bash
 java -version

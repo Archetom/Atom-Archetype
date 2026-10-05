@@ -4,6 +4,8 @@ All notable architecture, compatibility, and security changes are documented her
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-10-05
+
 ### Added
 
 - HTTP bearer JWT authentication whenever a JWT decoder is configured (for example `spring.security.oauth2.resourceserver.jwt.issuer-uri`); HTTP and gRPC share one claim mapping (`atom.security.jwt.*`) to `ActorPrincipal`, and startup warns when no authentication is configured

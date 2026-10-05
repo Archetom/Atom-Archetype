@@ -1,8 +1,8 @@
 # Getting started
 
-This guide uses the stable `2.1.0` release from Maven Central and JDK 25.
+This guide uses the stable `2.2.0` release from Maven Central and JDK 25.
 
-The `2.0.0` release uses JDK 21. To use that version instead, select JDK 21 and replace `2.1.0` with `2.0.0` in the generation command.
+The `2.0.0` release uses JDK 21. To use that version instead, select JDK 21 and replace `2.2.0` with `2.0.0` in the generation command.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ Use Maven 3.9.16 or newer. Projects generated from `main` include Maven Wrapper 
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.1.0 \
+  -DarchetypeVersion=2.2.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \

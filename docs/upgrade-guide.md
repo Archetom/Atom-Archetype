@@ -6,31 +6,29 @@ A Maven archetype generates source code once. It does not update an existing pro
 
 | Source | Status | Java | Notes |
 |---|---|---|---|
-| Maven Central `2.1.0` | Current stable release | 25 | Spring Boot 4.1 and the latest template changes |
+| Maven Central `2.2.0` | Current stable release | 25 | Bearer JWT authentication for HTTP and gRPC, optional gRPC server, RPC-safe facades |
+| Maven Central `2.1.0` | Older release | 25 | First release on JDK 25 |
 | Maven Central `2.0.0` / Git tag `v2.0.0` | Older release | 21 | First release of the 2.x architecture |
 | Maven Central `1.1.0` | Published release | Legacy baseline | Spring Boot 3.5 architecture |
 
-Install the selected revision locally before generating a reference project. For the `v2.0.0` tag:
+Generate a reference project from the target release on Maven Central. For `2.2.0`:
 
 ```bash
-./mvnw clean install -Dgpg.skip=true
-
-cd ..
-./Atom-Archetype/mvnw -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.0.0 \
+  -DarchetypeVersion=2.2.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service-reference \
   -Dpackage=com.example.orders \
   -Dversion=1.0.0-SNAPSHOT
 ```
 
-## Changes in `2.2.0` (unreleased)
+## Changes in `2.2.0`
 
-These changes alter generated-project contracts. Compare a project generated from `2.1.0` with a reference project generated from the current `main`.
+These changes alter generated-project contracts. Compare a project generated from `2.1.0` with a reference project generated from `2.2.0`.
 
-| Area | `2.1.0` | Current template |
+| Area | `2.1.0` | `2.2.0` |
 |---|---|---|
 | Facade contract | `UserFacade` methods take `AuthenticatedCaller` | No identity parameters; `UserFacadeImpl` resolves the caller through `AuthenticatedCallerResolver` |
 | Caller types | `api.context.AuthenticatedCaller`, `infra.rest.security.ActorPrincipal`, `AuthenticatedCallerMapper` | `application.security.AuthenticatedCaller`, `infra.security.ActorPrincipal`, `infra.security.AuthenticatedCallerResolver` |
@@ -44,6 +42,7 @@ These changes alter generated-project contracts. Compare a project generated fro
 | Sample password column | `t_user.password` | `t_user.password_hash` |
 | Local run | `-f start/pom.xml spring-boot:run` after `install` | `make run`, or `-pl start -am spring-boot:run`, from the current sources |
 | Integration-test MySQL image | Hard-coded in `BaseIntegrationTest` | Read from `docker-compose.yml` |
+| Guava | Transitive version | Managed at `33.7.2-jre`, which fixes GHSA-xxph-c9ww-hj94 |
 
 1. Remove `AuthenticatedCaller` parameters from facade interfaces and implementations. Resolve the caller in the facade implementation with `AuthenticatedCallerResolver` and pass it to the use case; remove `Authentication` parameters and caller mapping from controllers.
 2. Before serving a facade over RPC, authenticate every call in the RPC server adapter and put a verified `ActorPrincipal` into Spring Security's context on the invoking thread, as described under RPC exposure in the generated `docs/configuration.md`.
@@ -57,12 +56,13 @@ These changes alter generated-project contracts. Compare a project generated fro
 10. Replace `task.executor.*` with `spring.task.execution.*` (`thread-name-prefix`, `pool.core-size`, `pool.max-size`, `pool.queue-capacity`, `pool.keep-alive`). Delete the custom executor bean and `TaskExecutorProperties`, and keep the logging-context decorator as a `TaskDecorator` bean.
 11. Keep an applied `V1` migration unchanged. To adopt the new column name, add a migration such as `ALTER TABLE t_user RENAME COLUMN password TO password_hash;` and update `UserPO` and the mapper XML in the same change.
 12. To run `start` from the reactor, set `<skip>true</skip>` for `spring-boot-maven-plugin` in the root `pluginManagement` and `<skip>false</skip>` in `start`, then use `sh ./mvnw -pl start -am spring-boot:run`.
+13. Manage `com.google.guava:guava` at `33.7.2-jre` or later in the root POM; earlier versions are affected by GHSA-xxph-c9ww-hj94.
 
 ## Major changes from `1.1.0`
 
 | Area | `1.1.0` | 2.x architecture |
 |---|---|---|
-| Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `v2.0.0`, JDK 25 on `2.1.0` |
+| Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `2.0.0`, JDK 25 from `2.1.0` |
 | Caller context | Domain `UserContextHolder` | Explicit `AuthenticatedCaller` passed to use cases |
 | Tenant scope | Header/ThreadLocal-derived | Validated `TenantId` passed to repositories and caches |
 | Development identity | `X-User-Id`, `X-Tenant-Id`, `X-Admin` | `X-Dev-User-Id`, `X-Dev-Tenant-Id`; dev/test only and explicitly enabled |
@@ -82,7 +82,7 @@ These changes alter generated-project contracts. Compare a project generated fro
 - Use the Boot 4 starters and compatible MyBatis-Plus and SpringDoc versions from the reference project.
 - Review Jackson 3 imports and custom modules.
 - Keep test-only dependencies in `test` scope.
-- Use JDK 21 for the `v2.0.0` tag or JDK 25 for release `2.1.0`.
+- Use JDK 21 for `2.0.0` or JDK 25 for `2.1.0` and later.
 
 Do not combine the old Boot BOM with individually upgraded Boot 4 artifacts.
 

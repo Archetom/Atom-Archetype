@@ -14,11 +14,11 @@ Atom Archetype 是一个基于 Java 25 和 Spring Boot 4.1 的 Maven Archetype�
 
 ## 版本说明
 
-- `2.1.0` 是当前稳定版，Archetype 开发和生成项目均使用 JDK 25。
+- `2.2.0` 是当前稳定版，Archetype 开发和生成项目均使用 JDK 25。它包含不兼容变更，从 `2.1.0` 升级前请先阅读[升级指南](docs/upgrade-guide.md)。
 - [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) 是 Java 21 版本的旧标签。
 - Maven Central `1.1.0` 属于 Spring Boot 3.5 旧架构。
 
-以下快速开始直接使用 Maven Central 上的 `2.1.0`。
+以下快速开始直接使用 Maven Central 上的 `2.2.0`。
 
 ## 快速开始
 
@@ -30,7 +30,7 @@ Atom Archetype 是一个基于 Java 25 和 Spring Boot 4.1 的 Maven Archetype�
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.1.0 \
+  -DarchetypeVersion=2.2.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
