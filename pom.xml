@@ -48,8 +48,8 @@
         <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
         <maven.jar.plugin.version>3.5.1</maven.jar.plugin.version>
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
-        <maven.central.plugin.version>0.11.0</maven.central.plugin.version>
-        <versions.maven.plugin.version>2.22.0</versions.maven.plugin.version>
+        <maven.central.plugin.version>0.12.0</maven.central.plugin.version>
+        <versions.maven.plugin.version>2.23.0</versions.maven.plugin.version>
         <central.autoPublish>false</central.autoPublish>
         <central.waitUntil>validated</central.waitUntil>
     </properties>
