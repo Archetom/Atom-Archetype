@@ -1,0 +1,2 @@
+# Keep both Maven wrapper copies stable when dependency tools emit CRLF.
+mvnw.cmd text eol=lf
