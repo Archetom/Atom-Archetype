@@ -7,7 +7,7 @@ Atom Archetype publishes through the Sonatype Central Portal. The `Release to Ma
 - Central Portal access for `io.github.archetom`;
 - Maven credentials under server ID `central`;
 - a GnuPG signing key and, when needed, its full fingerprint in `GPG_KEYNAME`;
-- Java 25 and the repository Maven wrapper;
+- Java 27 and the repository Maven wrapper;
 - a clean worktree on the release commit.
 
 Do not store Central tokens, GPG private keys, or passphrases in the repository.

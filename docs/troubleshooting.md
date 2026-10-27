@@ -19,7 +19,7 @@ mvn -U -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
 
 ## The generated project uses the wrong Java version
 
-**Check:** Maven may use a different JDK from the shell. `2.0.0` targets JDK 21; `2.1.0` and later require JDK 25.
+**Check:** Maven may use a different JDK from the shell. `2.0.0` targets JDK 21; `2.1.0` and `2.2.0` target JDK 25. The unreleased `main` branch requires JDK 27 and Maven 3.10.0.
 
 ```bash
 java -version

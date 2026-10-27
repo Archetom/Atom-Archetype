@@ -2,19 +2,20 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
 [![CI](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml/badge.svg)](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml)
-[![Java 25](https://img.shields.io/badge/Java-25-007396.svg)](https://openjdk.org/projects/jdk/25/)
+[![Java 27](https://img.shields.io/badge/Java-27-007396.svg)](https://openjdk.org/projects/jdk/27/)
 [![Spring Boot 4.1](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F.svg)](https://spring.io/projects/spring-boot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 [简体中文](README.md) | English
 
-Atom Archetype is a Maven archetype for generating Java 25 and Spring Boot 4.1 multi-module projects based on Domain-Driven Design (DDD).
+Atom Archetype is a Maven archetype for generating multi-module projects based on Domain-Driven Design (DDD). The current `main` branch uses Java 27 and Spring Boot 4.1.
 
 The generated result is a standard Maven project. Dependency boundaries between domain, application, and infrastructure modules are already configured, and the example code can be changed or removed directly.
 
 ## Versions
 
-- `2.2.0` is the current stable release; both archetype development and generated projects use JDK 25. It contains breaking changes, so read the [upgrade guide](docs/upgrade-guide.md) before upgrading from `2.1.0`.
+- `main` is unreleased; archetype development and generated projects require JDK 27 and Maven 3.10.0. Java 27 is a non-LTS release; see the [upgrade guide](docs/upgrade-guide.md) for the toolchain changes.
+- `2.2.0` is the current stable release and uses JDK 25. It contains breaking changes, so read the [upgrade guide](docs/upgrade-guide.md) before upgrading from `2.1.0`.
 - [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) is the older Java 21 tag.
 - Maven Central `1.1.0` uses the legacy Spring Boot 3.5 architecture.
 
@@ -22,7 +23,7 @@ The quick start below uses `2.2.0` directly from Maven Central.
 
 ## Quick start
 
-You need JDK 25, Docker, and Docker Compose v2. The repository and generated projects both include Maven Wrapper 3.9.16; use Maven 3.9.16 or newer if you prefer a system installation.
+The stable `2.2.0` release needs JDK 25, Docker, and Docker Compose v2. Use Maven 3.9.16 or newer for generation, then use the generated project's bundled Maven Wrapper.
 
 ### 1. Generate a project
 
@@ -99,11 +100,10 @@ Business APIs require authentication by default. In production, configure the JW
 
 ## Development
 
-Template sources live in `src/main/resources/archetype-resources/`; metadata lives in `src/main/resources/META-INF/maven/archetype-metadata.xml`.
+Development on `main` requires JDK 27. The repository and projects generated from it use Maven Wrapper 3.10.0; system Maven installations must also be 3.10.0 or newer. Template sources live in `src/main/resources/archetype-resources/`; metadata lives in `src/main/resources/META-INF/maven/archetype-metadata.xml`.
 
 ```bash
-make install
-make demo
+CI=false make demo
 cd target/generated-projects/atom-demo
 sh ./mvnw compile
 CI=true sh ./mvnw test   # requires Docker

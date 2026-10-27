@@ -6,6 +6,7 @@ A Maven archetype generates source code once. It does not update an existing pro
 
 | Source | Status | Java | Notes |
 |---|---|---|---|
+| `main` | Unreleased development version | 27 | Spring Boot 4.1.2; Maven 3.10.0; non-LTS Java baseline |
 | Maven Central `2.2.0` | Current stable release | 25 | Bearer JWT authentication for HTTP and gRPC, optional gRPC server, RPC-safe facades |
 | Maven Central `2.1.0` | Older release | 25 | First release on JDK 25 |
 | Maven Central `2.0.0` / Git tag `v2.0.0` | Older release | 21 | First release of the 2.x architecture |
@@ -22,6 +23,23 @@ mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DartifactId=orders-service-reference \
   -Dpackage=com.example.orders \
   -Dversion=1.0.0-SNAPSHOT
+```
+
+## Unreleased toolchain upgrade
+
+The current `main` branch raises the build and runtime baseline from Java 25 to Java 27 and requires Maven 3.10.0. This is a breaking toolchain change: projects generated from `main` no longer compile or run on Java 25. Java 27 is a non-LTS release. Existing `2.2.0` projects remain on their published Java 25 baseline until explicitly migrated.
+
+Before adopting the new template, update local and IDE JDKs, CI, and deployment runtimes to Java 27. Use the bundled Maven Wrapper, upgrade the Spring Boot parent and independent dependencies together from the generated reference POM, then run the complete unit and Docker integration suites. The latest stable Spring Boot 4.1.2 [supports Java 27](https://docs.spring.io/spring-boot/system-requirements.html).
+
+MyBatis remains on the version supplied by MyBatis-Plus. Overriding it to 3.6.0 currently breaks MyBatis-Plus 3.5.18 at startup with `NoSuchMethodError` for `MetaClass.forClass(Class, ReflectorFactory)`; upgrade that pair together when upstream compatibility is available.
+
+To generate an unreleased reference project from a checkout of `main`:
+
+```bash
+CI=false make demo
+cd target/generated-projects/atom-demo
+sh ./mvnw compile
+CI=true sh ./mvnw test
 ```
 
 ## Changes in `2.2.0`
@@ -62,7 +80,7 @@ These changes alter generated-project contracts. Compare a project generated fro
 
 | Area | `1.1.0` | 2.x architecture |
 |---|---|---|
-| Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `2.0.0`, JDK 25 from `2.1.0` |
+| Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `2.0.0`, JDK 25 on `2.1.0`/`2.2.0`, JDK 27 on unreleased `main` |
 | Caller context | Domain `UserContextHolder` | Explicit `AuthenticatedCaller` passed to use cases |
 | Tenant scope | Header/ThreadLocal-derived | Validated `TenantId` passed to repositories and caches |
 | Development identity | `X-User-Id`, `X-Tenant-Id`, `X-Admin` | `X-Dev-User-Id`, `X-Dev-Tenant-Id`; dev/test only and explicitly enabled |
@@ -82,7 +100,7 @@ These changes alter generated-project contracts. Compare a project generated fro
 - Use the Boot 4 starters and compatible MyBatis-Plus and SpringDoc versions from the reference project.
 - Review Jackson 3 imports and custom modules.
 - Keep test-only dependencies in `test` scope.
-- Use JDK 21 for `2.0.0` or JDK 25 for `2.1.0` and later.
+- Use JDK 21 for `2.0.0`, JDK 25 for `2.1.0`/`2.2.0`, or JDK 27 for unreleased `main`.
 
 Do not combine the old Boot BOM with individually upgraded Boot 4 artifacts.
 

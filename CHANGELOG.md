@@ -4,6 +4,19 @@ All notable architecture, compatibility, and security changes are documented her
 
 ## [Unreleased]
 
+### Changed
+
+- **breaking:** raise the repository, generated-project, CI, and release toolchain baseline from Java 25 to Java 27 (non-LTS), and require Maven 3.10.0, matching the existing checksum-pinned wrapper
+- upgrade Spring Boot from 4.1.0 to 4.1.2, including its Java 27-compatible Lombok 1.18.48 and updated Spring, Netty, Protobuf, and Testcontainers dependencies
+- upgrade independently managed libraries to MyBatis-Plus 3.5.18, SpringDoc OpenAPI 3.2.0, ArchUnit 1.5.1, and Error Prone annotations 2.51.0
+- upgrade third-party libraries beyond the Boot defaults: Commons Lang 3.21.0, gRPC Java 1.85.1, Jackson 3.2.4/2.22.4, Logback 1.6.6, Lettuce 7.9.0, SnakeYAML 2.7, and Gson 2.15.0; keep library families aligned through their BOM properties
+- upgrade the database stack to Flyway 13.11.1, MySQL Connector/J 26.10.0, and HikariCP 7.1.0; pin generated Docker services to MySQL 26.10.0 and optional Redis 8.10.3
+- retain MyBatis 3.5.19 as supplied by MyBatis-Plus 3.5.18: MyBatis 3.6.0 removes `MetaClass.forClass(Class, ReflectorFactory)` and fails application startup
+- upgrade testing to JUnit 6.1.3, Mockito 5.24.0, Byte Buddy 1.18.16, JsonPath 3.0.0, and XMLUnit 2.14.0
+- upgrade the archetype script interpreter to 1.9 and its Groovy modules to 6.0.0 so generation assertions can inspect Java 27 classes
+- upgrade Maven Compiler to 3.16.0, Surefire/Failsafe to 3.6.1, and Install/Deploy to 3.2.0; align the generated Versions Plugin with 2.23.0
+- distinguish the unreleased Java 27 baseline from the published Java 25 `2.2.0` release in setup and migration documentation
+
 ## [2.2.0] — 2026-10-05
 
 ### Added

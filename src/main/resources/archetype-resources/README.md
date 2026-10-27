@@ -3,14 +3,14 @@
 
 [English](README.en.md)
 
-`${rootArtifactId}` 基于 Java 25 和 Spring Boot 4.1，采用多模块 Maven 结构。项目由 Atom Archetype 生成，并包含一套可运行的用户管理示例。
+`${rootArtifactId}` 基于 Java 27 和 Spring Boot 4.1，采用多模块 Maven 结构。项目由 Atom Archetype 生成，并包含一套可运行的用户管理示例。
 
 生成坐标：`${groupId}:${rootArtifactId}:${version}`。如果不需要示例代码，请运行 `make clean-sample`。
 
 $h2 环境要求
 
-- JDK 25
-- 内置 Maven Wrapper 3.9.16（若使用系统 Maven，最低版本为 3.9.16）
+- JDK 27（非 LTS 版本；部署环境也需要 Java 27 或更高版本）
+- 内置 Maven Wrapper 3.10.0（若使用系统 Maven，最低版本为 3.10.0）
 - Docker 与 Docker Compose，用于本地 MySQL 和集成测试
 - Make（可选）
 

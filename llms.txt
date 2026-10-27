@@ -1,10 +1,11 @@
 # Atom Archetype
 
-> Atom Archetype is a Maven archetype that generates Java 25 and Spring Boot 4 multi-module applications with Domain-Driven Design, explicit tenant context, secure HTTP defaults, MyBatis-Plus, Flyway, and optional Redis.
+> Atom Archetype is a Maven archetype that generates multi-module applications with Domain-Driven Design, explicit tenant context, secure HTTP defaults, MyBatis-Plus, Flyway, and optional Redis. The current main branch targets Java 27 and Spring Boot 4.1.
 
 Canonical repository: https://github.com/Archetom/atom-archetype
 Maven coordinates: io.github.archetom:atom-archetype
 Current stable release: 2.2.0 (Maven Central, Java 25)
+Development baseline: main (unreleased, Java 27 non-LTS, Maven 3.10.0)
 Legacy Maven Central release: 1.1.0 (Spring Boot 3.5 architecture)
 License: MIT
 

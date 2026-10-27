@@ -2,19 +2,20 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
 [![CI](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml/badge.svg)](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml)
-[![Java 25](https://img.shields.io/badge/Java-25-007396.svg)](https://openjdk.org/projects/jdk/25/)
+[![Java 27](https://img.shields.io/badge/Java-27-007396.svg)](https://openjdk.org/projects/jdk/27/)
 [![Spring Boot 4.1](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F.svg)](https://spring.io/projects/spring-boot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 简体中文 | [English](README.en.md)
 
-Atom Archetype 是一个基于 Java 25 和 Spring Boot 4.1 的 Maven Archetype，用于生成采用领域驱动设计（DDD）的多模块项目。
+Atom Archetype 是一个 Maven Archetype，用于生成采用领域驱动设计（DDD）的多模块项目。当前 `main` 基于 Java 27 和 Spring Boot 4.1。
 
 生成结果是标准 Maven 工程。领域、应用和基础设施模块之间的依赖边界已经配置好，示例代码可以直接修改或删除。
 
 ## 版本说明
 
-- `2.2.0` 是当前稳定版，Archetype 开发和生成项目均使用 JDK 25。它包含不兼容变更，从 `2.1.0` 升级前请先阅读[升级指南](docs/upgrade-guide.md)。
+- `main` 是未发布的开发版本，Archetype 开发和生成项目均要求 JDK 27、Maven 3.10.0。Java 27 是非 LTS 版本，工具链升级说明见[升级指南](docs/upgrade-guide.md)。
+- `2.2.0` 是当前稳定版，使用 JDK 25。它包含不兼容变更，从 `2.1.0` 升级前请先阅读[升级指南](docs/upgrade-guide.md)。
 - [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) 是 Java 21 版本的旧标签。
 - Maven Central `1.1.0` 属于 Spring Boot 3.5 旧架构。
 
@@ -22,7 +23,7 @@ Atom Archetype 是一个基于 Java 25 和 Spring Boot 4.1 的 Maven Archetype�
 
 ## 快速开始
 
-需要 JDK 25、Docker 和 Docker Compose v2。仓库及生成项目均提供 Maven Wrapper 3.9.16；如果使用系统 Maven，请使用 3.9.16 或更高版本。
+稳定版 `2.2.0` 需要 JDK 25、Docker 和 Docker Compose v2。生成后使用项目附带的 Maven Wrapper；生成命令使用 Maven 3.9.16 或更高版本。
 
 ### 1. 生成项目
 
@@ -100,11 +101,10 @@ curl http://localhost:8080/actuator/health
 
 ## 开发
 
-模板位于 `src/main/resources/archetype-resources/`，元数据位于 `src/main/resources/META-INF/maven/archetype-metadata.xml`。
+开发 `main` 需要 JDK 27；仓库及其生成项目使用 Maven Wrapper 3.10.0，系统 Maven 的最低版本也是 3.10.0。模板位于 `src/main/resources/archetype-resources/`，元数据位于 `src/main/resources/META-INF/maven/archetype-metadata.xml`。
 
 ```bash
-make install
-make demo
+CI=false make demo
 cd target/generated-projects/atom-demo
 sh ./mvnw compile
 CI=true sh ./mvnw test   # 需要 Docker

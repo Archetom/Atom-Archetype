@@ -1,7 +1,7 @@
 #set( $h2 = '##' )
 # ${rootArtifactId}
 
-> `${groupId}:${rootArtifactId}:${version}` — Java 25 and Spring Boot 4.1 multi-module DDD application with explicit authenticated caller and tenant context, MyBatis-Plus, MySQL, Flyway, optimistic locking, after-commit domain events, and optional Redis.
+> `${groupId}:${rootArtifactId}:${version}` — Java 27 and Spring Boot 4.1 multi-module DDD application with explicit authenticated caller and tenant context, MyBatis-Plus, MySQL, Flyway, optimistic locking, after-commit domain events, and optional Redis.
 
 $h2 Primary documentation
 

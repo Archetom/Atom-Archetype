@@ -15,7 +15,9 @@ docker version
 docker compose version
 ```
 
-Use Maven 3.9.16 or newer. Projects generated from `main` include Maven Wrapper 3.9.16. Docker is required for the supplied MySQL service and Testcontainers integration tests.
+For the stable release, use Maven 3.9.16 or newer for generation, then use the generated project's Maven Wrapper. Docker is required for the supplied MySQL service and Testcontainers integration tests.
+
+To develop or generate from the unreleased `main` branch, use JDK 27 and Maven Wrapper 3.10.0 (or system Maven 3.10.0 or newer). Run `CI=false make demo` from the repository root to install and generate that revision. See the [upgrade guide](upgrade-guide.md) for the Java 27 toolchain change.
 
 ## Generate a project
 

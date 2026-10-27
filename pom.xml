@@ -8,7 +8,7 @@
     <packaging>maven-archetype</packaging>
 
     <name>Atom :: Archetype</name>
-    <description>A Maven archetype for generating Java 25 and Spring Boot 4 multi-module applications with Domain-Driven Design patterns.</description>
+    <description>A Maven archetype for generating Java 27 and Spring Boot 4.1 multi-module applications with Domain-Driven Design patterns.</description>
     <url>https://github.com/Archetom/atom-archetype</url>
 
     <licenses>
@@ -37,13 +37,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.build.outputTimestamp>2026-10-05T03:05:24Z</project.build.outputTimestamp>
-        <java.version>25</java.version>
-        <maven.minimum.version>3.9.16</maven.minimum.version>
+        <java.version>27</java.version>
+        <maven.minimum.version>3.10.0</maven.minimum.version>
 
         <!-- Maven Plugin -->
         <maven.archetype.packaging.version>3.4.1</maven.archetype.packaging.version>
+        <groovy.version>6.0.0</groovy.version>
+        <maven.script.interpreter.version>1.9</maven.script.interpreter.version>
         <maven.clean.plugin.version>3.5.0</maven.clean.plugin.version>
         <maven.resources.plugin.version>3.5.0</maven.resources.plugin.version>
+        <maven.install.plugin.version>3.2.0</maven.install.plugin.version>
+        <maven.deploy.plugin.version>3.2.0</maven.deploy.plugin.version>
         <maven.enforcer.plugin.version>3.6.3</maven.enforcer.plugin.version>
         <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
         <maven.jar.plugin.version>3.5.1</maven.jar.plugin.version>
@@ -75,6 +79,44 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-archetype-plugin</artifactId>
+                <version>${maven.archetype.packaging.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.shared</groupId>
+                        <artifactId>maven-script-interpreter</artifactId>
+                        <version>${maven.script.interpreter.version}</version>
+                    </dependency>
+                    <!-- The bundled Groovy cannot read Java 27 bytecode. Align its entire module family. -->
+                    <dependency>
+                        <groupId>org.apache.groovy</groupId>
+                        <artifactId>groovy</artifactId>
+                        <version>${groovy.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.groovy</groupId>
+                        <artifactId>groovy-json</artifactId>
+                        <version>${groovy.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.groovy</groupId>
+                        <artifactId>groovy-templates</artifactId>
+                        <version>${groovy.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.groovy</groupId>
+                        <artifactId>groovy-xml</artifactId>
+                        <version>${groovy.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.groovy</groupId>
+                        <artifactId>groovy-yaml</artifactId>
+                        <version>${groovy.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>${maven.clean.plugin.version}</version>
             </plugin>
@@ -82,6 +124,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>${maven.resources.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>${maven.install.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${maven.deploy.plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
