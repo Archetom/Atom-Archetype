@@ -15,6 +15,7 @@ All notable architecture, compatibility, and security changes are documented her
 
 ### Changed
 
+- upgrade generated projects to atom-common 1.2.0, aligning its Java 27 bytecode requirement with the existing development baseline
 - keep the removable User domain contract under `docs/examples/`, leaving `docs/domain/` as a generic guide after sample cleanup
 - **breaking:** raise the repository, generated-project, CI, and release toolchain baseline from Java 25 to Java 27 (non-LTS), and require Maven 3.10.0, matching the existing checksum-pinned wrapper
 - upgrade Spring Boot from 4.1.0 to 4.1.2, including its Java 27-compatible Lombok 1.18.48 and updated Spring, Netty, Protobuf, and Testcontainers dependencies
