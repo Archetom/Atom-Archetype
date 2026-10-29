@@ -12,6 +12,8 @@ Atom Archetype 是一个 Maven Archetype，用于生成采用领域驱动设计�
 
 生成结果是标准 Maven 工程。领域、应用和基础设施模块之间的依赖边界已经配置好，示例代码可以直接修改或删除。
 
+当前 `main` 还提供面向 AI 辅助开发的 Agent Skills、增量验证和独立业务任务 Benchmark，复用现有架构与测试工具，不增加应用运行时依赖。
+
 ## 版本说明
 
 - `main` 是未发布的开发版本，Archetype 开发和生成项目均要求 JDK 27、Maven 3.10.0。Java 27 是非 LTS 版本，工具链升级说明见[升级指南](docs/upgrade-guide.md)。
@@ -72,6 +74,52 @@ curl http://localhost:8080/actuator/health
 
 业务 API 默认需要认证。生产环境配置 JWT 签发方后，HTTP 与 gRPC 都使用 Bearer JWT 认证；开发身份请求头仅适用于显式启用的 `dev`、`test` 环境。
 
+## AI 辅助开发
+
+以下能力属于尚未发布的 `main`，不包含在上方快速开始使用的 `2.2.0` 中。可按[开发](#开发)中的步骤从当前源码生成项目。
+
+### Agent Skills
+
+生成项目通过 `AGENTS.md` 约定架构、安全和验证规则，通过 `llms.txt` 索引文档，并在 `.agents/skills/` 提供五个按需读取的 Markdown 工作流程：
+
+| Skill | 用途 |
+|---|---|
+| [create-feature](src/main/resources/archetype-resources/.agents/skills/create-feature/SKILL.md) | 从领域行为到应用用例及所需适配器，实现业务功能 |
+| [add-api](src/main/resources/archetype-resources/.agents/skills/add-api/SKILL.md) | 新增或修改 HTTP API，覆盖契约、权限、转换和回归测试 |
+| [add-migration](src/main/resources/archetype-resources/.agents/skills/add-migration/SKILL.md) | 同步演进 Flyway、持久化映射和领域恢复，检查租户与乐观锁行为 |
+| [review-architecture](src/main/resources/archetype-resources/.agents/skills/review-architecture/SKILL.md) | 审查 DDD 边界、安全、持久化与事务问题 |
+| [verify-change](src/main/resources/archetype-resources/.agents/skills/verify-change/SKILL.md) | 选择验证范围，执行检查并报告未验证的行为 |
+
+这些工作流程不绑定特定模型或编辑器，清理 User 示例后仍保留。ArchUnit 架构测试和现有单元、集成测试负责验证相应约束。详见[AI 工程工作流](docs/ai-engineering.md)。
+
+### 增量验证与结构化报告
+
+在仓库根目录或从 `main` 生成的项目根目录执行：
+
+```bash
+make agent-check SCOPE=affected  # 根据 Git 变更保守选择验证范围
+make agent-check SCOPE=fast      # 显式运行不依赖 Docker 的检查
+make agent-check                # 默认 full，包含 Docker 集成测试
+```
+
+`affected` 检查已暂存、未暂存、未跟踪以及删除、移动的文件。生成项目仅对可识别的文档改动，或单个 `domain` / `application` 模块的普通 Java 测试改动缩小范围；仓库中的模板文档改动仍需生成验证。生产代码、POM、跨模块及安全等敏感改动，以及无法可靠判断的变更，均回退到完整验证。该选择器需要 Python 3，缺失时同样回退到 `full`。
+
+原有 `docs`、`generate`（仅仓库）、`fast`、`full` 范围继续可用。标准输出为 JSON，记录实际范围、耗时、退出码和已生成的测试报告路径；详细日志写入标准错误。缺少必需的 Docker 环境会报告阻塞并返回非零退出码，`fast` 通过不代表集成测试通过。各范围的检查内容见[验证指南](docs/ai-engineering.md#verification-entry-point)。
+
+### 业务开发 Benchmark
+
+仓库中的 `benchmarks/` 提供离线评测工具，对固定代码提交生成的项目开展三类任务，每次使用独立工作目录，并在提交后运行独立验收测试：
+
+| 场景 | 任务与验收重点 |
+|---|---|
+| [add-api](benchmarks/scenarios/add-api/task.md) | 修改用户邮箱：输入校验、认证、权限、租户隔离与持久化结果 |
+| [domain-invariant](benchmarks/scenarios/domain-invariant/task.md) | 锁定用户经复核后才能激活：聚合状态转换、非法操作与原有行为 |
+| [persistence-change](benchmarks/scenarios/persistence-change/task.md) | 新增首选语言：Flyway 升级、映射与恢复、查询输出、租户隔离和乐观锁 |
+
+评测不自动调用模型 API，可手工接入所选 Coding Agent；结果输出为 JSON 和 Markdown，记录任务成功、首次提交成功、架构与安全违规、关键行为验收覆盖、耗时等指标。无法获取的 Token、人工干预等数据标记为 `unavailable`。编译通过不足以判定任务成功。
+
+`baseline` 与 `engineering` 两组均保留 `AGENTS.md`，对照衡量的是额外 Skills 的增量作用；比较时须保持代码版本、模型版本和执行环境一致。评测器校准结果不代表模型能力或效率提升。普通 CI 只运行确定性测试，真实 Agent 评测按需执行；Benchmark 不进入生成项目的生产依赖。准备、提交、评测和对照命令见[Benchmark 使用说明](benchmarks/README.md)。
+
 ## 项目结构
 
 | 模块 | 职责 |
@@ -95,6 +143,8 @@ curl http://localhost:8080/actuator/health
 - [快速上手](docs/getting-started.md)
 - [架构与依赖规则](docs/architecture.md)
 - [命名规范](docs/naming-conventions.md)
+- [AI 工程工作流与验证范围](docs/ai-engineering.md)
+- [Agent Benchmark 使用说明](benchmarks/README.md)
 - [升级指南](docs/upgrade-guide.md)
 - [故障排查](docs/troubleshooting.md)
 - [变更记录](CHANGELOG.md)

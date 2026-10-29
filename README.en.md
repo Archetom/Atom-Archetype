@@ -12,6 +12,8 @@ Atom Archetype is a Maven archetype for generating multi-module projects based o
 
 The generated result is a standard Maven project. Dependency boundaries between domain, application, and infrastructure modules are already configured, and the example code can be changed or removed directly.
 
+The current `main` branch also supports AI-assisted development with Agent Skills, incremental validation, and independent business-task benchmarks. These reuse the existing architecture and testing tools without adding application runtime dependencies.
+
 ## Versions
 
 - `main` is unreleased; archetype development and generated projects require JDK 27 and Maven 3.10.0. Java 27 is a non-LTS release; see the [upgrade guide](docs/upgrade-guide.md) for the toolchain changes.
@@ -65,11 +67,58 @@ See [Getting started](docs/getting-started.md) for development identity headers,
 - Spring Security, SpringDoc OpenAPI, and consistent HTTP error mapping.
 - Redis adapters, disabled by default, with a corresponding no-op implementation.
 - A gRPC server, disabled by default, built on Spring Boot's gRPC support, authenticated with bearer JWTs, and backed by the same facades as HTTP.
-- Command/query service templates, after-commit callbacks, and Testcontainers integration tests.
+- Independent command transactions and read-only query snapshot transactions, after-commit callbacks, and Testcontainers integration tests.
+- Named pagination responses, stable concurrency errors, and archetype regression tests that compile and test the generated project.
 
 Exact dependency versions are pinned in the generated `pom.xml` and `docker-compose.yml`.
 
 Business APIs require authentication by default. In production, configure the JWT issuer and both HTTP and gRPC authenticate bearer JWTs; development identity headers are limited to explicitly enabled `dev` and `test` environments.
+
+## AI-assisted development
+
+The capabilities below are part of the unreleased `main` branch, not the `2.2.0` release used in the quick start above. Follow [Development](#development) to generate a project from the current sources.
+
+### Agent Skills
+
+Generated projects define architecture, security, and verification rules in `AGENTS.md`, index documentation through `llms.txt`, and provide five Markdown workflows under `.agents/skills/` to read as needed:
+
+| Skill | Purpose |
+|---|---|
+| [create-feature](src/main/resources/archetype-resources/.agents/skills/create-feature/SKILL.md) | Implement a business feature through domain behavior, application use cases, and the required adapters |
+| [add-api](src/main/resources/archetype-resources/.agents/skills/add-api/SKILL.md) | Add or change an HTTP API, covering contracts, authorization, mapping, and regression tests |
+| [add-migration](src/main/resources/archetype-resources/.agents/skills/add-migration/SKILL.md) | Evolve Flyway, persistence mappings, and aggregate reconstruction together, checking tenancy and optimistic locking |
+| [review-architecture](src/main/resources/archetype-resources/.agents/skills/review-architecture/SKILL.md) | Review DDD boundaries, security, persistence, and transaction behavior |
+| [verify-change](src/main/resources/archetype-resources/.agents/skills/verify-change/SKILL.md) | Select validation scopes, run checks, and report unverified behavior |
+
+These workflows require no particular model or editor and remain after the User example is removed. ArchUnit architecture tests and existing unit and integration tests verify the corresponding constraints. See the [AI engineering workflow](docs/ai-engineering.md).
+
+### Incremental validation and structured reports
+
+Run from the repository root or the root of a project generated from `main`:
+
+```bash
+make agent-check SCOPE=affected  # Select checks conservatively from Git changes
+make agent-check SCOPE=fast      # Explicit checks without Docker
+make agent-check                # Default full scope, including Docker integration tests
+```
+
+`affected` inspects staged, unstaged, untracked, deleted, and moved files. In generated projects, it narrows checks only for recognized documentation changes or ordinary Java test changes within a single `domain` or `application` module. Template documentation changes in the archetype repository still require generation checks. Production code, POMs, cross-module changes, security or other sensitive changes, and uncertain cases fall back to full validation. The selector requires Python 3 and also falls back to `full` when Python is unavailable.
+
+The existing `docs`, `generate` (repository only), `fast`, and `full` scopes remain available. Standard output is JSON with the actual scope, durations, exit codes, and paths to generated test reports; detailed logs go to standard error. Missing required Docker support produces a blocked result and a nonzero exit code. Passing `fast` does not certify integration tests. See the [verification guide](docs/ai-engineering.md#verification-entry-point) for the checks included in each scope.
+
+### Business-task benchmarks
+
+The repository's `benchmarks/` directory provides an offline evaluator for three tasks on projects generated from a fixed commit. Every run uses an isolated workspace and independent acceptance tests after submission:
+
+| Scenario | Task and acceptance focus |
+|---|---|
+| [add-api](benchmarks/scenarios/add-api/task.md) | Update a user's email: input validation, authentication, permissions, tenant isolation, and persisted results |
+| [domain-invariant](benchmarks/scenarios/domain-invariant/task.md) | Require review before activating a locked user: aggregate transitions, rejected operations, and existing behavior |
+| [persistence-change](benchmarks/scenarios/persistence-change/task.md) | Add a preferred language: Flyway upgrades, mapping and reconstruction, query output, tenant isolation, and optimistic locking |
+
+The evaluator makes no model API calls; operators can run their chosen coding agent manually. JSON and Markdown results record task success, first-pass success, architecture and security violations, required-behavior acceptance coverage, duration, and other metrics. Unobserved token usage, human interventions, and similar data are marked `unavailable`. Compilation alone is insufficient for task success.
+
+Both `baseline` and `engineering` retain `AGENTS.md`, so the comparison measures the incremental contribution of the additional Skills. Keep the source revision, model version, and execution environment identical. Evaluator calibration is not evidence of model capability or efficiency gains. Normal CI runs deterministic tests; real agent evaluations are optional, and the benchmark adds no production dependency to generated projects. See the [benchmark guide](benchmarks/README.md) for preparation, submission, evaluation, and comparison commands.
 
 ## Project structure
 
@@ -94,6 +143,8 @@ Business APIs require authentication by default. In production, configure the JW
 - [Getting started](docs/getting-started.md)
 - [Architecture and dependency rules](docs/architecture.md)
 - [Naming conventions](docs/naming-conventions.md)
+- [AI engineering workflow and verification scopes](docs/ai-engineering.md)
+- [Agent benchmark guide](benchmarks/README.md)
 - [Upgrade guide](docs/upgrade-guide.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Changelog](CHANGELOG.md)
