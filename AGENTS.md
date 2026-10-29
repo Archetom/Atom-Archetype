@@ -7,6 +7,7 @@ Atom Archetype is a Maven archetype for Java/Spring Boot applications with DDD b
 - For generated-application changes, edit `src/main/resources/archetype-resources/`. Java templates intentionally contain Velocity variables; `target/` is disposable output.
 - The [generated application guide](src/main/resources/archetype-resources/AGENTS.md) owns application rules. Use this root guide's build commands for template work; application commands run in the generated project.
 - Inspect nearby implementation and tests; use [llms.txt](llms.txt) to find docs relevant to the changed contract.
+- [AI engineering workflow](docs/ai-engineering.md) maps maintainer checks and the application Skills shipped in the template. Those Skills describe generated-project work; keep template verification here.
 - Version sources: root/template `pom.xml`, `.mvn/wrapper/maven-wrapper.properties`, and template `docker-compose.yml`. Keep release history in `CHANGELOG.md`, not agent instructions.
 
 ## Execution and skills
@@ -20,7 +21,7 @@ Atom Archetype is a Maven archetype for Java/Spring Boot applications with DDD b
 ## Template editing
 
 - Preserve `${groupId}`, `${artifactId}`, `${package}`, `${rootArtifactId}`, and `${version}` where Velocity filtering is enabled. To emit a literal Spring placeholder from filtered config, use `#set( $dollar = '$' )` and `${dollar}{ENV_VAR}`.
-- Check `src/main/resources/META-INF/maven/archetype-metadata.xml` for inclusion, packaging, and filtering. Update it for modules or paths/types not already covered by a file set. `AGENTS.md`, `docs/`, scripts, and wrapper configuration are unfiltered; do not add Velocity escapes there.
+- Check `src/main/resources/META-INF/maven/archetype-metadata.xml` for inclusion, packaging, and filtering. Update it for modules or paths/types not already covered by a file set. `AGENTS.md`, `.agents/skills/`, `docs/`, scripts, and wrapper configuration are unfiltered; do not add Velocity escapes there.
 - Update template `clean.sh` when removable example files or their configuration, tests, or references change. Generic framework files and documentation are retained. Validate cleanup on a disposable generated project.
 - Keep affected docs and tests aligned with behavior, configuration, and public contracts. Add meaningful regression tests for behavior changes; prose-only edits do not need new Java tests.
 
@@ -31,6 +32,8 @@ Preserve the generated guide's dependency boundaries, explicit caller/tenant sco
 ## Verification
 
 Use the repository Maven wrapper and the JDK required by the POM. Select checks by the changed contract:
+
+`make agent-check` defaults to full validation; choose an explicit scope using the [verification guide](docs/ai-engineering.md). A passing narrower scope is not evidence for checks it omits.
 
 | Change | Required evidence |
 | --- | --- |

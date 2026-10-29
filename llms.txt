@@ -22,6 +22,7 @@ License: MIT
 - [Changelog](https://github.com/Archetom/atom-archetype/blob/main/CHANGELOG.md): release status and breaking changes.
 - [Security policy](https://github.com/Archetom/atom-archetype/blob/main/SECURITY.md): supported versions and private vulnerability reporting.
 - [Agent instructions](https://github.com/Archetom/atom-archetype/blob/main/AGENTS.md): repository-specific editing and verification rules.
+- [AI engineering workflow](docs/ai-engineering.md): maintainer verification scopes, generated Skills, and domain-contract guidance.
 
 ## Stable release generation
 

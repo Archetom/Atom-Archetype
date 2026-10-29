@@ -2,7 +2,9 @@
 MVN ?= sh ./mvnw
 VERSION ?= ${version}
 
-.PHONY: default clean compile test integration-test verify install package run infra-up infra-down clean-sample version
+.PHONY: default clean compile test integration-test verify install package run infra-up infra-down clean-sample version agent-check
+
+SCOPE ?= full
 
 default: verify
 
@@ -41,3 +43,6 @@ clean-sample:
 
 version:
 	@${dollar}(MVN) versions:set -DgenerateBackupPoms=false -DnewVersion=${dollar}(VERSION)
+
+agent-check:
+	@bash scripts/agent-check.sh "${dollar}(SCOPE)"

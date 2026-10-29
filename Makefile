@@ -6,7 +6,9 @@ ARCHETYPE_PLUGIN_VERSION := $(shell awk -F'[<>]' '/<maven.archetype.packaging.ve
 VERSIONS_PLUGIN_VERSION := $(shell awk -F'[<>]' '/<versions.maven.plugin.version>/{print $$3; exit}' pom.xml)
 GPG_KEY_ARGS = $(if $(strip $(GPG_KEYNAME)),-Dgpg.keyname=$(GPG_KEYNAME),)
 
-.PHONY: default clean install release-check snapshot-check deploy deploy-snapshot version demo demo-test
+.PHONY: default clean install release-check snapshot-check deploy deploy-snapshot version demo demo-test agent-check
+
+SCOPE ?= full
 
 default: install
 
@@ -45,7 +47,7 @@ version:
 	  -DnewVersion=$(VERSION)
 
 demo: install
-	@mkdir -p $(DEMO_OUTPUT)
+	@mkdir -p "$(DEMO_OUTPUT)"
 	@$(MVN) -B -ntp \
 	  org.apache.maven.plugins:maven-archetype-plugin:$(ARCHETYPE_PLUGIN_VERSION):generate \
 	  -DarchetypeGroupId=io.github.archetom       \
@@ -55,8 +57,12 @@ demo: install
 	  -DartifactId=atom-demo               \
 	  -Dpackage=com.foo.bar                 \
 	  -Dversion=1.0.0-SNAPSHOT               \
-	  -DoutputDirectory=$(DEMO_OUTPUT)       \
+	  -DoutputDirectory="$(DEMO_OUTPUT)"       \
 	  -DinteractiveMode=false
 
 demo-test: demo
-	@CI=false sh $(DEMO_OUTPUT)/atom-demo/mvnw test
+	@cd "$(DEMO_OUTPUT)/atom-demo" && CI=false sh ./mvnw test
+
+# One implementation is shipped unchanged to generated applications.
+agent-check:
+	@bash src/main/resources/archetype-resources/scripts/agent-check.sh "$(SCOPE)"

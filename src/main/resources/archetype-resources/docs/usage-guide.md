@@ -2,6 +2,8 @@
 
 Use this guide when adding application behavior to a generated project. The dependency and security rules in [architecture](architecture.md) still apply.
 
+Start from the relevant [task workflow](../AGENTS.md#task-workflows). Record business assumptions and non-obvious invariants in [domain contracts](domain/README.md) when useful; no complete domain-document set is required for simple CRUD.
+
 ## Local development loop
 
 Start MySQL:
@@ -53,7 +55,7 @@ Queries also validate the caller and tenant before a repository or cache lookup.
 
 ### First additional aggregate: complete checklist
 
-For an `Order` aggregate with one create command and one detail query, inspect or add each applicable item below. This list remains valid even after `clean.sh` removes the executable User sample:
+For an `Order` aggregate with one create command and one detail query, inspect the applicable items below. Reuse existing objects and add only what the use case consumes; the table is not an instruction to create a class for every row. This list remains valid even after `clean.sh` removes the executable User sample:
 
 | Area | Required work |
 | --- | --- |
@@ -140,11 +142,11 @@ Use stable public errors and the narrowest internal failure type. Unexpected exc
 
 ## Verify the change
 
-Run fast tests first, then the Docker-backed integration suite:
+Choose checks according to the changed contract, starting with fast feedback:
 
 ```bash
-sh ./mvnw test
-CI=true sh ./mvnw test
+make agent-check SCOPE=fast
+make agent-check SCOPE=full
 ```
 
-See [testing guide](test-guide.md) for the minimum test layer for each type of change.
+The full scope is required for persistence, authentication, transaction, cache, or event behavior. See [testing guide](test-guide.md) and [verify-change](../.agents/skills/verify-change/SKILL.md) for the minimum test layer for each type of change. Unknown impact uses the full scope.

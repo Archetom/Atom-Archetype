@@ -14,6 +14,15 @@ $h2 Primary documentation
 - [Object layering and naming](docs/object-layering.md): Request, Response, AuthenticatedCaller, VO, aggregate, value object, PO, converter, error, and naming rules.
 - [Testing guide](docs/test-guide.md): unit, adapter, security, transaction, migration, and MySQL Testcontainers tests.
 - [Agent instructions](AGENTS.md): application invariants, task execution, and change-specific verification for coding agents.
+- [Domain contracts](docs/domain/README.md): lightweight business facts, assumptions, invariants, state transitions, and event semantics.
+
+$h2 Task workflows
+
+- [Create a feature](.agents/skills/create-feature/SKILL.md): implement a use case using only the DDD objects it needs.
+- [Add an HTTP API](.agents/skills/add-api/SKILL.md): contracts, authorization, mapping, OpenAPI, and regression tests.
+- [Add a migration](.agents/skills/add-migration/SKILL.md): Flyway evolution, persistence mappings, tenancy, and concurrency.
+- [Review architecture](.agents/skills/review-architecture/SKILL.md): evidence-based review of boundaries and runtime invariants.
+- [Verify a change](.agents/skills/verify-change/SKILL.md): choose checks and distinguish passed, failed, and unverified behavior.
 
 $h2 Architecture summary
 

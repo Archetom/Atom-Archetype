@@ -4,6 +4,13 @@ All notable architecture, compatibility, and security changes are documented her
 
 ## [Unreleased]
 
+### Added
+
+- generated, tool-neutral skills for feature delivery, HTTP APIs, migrations, architecture review, and change verification; concise domain-contract guidance distinguishes example facts, assumptions, and executable invariants
+- `make agent-check` in both the archetype and generated application, with explicit verification scopes, process-based JSON results, and a Docker-required full gate
+- generation regression checks for engineering-file inclusion, unfiltered byte preservation, and relative documentation links
+- bytecode guards and positive/negative regression fixtures for Domain infrastructure access, inherited aggregate setters, annotated Controller bypasses, and persistence object boundaries
+
 ### Changed
 
 - **breaking:** raise the repository, generated-project, CI, and release toolchain baseline from Java 25 to Java 27 (non-LTS), and require Maven 3.10.0, matching the existing checksum-pinned wrapper

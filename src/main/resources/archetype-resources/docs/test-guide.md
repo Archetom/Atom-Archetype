@@ -4,21 +4,31 @@ Test domain behavior without Spring, application orchestration through ports, ad
 
 ## Commands
 
+Run the shared verification entry point from a generated project root:
+
+```bash
+make agent-check SCOPE=fast  # Unit and architecture tests; no Docker.
+make agent-check            # Default full scope, requiring Docker.
+make agent-check SCOPE=docs # Whitespace only; review facts and links separately.
+```
+
+The final JSON reports the scope and check results; command logs go to standard error. Missing Docker makes the full check return nonzero with a blocked result. A passing fast check does not cover the integration suite. `SCOPE=generate` belongs only to the archetype repository. These commands do not remove the generated application's business/sample code. The docs scope requires an independent Git root; a generated directory nested in the archetype checkout is blocked rather than checking the parent's changes.
+
 Run fast tests:
 
 ```bash
-sh ./mvnw test
+CI=false sh ./mvnw test
 ```
 
 Run one module and its dependencies:
 
 ```bash
-sh ./mvnw -pl shared -am test
-sh ./mvnw -pl domain -am test
-sh ./mvnw -pl application -am test
-sh ./mvnw -pl infra/persistence -am test
-sh ./mvnw -pl infra/rest -am test
-sh ./mvnw -pl infra/grpc -am test
+CI=false sh ./mvnw -pl shared -am test
+CI=false sh ./mvnw -pl domain -am test
+CI=false sh ./mvnw -pl application -am test
+CI=false sh ./mvnw -pl infra/persistence -am test
+CI=false sh ./mvnw -pl infra/rest -am test
+CI=false sh ./mvnw -pl infra/grpc -am test
 ```
 
 Run Docker-backed integration tests:
@@ -44,6 +54,8 @@ CI=true sh ./mvnw test
 | Architecture | Forbidden dependencies, adapter bypasses, entity setters, naming | ArchUnit bytecode inspection and Maven Enforcer |
 
 Use the lowest layer that proves the behavior.
+
+`ArchitectureBoundaryTest` checks compiled static boundaries, not the correctness of authentication, tenant SQL, or commit ordering. Those claims need the runtime tests below. For business rules that need context beyond code, record a stable invariant and its test in [domain contracts](domain/README.md).
 
 ### Shared
 

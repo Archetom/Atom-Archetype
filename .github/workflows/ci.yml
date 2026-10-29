@@ -65,6 +65,9 @@ jobs:
       - name: Check repository whitespace
         run: git diff --check 4b825dc642cb6eb9a060e54bf8d69288fbee4904 HEAD -- .
 
+      - name: Verify agent-check exit codes and scope routing
+        run: bash scripts/test-agent-check.sh
+
       - name: Install archetype under test
         timeout-minutes: 10
         # The archetype IT runs the fast suite; the Docker suite runs once, in its own step below.
@@ -124,17 +127,14 @@ jobs:
         working-directory: ${{ runner.temp }}/atom-demo
         env:
           CI: 'false'
-        run: sh ./mvnw -B -ntp test
-
-      - name: Verify Docker daemon
-        run: docker info --format '{{.ServerVersion}}'
+        run: make agent-check SCOPE=fast
 
       - name: Run generated project integration tests
         timeout-minutes: 20
         working-directory: ${{ runner.temp }}/atom-demo
         env:
           CI: 'true'
-        run: sh ./mvnw -B -ntp test
+        run: make agent-check SCOPE=full
 
       - name: Verify the cleaned scaffold is idempotent and tests
         timeout-minutes: 20
@@ -143,21 +143,5 @@ jobs:
         run: |
           make clean-sample
           make clean-sample
-          leftovers="$(find . -path '*/target' -prune -o -type f -name 'User*.java' -print)"
-          if [ -n "$leftovers" ]; then
-            echo "User sample files remain after clean-sample:"
-            echo "$leftovers"
-            exit 1
-          fi
-          test ! -e docs/api-reference.md
-          if [ -z "$(find . -path '*/target' -prune -o -type f -name DomainEventPublisherImpl.java -print)" ]; then
-            echo "clean-sample removed the generic domain event publisher."
-            exit 1
-          fi
-          if grep -R -n -E 'api-reference|/api/v1/users|users:(read|write|delete)' \
-              README.md README.en.md AGENTS.md llms.txt infra/rest/src/main/java conf \
-              start/src/test/resources; then
-            echo "User-specific runtime configuration remains after clean-sample."
-            exit 1
-          fi
+          bash scripts/check-clean-sample.sh
           CI=true sh ./mvnw -B -ntp clean test

@@ -8,6 +8,11 @@ This guide describes the generated application. Inside the archetype source tree
 - Inspect nearby code and tests; use [llms.txt](llms.txt) for relevant docs. Versions/commands come from POMs, `Makefile`, and wrapper config. Batch independent reads and delegate independent work when useful.
 - Load requested or relevant skills on demand. User instructions take precedence over skill guidance. If a skill blocks work, cite its `SKILL.md` and instruction, explain why, and continue unaffected work.
 - Update affected docs and regression tests for behavior changes. Report changes, check results, and missing coverage concisely; repeat successful checks only for new evidence.
+- The architecture, security, persistence, and transaction rules below are mandatory. The [domain contract guide](docs/domain/README.md) is a recommended documentation convention; its User example is not a product requirement. Confirm business assumptions before enforcing them.
+
+## Task workflows
+
+Load only the relevant Skill: [create-feature](.agents/skills/create-feature/SKILL.md), [add-api](.agents/skills/add-api/SKILL.md), [add-migration](.agents/skills/add-migration/SKILL.md), [review-architecture](.agents/skills/review-architecture/SKILL.md), or [verify-change](.agents/skills/verify-change/SKILL.md). These Markdown workflows work with any coding agent and remain available after sample cleanup.
 
 ## Architecture and naming
 
@@ -43,6 +48,12 @@ This guide describes the generated application. Inside the archetype source tree
 Run from the generated project root with the JDK required by `pom.xml`:
 
 ```bash
+# Conservative default: fast checks plus Docker integration tests.
+make agent-check
+
+# Explicit narrower scope; does not certify runtime integration behavior.
+make agent-check SCOPE=fast
+
 # Focused feedback, including reactor dependencies (choose the affected module).
 CI=false sh ./mvnw -pl application -am test
 
