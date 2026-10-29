@@ -68,6 +68,9 @@ jobs:
       - name: Verify agent-check exit codes and scope routing
         run: bash scripts/test-agent-check.sh
 
+      - name: Verify offline benchmark harness contracts
+        run: python3 -m unittest discover -s benchmarks/harness/tests -v
+
       - name: Install archetype under test
         timeout-minutes: 10
         # The archetype IT runs the fast suite; the Docker suite runs once, in its own step below.

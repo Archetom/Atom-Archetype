@@ -1,6 +1,6 @@
 # Domain contracts
 
-Record business meaning here when it helps explain a feature. One short file per business area is enough; simple CRUD does not need a separate glossary, context map, or state machine. Split these out only when the content grows. [User example](user-example.md) demonstrates the format using the removable sample, not requirements for your application.
+Record your application's business meaning here when it helps explain a feature. One short file per business area is enough; simple CRUD does not need a separate glossary, context map, or state machine. Split these out only when the content grows. A [worked example](../examples/domain-contract.md) is kept separately under `docs/examples/` for reference; it is not a business contract for your application.
 
 ## Contract format
 
@@ -22,4 +22,4 @@ Use a test class and method name as a durable search reference because Java path
 
 When a feature changes a recorded contract, update its business description and test together. Confirm unresolved business choices before implementing them. For each invariant, exercise the rejected outcome as well as the valid case at the lowest useful test layer; use MySQL integration tests for persistence claims. The [testing guide](../test-guide.md) maps behavior to test layers.
 
-Review this document only when the changed feature touches its business area. Keep facts, assumptions, and test references current in the same review as the code. Remove obsolete statements rather than accumulating conflicting versions. `make clean-sample` retains these generic instructions and the illustrative User contract; after cleanup, replace the example with your first real business area when needed.
+Review a contract only when the changed feature touches its business area. Keep facts, assumptions, and test references current in the same review as the code. Remove obsolete statements rather than accumulating conflicting versions. `make clean-sample` retains this generic guide and the separate reference example, leaving `docs/domain/` ready for your own contracts. Do not treat reference examples as confirmed requirements or evidence that removed tests still run.

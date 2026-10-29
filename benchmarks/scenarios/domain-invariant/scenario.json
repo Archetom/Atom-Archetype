@@ -1,0 +1,43 @@
+{
+  "id": "domain-invariant",
+  "title": "Locked-user review transition",
+  "requiresDocker": false,
+  "acceptance": [
+    {
+      "source": "domain-invariant/BenchmarkDomainInvariantTest.java",
+      "destination": "start/src/test/java/com/example/benchmark/BenchmarkDomainInvariantTest.java",
+      "className": "com.example.benchmark.BenchmarkDomainInvariantTest",
+      "methods": [
+        {
+          "name": "lockedUserCannotDirectlyBecomeActive",
+          "category": "task",
+          "behavior": "Direct LOCKED to ACTIVE is rejected without mutation or events"
+        },
+        {
+          "name": "inactiveReviewAllowsActivationAndPreservesEvents",
+          "category": "task",
+          "behavior": "Review path succeeds and emits the existing domain events"
+        },
+        {
+          "name": "reconstitutedLockedUserMustFollowTheSameRule",
+          "category": "task",
+          "behavior": "Restoration cannot bypass the new invariant"
+        },
+        {
+          "name": "sameStatusRemainsANoOp",
+          "category": "task",
+          "behavior": "Repeated current status remains a no-op"
+        },
+        {
+          "name": "deletionAndExistingTransitionsRemainProtected",
+          "category": "task",
+          "behavior": "Deletion protections and compatible transitions remain intact"
+        }
+      ]
+    }
+  ],
+  "mutantRejectedBy": [
+    "lockedUserCannotDirectlyBecomeActive",
+    "reconstitutedLockedUserMustFollowTheSameRule"
+  ]
+}

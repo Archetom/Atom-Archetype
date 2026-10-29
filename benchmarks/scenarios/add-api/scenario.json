@@ -1,0 +1,58 @@
+{
+  "id": "add-api",
+  "title": "Email update API",
+  "requiresDocker": true,
+  "acceptance": [
+    {
+      "source": "add-api/BenchmarkAddApiTest.java",
+      "destination": "start/src/test/java/com/example/benchmark/BenchmarkAddApiTest.java",
+      "className": "com.example.benchmark.BenchmarkAddApiTest",
+      "methods": [
+        {
+          "name": "validEmailPersistsAndReadsBack",
+          "category": "task",
+          "behavior": "Successful update persists and is returned by HTTP GET"
+        },
+        {
+          "name": "invalidEmailCannotMutateData",
+          "category": "task",
+          "behavior": "Invalid input returns 400 without a database mutation"
+        },
+        {
+          "name": "anonymousAndInvalidTokensCannotWrite",
+          "category": "security",
+          "behavior": "Missing and forged credentials cannot write"
+        },
+        {
+          "name": "readAuthorityCannotWrite",
+          "category": "security",
+          "behavior": "Read-only HTTP caller cannot write"
+        },
+        {
+          "name": "callerTenantCannotBeReplacedByRequestData",
+          "category": "security",
+          "behavior": "Bearer tenant remains authoritative despite spoofed request identity"
+        },
+        {
+          "name": "applicationUseCaseEnforcesWriteAuthority",
+          "category": "security",
+          "behavior": "Direct application invocation enforces authentication and write authority"
+        },
+        {
+          "name": "emailUniquenessRemainsTenantScoped",
+          "category": "task",
+          "behavior": "Duplicate conflict is tenant-local and rolls back"
+        },
+        {
+          "name": "deletedAndMissingUsersCannotBeUpdated",
+          "category": "task",
+          "behavior": "Missing/deleted users remain unmodifiable"
+        }
+      ]
+    }
+  ],
+  "mutantRejectedBy": [
+    "readAuthorityCannotWrite",
+    "applicationUseCaseEnforcesWriteAuthority"
+  ]
+}

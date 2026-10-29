@@ -33,7 +33,7 @@ Preserve the generated guide's dependency boundaries, explicit caller/tenant sco
 
 Use the repository Maven wrapper and the JDK required by the POM. Select checks by the changed contract:
 
-`make agent-check` defaults to full validation; choose an explicit scope using the [verification guide](docs/ai-engineering.md). A passing narrower scope is not evidence for checks it omits.
+`make agent-check` defaults to full validation; choose an explicit scope using the [verification guide](docs/ai-engineering.md). `SCOPE=affected` is an optional conservative Git-based selector, not a replacement for the requirements below. A passing narrower scope is not evidence for checks it omits.
 
 | Change | Required evidence |
 | --- | --- |

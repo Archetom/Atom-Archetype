@@ -6,6 +6,8 @@ All notable architecture, compatibility, and security changes are documented her
 
 ### Added
 
+- offline, commit-pinned business benchmarks with isolated candidate snapshots, independent API/domain/persistence acceptance tests, controlled Skills comparisons, and explicit unavailable cost metrics
+- conservative `agent-check SCOPE=affected` selection, execution durations and exit codes, and retained snapshots of actual Maven test reports
 - generated, tool-neutral skills for feature delivery, HTTP APIs, migrations, architecture review, and change verification; concise domain-contract guidance distinguishes example facts, assumptions, and executable invariants
 - `make agent-check` in both the archetype and generated application, with explicit verification scopes, process-based JSON results, and a Docker-required full gate
 - generation regression checks for engineering-file inclusion, unfiltered byte preservation, and relative documentation links
@@ -13,6 +15,7 @@ All notable architecture, compatibility, and security changes are documented her
 
 ### Changed
 
+- keep the removable User domain contract under `docs/examples/`, leaving `docs/domain/` as a generic guide after sample cleanup
 - **breaking:** raise the repository, generated-project, CI, and release toolchain baseline from Java 25 to Java 27 (non-LTS), and require Maven 3.10.0, matching the existing checksum-pinned wrapper
 - upgrade Spring Boot from 4.1.0 to 4.1.2, including its Java 27-compatible Lombok 1.18.48 and updated Spring, Netty, Protobuf, and Testcontainers dependencies
 - upgrade independently managed libraries to MyBatis-Plus 3.5.18, SpringDoc OpenAPI 3.2.0, ArchUnit 1.5.1, and Error Prone annotations 2.51.0

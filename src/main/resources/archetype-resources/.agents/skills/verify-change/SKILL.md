@@ -8,7 +8,7 @@ description: Select and run checks for a change to this generated application or
 Locate the project root and read its `AGENTS.md` before running commands. A root with `src/main/resources/META-INF/maven/archetype-metadata.xml` is the archetype repository; this Skill lives in its template but does not change the working directory. Run application commands only from an actual generated project.
 
 1. Inspect the full change, including new files and affected callers/configuration. Choose the union of required checks below. If the impact is uncertain, use `make agent-check` (default `SCOPE=full`); it requires Docker.
-2. Get fast feedback with `CI=false sh ./mvnw -pl <affected-module> -am test` in a generated project. Then run the applicable shared entry point. Do not infer test success from log text; use its exit status and final JSON.
+2. Use `make agent-check SCOPE=affected` for conservative selection from staged, unstaged, untracked, deleted, and renamed files. It narrows only recognized safe changes, including eligible Java test changes within a single domain/application module; production, sensitive, shared/contract, cross-module, or unknown changes fall back to full. Missing Git history or the optional Python selector also falls back to full. Check the reported selection against the requirements below; path classification cannot prove a behavior change is safe. For deliberate focused feedback, `CI=false sh ./mvnw -pl <affected-module> -am test` remains available in a generated project. Then run any broader checks required by the contract. Use process exit status and final JSON, never log text, to determine success.
 
 | Changed contract | Required evidence |
 | --- | --- |

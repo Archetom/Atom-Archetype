@@ -24,3 +24,6 @@ logs
 *-local.xml
 *-local.yml
 .claude
+__pycache__/
+*.py[cod]
+benchmarks/results/

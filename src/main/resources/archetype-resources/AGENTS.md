@@ -8,7 +8,7 @@ This guide describes the generated application. Inside the archetype source tree
 - Inspect nearby code and tests; use [llms.txt](llms.txt) for relevant docs. Versions/commands come from POMs, `Makefile`, and wrapper config. Batch independent reads and delegate independent work when useful.
 - Load requested or relevant skills on demand. User instructions take precedence over skill guidance. If a skill blocks work, cite its `SKILL.md` and instruction, explain why, and continue unaffected work.
 - Update affected docs and regression tests for behavior changes. Report changes, check results, and missing coverage concisely; repeat successful checks only for new evidence.
-- The architecture, security, persistence, and transaction rules below are mandatory. The [domain contract guide](docs/domain/README.md) is a recommended documentation convention; its User example is not a product requirement. Confirm business assumptions before enforcing them.
+- The architecture, security, persistence, and transaction rules below are mandatory. The [domain contract guide](docs/domain/README.md) is a recommended documentation convention; reference material in `docs/examples/` is not a product requirement. Confirm business assumptions before enforcing them.
 
 ## Task workflows
 
@@ -54,6 +54,9 @@ make agent-check
 # Explicit narrower scope; does not certify runtime integration behavior.
 make agent-check SCOPE=fast
 
+# Select from the Git change set, conservatively falling back to full.
+make agent-check SCOPE=affected
+
 # Focused feedback, including reactor dependencies (choose the affected module).
 CI=false sh ./mvnw -pl application -am test
 
@@ -65,6 +68,7 @@ CI=true sh ./mvnw test
 ```
 
 - For prose-only edits, check accuracy, links, and `git diff --check`.
+- `affected` considers staged, unstaged, and untracked changes, including deleted/renamed paths. It narrows only recognized safe changes; missing Git history, an unknown path, or potentially sensitive behavior selects full verification. Inspect the selected scope and use full explicitly whenever the changed contract requires it.
 - Test affected behavior. Cross-module, dependency, or architecture changes require the full non-Docker suite, including `ArchitectureBoundaryTest`. Maven `test` already compiles.
 - Database, authentication, transaction, mapper, cache, or event behavior changes also require the Docker suite. Set `CI` explicitly to control integration tests; report missing coverage if Docker/dependencies are unavailable.
 - Test `clean.sh` changes on a disposable copy with `make clean-sample` twice, then run the cleaned project's tests. Preserve generic architecture/security building blocks.

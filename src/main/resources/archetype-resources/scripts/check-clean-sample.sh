@@ -11,7 +11,8 @@ if [ -n "$leftovers" ]; then
 fi
 test ! -e docs/api-reference.md
 test -n "$(find . -path '*/target' -prune -o -type f -name DomainEventPublisherImpl.java -print)"
-for required in AGENTS.md llms.txt docs/domain/README.md scripts/agent-check.sh; do
+test ! -e docs/domain/user-example.md
+for required in AGENTS.md llms.txt docs/domain/README.md docs/examples/domain-contract.md scripts/agent-check.sh scripts/affected-scope.py; do
     test -s "$required" || { printf 'Missing retained engineering file: %s\n' "$required" >&2; exit 1; }
 done
 for skill in create-feature add-api add-migration review-architecture verify-change; do

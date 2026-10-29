@@ -1,0 +1,55 @@
+{
+  "id": "persistence-change",
+  "title": "Preferred-language persistence",
+  "requiresDocker": true,
+  "acceptance": [
+    {
+      "source": "persistence-change/BenchmarkPersistenceChangeTest.java",
+      "destination": "start/src/test/java/com/example/benchmark/BenchmarkPersistenceChangeTest.java",
+      "className": "com.example.benchmark.BenchmarkPersistenceChangeTest",
+      "methods": [
+        {
+          "name": "migrationUpgradesExistingRowsWithoutRewritingHistory",
+          "category": "task",
+          "behavior": "Version-1 data migrates with correct schema and backfill"
+        },
+        {
+          "name": "defaultAndMutationRoundTripWithoutReconstructionEvents",
+          "category": "task",
+          "behavior": "New default and non-default round trips preserve state/version without events"
+        },
+        {
+          "name": "mapperAndPublicQueriesExposeStoredLanguage",
+          "category": "task",
+          "behavior": "Mapper list and public detail/list responses expose stored language"
+        },
+        {
+          "name": "tenantScopeCannotLeakOrOverwriteLanguage",
+          "category": "security",
+          "behavior": "Read and write tenant isolation remains enforced"
+        },
+        {
+          "name": "optimisticLockRejectsStaleLanguageUpdate",
+          "category": "task",
+          "behavior": "Stale update cannot overwrite a newer language"
+        },
+        {
+          "name": "invalidLanguageCannotChangeTheAggregate",
+          "category": "task",
+          "behavior": "Domain validation rejects invalid values without changing state"
+        }
+      ]
+    }
+  ],
+  "mutantRejectedBy": [
+    "defaultAndMutationRoundTripWithoutReconstructionEvents",
+    "mapperAndPublicQueriesExposeStoredLanguage",
+    "optimisticLockRejectsStaleLanguageUpdate"
+  ],
+  "resources": [
+    {
+      "source": "persistence-change/baseline/V1__create_user_table.sql",
+      "destination": "start/src/test/resources/benchmark-baseline-migrations/V1__create_user_table.sql"
+    }
+  ]
+}

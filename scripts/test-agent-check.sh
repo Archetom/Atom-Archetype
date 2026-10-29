@@ -2,18 +2,26 @@
 # Maintainer-only process-contract tests; Python's standard library validates JSON.
 set -euo pipefail
 unset CI
+original_path=$PATH
 repository=$(cd "$(dirname "$0")/.." && pwd)
 script="$repository/src/main/resources/archetype-resources/scripts/agent-check.sh"
 fixture=$(mktemp -d "${TMPDIR:-/tmp}/atom-agent-check-test.XXXXXX")
 fixture=$(cd "$fixture" && pwd -P)
 trap 'rm -rf -- "$fixture"' EXIT
-mkdir -p "$fixture/bin" "$fixture/app/start" "$fixture/app/domain" \
+mkdir -p "$fixture/tmp" "$fixture/bin" "$fixture/app/start" "$fixture/app/domain" \
     "$fixture/root/src/main/resources/META-INF/maven" "$fixture/root/scripts"
+export TMPDIR="$fixture/tmp"
 touch "$fixture/app/pom.xml" "$fixture/root/pom.xml" \
     "$fixture/root/src/main/resources/META-INF/maven/archetype-metadata.xml"
 printf 'exit 0\n' > "$fixture/root/scripts/test-agent-check.sh"
 cat > "$fixture/app/mvnw" <<'SH'
 printf '%s|CI=%s|%s\n' "$PWD" "$CI" "$*" >> "$TRACE"
+if [ "${FAKE_REPORTS:-yes}" = yes ]; then
+    case " $* " in
+        *' test '*) mkdir -p domain/target/surefire-reports
+                    printf '<testsuite tests="1" failures="0"/>\n' > domain/target/surefire-reports/TEST-Fixture.xml ;;
+    esac
+fi
 # Misleading log text must never control the result.
 printf 'BUILD SUCCESS (fixture text)\n'
 if [ "$CI" = true ]; then
@@ -42,6 +50,8 @@ case "$*" in
         for argument in "$@"; do
             case "$argument" in DEMO_OUTPUT=*) output=${argument#DEMO_OUTPUT=} ;; esac
         done
+        mkdir -p target/surefire-reports
+        printf '<testsuite tests="1" failures="0"/>\n' > target/surefire-reports/TEST-Archetype.xml
         cp -R "$APP_FIXTURE" "$output/atom-demo"
         mkdir -p "$output/atom-demo/scripts"
         printf 'exit "${FAKE_CLEAN_CHECK_EXIT:-0}"\n' > "$output/atom-demo/scripts/check-clean-sample.sh"
@@ -53,7 +63,7 @@ exit "${FAKE_MAKE_EXIT:-0}"
 SH
 chmod +x "$fixture/bin/"*
 export PATH="$fixture/bin:$PATH" TRACE="$fixture/trace" APP_FIXTURE="$fixture/app"
-export FAKE_GIT=yes FAKE_GIT_EXIT=0 FAKE_MAVEN_EXIT=0 FAKE_DOCKER_EXIT=0 FAKE_MAKE_EXIT=0 FAKE_INTEGRATION_EXIT=0 FAKE_CLEAN_CHECK_EXIT=0
+export FAKE_GIT=yes FAKE_GIT_EXIT=0 FAKE_MAVEN_EXIT=0 FAKE_DOCKER_EXIT=0 FAKE_MAKE_EXIT=0 FAKE_INTEGRATION_EXIT=0 FAKE_CLEAN_CHECK_EXIT=0 FAKE_REPORTS=yes
 
 check() {
     local directory=$1 scope=$2 expected_code=$3 expected_status=$4 code=0
@@ -64,11 +74,18 @@ check() {
         printf 'Expected exit %s, got %s for %s\n' "$expected_code" "$code" "$scope" >&2
         exit 1
     fi
-    python3 - "$fixture/report.json" "$expected_status" <<'PY'
+    python3 - "$fixture/report.json" "$expected_status" "$expected_code" <<'PY'
 import json, sys
 with open(sys.argv[1]) as stream:
     result = json.load(stream)
 assert result['status'] == sys.argv[2], result
+assert result['exitCode'] == int(sys.argv[3]), result
+assert result['durationMs'] >= 0 and result['timeResolutionMs'] == 1000, result
+for check in result['checks']:
+    assert check['durationMs'] >= 0, check
+for path in result['reportPaths']:
+    from pathlib import Path
+    assert Path(path).is_dir() and list(Path(path).glob('TEST-*.xml')), path
 assert result['checks'], result
 if result['status'] == 'passed':
     assert all(check['status'] not in ('failed', 'blocked') for check in result['checks']), result
@@ -91,6 +108,8 @@ reject_trace 'docker|'
 check "$fixture/app" fast 0 passed
 test "$(wc -l < "$TRACE" | tr -d ' ')" = 1
 
+FAKE_REPORTS=no check "$fixture/app" fast 3 failed
+python3 -c 'import json, sys; result=json.load(open(sys.argv[1])); assert any(c["reportStatus"] == "missing" for c in result["checks"])' "$fixture/report.json"
 FAKE_MAVEN_EXIT=17 check "$fixture/app" fast 17 failed
 FAKE_DOCKER_EXIT=1 check "$fixture/app" full 2 blocked
 reject_trace 'CI=true'
@@ -134,4 +153,9 @@ reject_trace '/atom-demo|CI=false|-B -ntp clean test'
 retained=$(sed -n 's/^Generated verification files retained at: //p' "$fixture/log")
 test -n "$retained"
 rm -rf -- "$retained"
+# A valid JSON string must survive quotes, backslashes, Unicode and control characters in paths.
+escaped="$fixture/tmp/space \"quoted\" \\ 名字"$'\n\t'
+mkdir -p "$escaped"
+TMPDIR="$escaped" check "$fixture/app" fast 0 passed
 printf 'agent-check process contracts passed.\n'
+PATH="$original_path" python3 "$repository/scripts/test-affected-scope.py"

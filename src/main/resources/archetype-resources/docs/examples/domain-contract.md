@@ -1,6 +1,6 @@
 # Example contract: tenant-owned users
 
-This is a worked example of the shipped User sample, not an approved product specification. Its evidence is the sample implementation and tests named below. `make clean-sample` removes that executable sample; this document then remains illustrative only. It must not be used to invent requirements for a new application.
+This reference demonstrates the [domain contract format](../domain/README.md) using the shipped User sample. It is outside `docs/domain/` because it is not an approved business contract for your application. Its evidence is the sample implementation and tests named below. `make clean-sample` removes that executable sample and its tests; this reference remains illustrative only. Do not infer requirements or current test coverage for a cleaned application from it.
 
 ## Terms and context
 
@@ -46,4 +46,4 @@ Collection inside an aggregate is distinct from publication. The application reg
 - Should locking require a mandatory reason or prohibit specific transitions? The sample does not define such a business policy.
 - Does another service need durable event delivery or deduplication? Do not infer this from the existence of domain events.
 
-Resolve these with the application's business owner before changing behavior; record the decision and its tests here when confirmed.
+If one of these questions applies to your application, resolve it with its business owner before changing behavior. Record confirmed decisions and tests in the application's own contract under `docs/domain/`, not in this reference example.

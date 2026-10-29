@@ -10,9 +10,16 @@ Run the shared verification entry point from a generated project root:
 make agent-check SCOPE=fast  # Unit and architecture tests; no Docker.
 make agent-check            # Default full scope, requiring Docker.
 make agent-check SCOPE=docs # Whitespace only; review facts and links separately.
+make agent-check SCOPE=affected # Select conservatively from the Git change set.
 ```
 
 The final JSON reports the scope and check results; command logs go to standard error. Missing Docker makes the full check return nonzero with a blocked result. A passing fast check does not cover the integration suite. `SCOPE=generate` belongs only to the archetype repository. These commands do not remove the generated application's business/sample code. The docs scope requires an independent Git root; a generated directory nested in the archetype checkout is blocked rather than checking the parent's changes.
+
+`affected` is opt-in; the default remains `full`. It includes staged, unstaged, and untracked files and both paths of a rename. Only recognized documentation changes or eligible Java test changes in one domain/application module can narrow checks. Production code, POMs, public/shared contracts, cross-module changes, infrastructure, and security/tenant/transaction/cache/event-sensitive paths select full checks. Missing Git history, an unknown path, or an empty change set also selects full. This conservative path selection does not establish semantic safety; choose full explicitly when the changed behavior needs integration coverage.
+
+The optional selector uses Python 3's standard library. If Python is unavailable, `affected` selects full checks; existing explicit scopes still need no Python. Inspect the final result's selected scope and reason before describing what was verified.
+
+The result retains `status`, `context`, `scope`, and `checks` for existing callers, with additive timing, exit-code, selection, and report diagnostics. Use only report paths actually listed for the current invocation when locating test failures; stale or missing Maven reports are not proof of success. Retain the reported diagnostics with a failed run rather than attempting to infer Maven success from its logs.
 
 Run fast tests:
 

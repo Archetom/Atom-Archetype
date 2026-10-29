@@ -15,6 +15,7 @@ $h2 Primary documentation
 - [Testing guide](docs/test-guide.md): unit, adapter, security, transaction, migration, and MySQL Testcontainers tests.
 - [Agent instructions](AGENTS.md): application invariants, task execution, and change-specific verification for coding agents.
 - [Domain contracts](docs/domain/README.md): lightweight business facts, assumptions, invariants, state transitions, and event semantics.
+- [Domain contract example](docs/examples/domain-contract.md): reference format using the removable sample; not application requirements or evidence of tests after cleanup.
 
 $h2 Task workflows
 

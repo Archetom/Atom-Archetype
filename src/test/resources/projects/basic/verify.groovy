@@ -40,6 +40,10 @@ unfilteredFiles.each { relative ->
     assert content.contains('\ndescription: ') : "Missing skill trigger: ${skill}"
 }
 assert new File(projectDir, 'docs/domain/README.md').isFile()
+assert new File(projectDir, 'docs/examples/domain-contract.md').isFile()
+assert !new File(projectDir, 'docs/domain/user-example.md').exists()
+assert new File(projectDir, 'scripts/affected-scope.py').isFile()
+assert !new File(projectDir, 'benchmarks').exists()
 assert new File(projectDir, 'Makefile').text.contains('agent-check:')
 
 // A new project has no Git history yet. Docs scope must report that missing coverage,
