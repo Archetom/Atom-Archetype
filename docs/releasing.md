@@ -29,17 +29,17 @@ Snapshot publishing requires **Enable SNAPSHOTs** for the `io.github.archetom` n
 2. Set a non-SNAPSHOT version:
 
    ```bash
-   make version VERSION=2.2.0
+   make version VERSION=2.3.0
    ```
 
 3. Run the CI gates:
 
    ```bash
-   make install
-   make demo
-   cd target/generated-projects/atom-demo
-   CI=true sh ./mvnw test
+   make agent-check SCOPE=full
+   python3 -m unittest discover -s benchmarks/harness/tests -v
    ```
+
+   The full scope runs `make demo` (including installation and the official archetype integration test), generated compilation and Docker tests, and cleanup verification. Do not run `make install` separately.
 
 4. Confirm `target/` contains non-empty main, sources, and Javadoc JARs.
 5. Commit the version, merge it to `main`, and wait for CI.
@@ -47,17 +47,17 @@ Snapshot publishing requires **Enable SNAPSHOTs** for the `io.github.archetom` n
 ## Publish a release
 
 ```bash
-gh workflow run release.yml --ref main -f version=2.2.0
+gh workflow run release.yml --ref main -f version=2.3.0
 ```
 
-The workflow accepts only `main`, a non-SNAPSHOT version that matches the POM, and a successful signed Central deployment. It waits until Central reports `published`.
+The workflow accepts only `main`, a non-SNAPSHOT version that matches the POM, and a successful signed Central deployment. It waits until Central reports `published` and then checks public artifact resolution. After it succeeds, create the matching Git tag and GitHub release from the reviewed changelog, then advance to the next snapshot. Keep `scm.tag` on the release tag in the published POM and reset it to `HEAD` for development.
 
 ## Publish a snapshot
 
 After the intended `-SNAPSHOT` commit is merged to `main` and CI passes, run:
 
 ```bash
-gh workflow run snapshot.yml --ref main -f version=2.2.1-SNAPSHOT
+gh workflow run snapshot.yml --ref main -f version=2.3.1-SNAPSHOT
 ```
 
 The snapshot workflow accepts only `main`, a SNAPSHOT version that matches the POM, and uses the existing Portal token without GPG signing. Release and snapshot workflows share a concurrency group.
@@ -86,7 +86,7 @@ Use `-U` to resolve the latest timestamped build. To verify with an empty Maven 
 temporary_repository="$(mktemp -d)"
 ./mvnw -B -U -ntp dependency:get \
   -Dmaven.repo.local="$temporary_repository" \
-  -Dartifact=io.github.archetom:atom-archetype:2.2.1-SNAPSHOT \
+  -Dartifact=io.github.archetom:atom-archetype:2.3.1-SNAPSHOT \
   -Dtransitive=false \
   -DremoteRepositories=central-portal-snapshots::default::https://central.sonatype.com/repository/maven-snapshots/
 ```
@@ -113,7 +113,7 @@ Central releases are immutable. Publish a new version if validation or verificat
 Set the next snapshot after the release is public:
 
 ```bash
-make version VERSION=2.2.1-SNAPSHOT
+make version VERSION=2.3.1-SNAPSHOT
 ```
 
 Local snapshot uploads use `make deploy-snapshot` and skip release signing and Portal publication.

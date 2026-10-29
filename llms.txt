@@ -1,11 +1,12 @@
 # Atom Archetype
 
-> Atom Archetype is a Maven archetype that generates multi-module applications with Domain-Driven Design, explicit tenant context, secure HTTP defaults, MyBatis-Plus, Flyway, and optional Redis. The current main branch targets Java 27 and Spring Boot 4.1.
+> Atom Archetype is a Maven archetype that generates multi-module applications with Domain-Driven Design, explicit tenant context, secure HTTP defaults, MyBatis-Plus, Flyway, and optional Redis. Stable release 2.3.0 targets Java 27 and Spring Boot 4.1.2.
 
 Canonical repository: https://github.com/Archetom/atom-archetype
 Maven coordinates: io.github.archetom:atom-archetype
-Current stable release: 2.2.0 (Maven Central, Java 25)
-Development baseline: main (unreleased, Java 27 non-LTS, Maven 3.10.0)
+Current stable release: 2.3.0 (Maven Central, Java 27 non-LTS, Maven 3.10.0, atom-common 1.2.0)
+Previous stable release: 2.2.0 (Java 25)
+Development baseline: main (development branch, Java 27 non-LTS, Maven 3.10.0)
 Legacy Maven Central release: 1.1.0 (Spring Boot 3.5 architecture)
 License: MIT
 
@@ -16,7 +17,7 @@ License: MIT
 - [Getting started](https://github.com/Archetom/atom-archetype/blob/main/docs/getting-started.md): prerequisites, generation, local infrastructure, startup, testing, and production authentication.
 - [Architecture](https://github.com/Archetom/atom-archetype/blob/main/docs/architecture.md): module boundaries, request flow, tenant isolation, transactions, events, persistence, and cache ports.
 - [Naming conventions](https://github.com/Archetom/atom-archetype/blob/main/docs/naming-conventions.md): canonical names for API, domain, application, persistence, errors, and use-case events.
-- [Upgrade guide](https://github.com/Archetom/atom-archetype/blob/main/docs/upgrade-guide.md): safe migration from the legacy 1.1.0 architecture to 2.0.
+- [Upgrade guide](https://github.com/Archetom/atom-archetype/blob/main/docs/upgrade-guide.md): Java 27/toolchain migration to 2.3.0 by generating and merging a reference project; earlier 2.x and legacy 1.1.0 contract changes.
 - [Release checklist](https://github.com/Archetom/atom-archetype/blob/main/docs/releasing.md): signing, Central validation, explicit Portal publication, tags, and post-release versioning.
 - [Troubleshooting](https://github.com/Archetom/atom-archetype/blob/main/docs/troubleshooting.md): Maven, Java, profiles, 401/403, tenant, Flyway, Redis, Testcontainers, and Velocity issues.
 - [Changelog](https://github.com/Archetom/atom-archetype/blob/main/CHANGELOG.md): release status and breaking changes.
@@ -31,7 +32,7 @@ License: MIT
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.2.0 \
+  -DarchetypeVersion=2.3.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
@@ -53,6 +54,8 @@ mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
 ## Maintainer guidance
 
 See [AGENTS.md](AGENTS.md) for template editing, skill use, and change-specific verification. Its generated application guide covers application invariants.
+
+Release 2.3.0 includes five generated Agent Skills and `make agent-check`, including conservative `SCOPE=affected` selection. The offline business-task benchmark remains repository-only. Existing applications receive these files by merging a generated reference; the archetype is not an application dependency that upgrades existing sources.
 
 ## Optional generated-project documentation
 

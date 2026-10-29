@@ -1,6 +1,6 @@
 # Troubleshooting
 
-## Maven cannot find the 2.2.0 archetype
+## Maven cannot find the 2.3.0 archetype
 
 **Check:** Force Maven to refresh Central metadata and use the exact stable version:
 
@@ -8,7 +8,7 @@
 mvn -U -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.2.0 \
+  -DarchetypeVersion=2.3.0 \
   -DgroupId=com.example.demo \
   -DartifactId=demo-service \
   -Dpackage=com.example.demo \
@@ -19,7 +19,7 @@ mvn -U -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
 
 ## The generated project uses the wrong Java version
 
-**Check:** Maven may use a different JDK from the shell. `2.0.0` targets JDK 21; `2.1.0` and `2.2.0` target JDK 25. The unreleased `main` branch requires JDK 27 and Maven 3.10.0.
+**Check:** Maven may use a different JDK from the shell. `2.0.0` targets JDK 21; `2.1.0` and `2.2.0` target JDK 25. Stable `2.3.0` and development `main` require JDK 27 and Maven 3.10.0. The Java 27 requirement also applies to deployment runtimes and atom-common 1.2.0.
 
 ```bash
 java -version
@@ -27,6 +27,12 @@ java -version
 ```
 
 **Fix:** Set `JAVA_HOME` to the required JDK and restart the terminal and IDE.
+
+## Changing the archetype version did not add Skills or agent-check
+
+**Check:** An archetype generates files once; it does not update an existing application through a dependency upgrade. Agent Skills and `make agent-check` are delivered in projects generated with `2.3.0`.
+
+**Fix:** Generate a separate `2.3.0` reference and merge the build, wrapper, scripts, tests, and documentation using the [upgrade guide](upgrade-guide.md#upgrade-to-230). Preserve business code and applied Flyway migrations. The business-task Benchmark is repository-only and is not expected in generated projects.
 
 ## The application has no active profile
 
@@ -163,8 +169,7 @@ password: ${dollar}{SPRING_DATASOURCE_PASSWORD}
 **Fix:** Rebuild and verify the generated project. Update `archetype-metadata.xml` for missing generated files and `clean.sh` for renamed or removed sample files.
 
 ```bash
-make install
-make demo
+CI=false make demo
 cd target/generated-projects/atom-demo
 sh ./mvnw compile
 CI=true sh ./mvnw test

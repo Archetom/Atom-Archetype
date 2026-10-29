@@ -4,6 +4,8 @@ All notable architecture, compatibility, and security changes are documented her
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-10-29
+
 ### Added
 
 - offline, commit-pinned business benchmarks with isolated candidate snapshots, independent API/domain/persistence acceptance tests, controlled Skills comparisons, and explicit unavailable cost metrics
@@ -26,7 +28,7 @@ All notable architecture, compatibility, and security changes are documented her
 - upgrade testing to JUnit 6.1.3, Mockito 5.24.0, Byte Buddy 1.18.16, JsonPath 3.0.0, and XMLUnit 2.14.0
 - upgrade the archetype script interpreter to 1.9 and its Groovy modules to 6.0.0 so generation assertions can inspect Java 27 classes
 - upgrade Maven Compiler to 3.16.0, Surefire/Failsafe to 3.6.1, and Install/Deploy to 3.2.0; align the generated Versions Plugin with 2.23.0
-- distinguish the unreleased Java 27 baseline from the published Java 25 `2.2.0` release in setup and migration documentation
+- document the Java 27 `2.3.0` release and migration from the Java 25 `2.2.0` baseline, including reference-project comparison for existing applications
 
 ## [2.2.0] — 2026-10-05
 

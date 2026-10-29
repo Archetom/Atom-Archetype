@@ -1,39 +1,48 @@
 # Upgrade guide
 
-A Maven archetype generates source code once. It does not update an existing project. Generate a reference project from the target revision, compare it with the application, and apply the required changes.
+A Maven archetype generates source code once. It is not an application parent or runtime dependency and does not update an existing project when you change its version. Generate a separate reference project from the target release, compare it with the application, and merge the required changes while preserving business code and applied migrations.
 
 ## Available versions
 
 | Source | Status | Java | Notes |
 |---|---|---|---|
 | `main` | Unreleased development version | 27 | Spring Boot 4.1.2; Maven 3.10.0; non-LTS Java baseline |
-| Maven Central `2.2.0` | Current stable release | 25 | Bearer JWT authentication for HTTP and gRPC, optional gRPC server, RPC-safe facades |
+| Maven Central `2.3.0` | Current stable release | 27 | Spring Boot 4.1.2; Maven 3.10.0; atom-common 1.2.0; Agent Skills and scoped verification |
+| Maven Central `2.2.0` | Older stable release | 25 | Bearer JWT authentication for HTTP and gRPC, optional gRPC server, RPC-safe facades |
 | Maven Central `2.1.0` | Older release | 25 | First release on JDK 25 |
 | Maven Central `2.0.0` / Git tag `v2.0.0` | Older release | 21 | First release of the 2.x architecture |
 | Maven Central `1.1.0` | Published release | Legacy baseline | Spring Boot 3.5 architecture |
 
-Generate a reference project from the target release on Maven Central. For `2.2.0`:
+Generate a reference project from the target release on Maven Central. For `2.3.0`, run this outside the existing application with JDK 27 and Maven 3.10.0 or newer:
 
 ```bash
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.2.0 \
+  -DarchetypeVersion=2.3.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service-reference \
   -Dpackage=com.example.orders \
   -Dversion=1.0.0-SNAPSHOT
 ```
 
-## Unreleased toolchain upgrade
+## Upgrade to `2.3.0`
 
-The current `main` branch raises the build and runtime baseline from Java 25 to Java 27 and requires Maven 3.10.0. This is a breaking toolchain change: projects generated from `main` no longer compile or run on Java 25. Java 27 is a non-LTS release. Existing `2.2.0` projects remain on their published Java 25 baseline until explicitly migrated.
+Release `2.3.0` raises the build and runtime baseline from Java 25 to Java 27 and requires Maven 3.10.0. Despite the minor release number, this is a breaking toolchain change: generated applications and atom-common 1.2.0 cannot be used on Java 25. Java 27 is a non-LTS release. Existing `2.2.0` projects retain their published Java 25 baseline until explicitly migrated.
 
-Before adopting the new template, update local and IDE JDKs, CI, and deployment runtimes to Java 27. Use the bundled Maven Wrapper, upgrade the Spring Boot parent and independent dependencies together from the generated reference POM, then run the complete unit and Docker integration suites. The latest stable Spring Boot 4.1.2 [supports Java 27](https://docs.spring.io/spring-boot/system-requirements.html).
+Use the separate generated reference as a patch source, not a replacement application:
+
+1. Align local/IDE JDKs, CI runners and build images, and deployment runtimes with Java 27. Merge `mvnw`, `mvnw.cmd`, and `.mvn/wrapper/maven-wrapper.properties` together, retaining the Maven 3.10.0 checksum pin.
+2. Compare the root and module POMs. Adopt the Spring Boot 4.1.2 parent, atom-common 1.2.0, Java/Maven Enforcer requirements, and compatible plugin/dependency versions as a set. Preserve application coordinates and application-specific dependencies; do not change only an archetype coordinate or the common-library version.
+3. Merge `AGENTS.md`, `llms.txt`, `.agents/skills/`, `scripts/`, and the `agent-check` Make target, then adapt their documentation to the application's actual modules and contracts. Bring over `ArchitectureBoundaryTest`, `ArchitectureBoundaryRulesTest`, and their test fixtures together, preserving existing application tests. Merge the domain-contract guide; material in `docs/examples/` remains reference material, not product requirements.
+4. Update application CI to invoke its own fast and Docker verification scopes. Do not copy archetype-specific generation or publishing jobs into application CI. Existing explicit scopes need no Python; the optional `affected` selector uses Python 3 and falls back to full checks when unavailable. The offline Benchmark stays in the archetype repository and is not an application dependency.
+5. Preserve business code, configuration, credentials, and database history. Do not run `clean-sample` on an established application or overwrite its migrations with the reference sample. Review runtime image/configuration differences separately and use new forward migrations only when an intentional schema change is needed.
+
+From the migrated application root, run `make agent-check SCOPE=fast`, then `make agent-check SCOPE=full` with Docker available. Verify the application-specific authentication, tenancy, transaction, and persistence contracts described in [Verify the upgrade](#verify-the-upgrade). Missing Docker leaves those integration checks unverified.
 
 MyBatis remains on the version supplied by MyBatis-Plus. Overriding it to 3.6.0 currently breaks MyBatis-Plus 3.5.18 at startup with `NoSuchMethodError` for `MetaClass.forClass(Class, ReflectorFactory)`; upgrade that pair together when upstream compatibility is available.
 
-To generate an unreleased reference project from a checkout of `main`:
+`main` remains a development branch. Use the following instead of the stable generation command only when evaluating an unreleased checkout:
 
 ```bash
 CI=false make demo
@@ -80,7 +89,7 @@ These changes alter generated-project contracts. Compare a project generated fro
 
 | Area | `1.1.0` | 2.x architecture |
 |---|---|---|
-| Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `2.0.0`, JDK 25 on `2.1.0`/`2.2.0`, JDK 27 on unreleased `main` |
+| Runtime | Spring Boot 3.5 | Spring Boot 4; JDK 21 on `2.0.0`, JDK 25 on `2.1.0`/`2.2.0`, JDK 27 on `2.3.0` and development `main` |
 | Caller context | Domain `UserContextHolder` | Explicit `AuthenticatedCaller` passed to use cases |
 | Tenant scope | Header/ThreadLocal-derived | Validated `TenantId` passed to repositories and caches |
 | Development identity | `X-User-Id`, `X-Tenant-Id`, `X-Admin` | `X-Dev-User-Id`, `X-Dev-Tenant-Id`; dev/test only and explicitly enabled |
@@ -100,7 +109,7 @@ These changes alter generated-project contracts. Compare a project generated fro
 - Use the Boot 4 starters and compatible MyBatis-Plus and SpringDoc versions from the reference project.
 - Review Jackson 3 imports and custom modules.
 - Keep test-only dependencies in `test` scope.
-- Use JDK 21 for `2.0.0`, JDK 25 for `2.1.0`/`2.2.0`, or JDK 27 for unreleased `main`.
+- Use JDK 21 for `2.0.0`, JDK 25 for `2.1.0`/`2.2.0`, or JDK 27 for `2.3.0` and development `main`.
 
 Do not combine the old Boot BOM with individually upgraded Boot 4 artifacts.
 

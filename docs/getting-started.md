@@ -1,8 +1,8 @@
 # Getting started
 
-This guide uses the stable `2.2.0` release from Maven Central and JDK 25.
+This guide uses stable release `2.3.0` from Maven Central, with JDK 27, Spring Boot 4.1.2, and atom-common 1.2.0. Existing applications should follow the [upgrade guide](upgrade-guide.md) instead of generating over their current source tree.
 
-The `2.0.0` release uses JDK 21. To use that version instead, select JDK 21 and replace `2.2.0` with `2.0.0` in the generation command.
+The older `2.2.0` release uses JDK 25; `2.0.0` uses JDK 21. To use an older version, select its matching JDK and exact archetype version in the generation command.
 
 ## Prerequisites
 
@@ -15,9 +15,9 @@ docker version
 docker compose version
 ```
 
-For the stable release, use Maven 3.9.16 or newer for generation, then use the generated project's Maven Wrapper. Docker is required for the supplied MySQL service and Testcontainers integration tests.
+For `2.3.0`, use Maven 3.10.0 or newer for generation, then use the generated project's Maven Wrapper 3.10.0. Docker is required for the supplied MySQL service and Testcontainers integration tests. Java 27 is a non-LTS release and is required for both building and running the generated application.
 
-To develop or generate from the unreleased `main` branch, use JDK 27 and Maven Wrapper 3.10.0 (or system Maven 3.10.0 or newer). Run `CI=false make demo` from the repository root to install and generate that revision. See the [upgrade guide](upgrade-guide.md) for the Java 27 toolchain change.
+`main` remains the development branch and uses the same JDK 27/Maven 3.10.0 baseline. Run `CI=false make demo` from the repository root only when you intend to install and generate that checkout instead of the stable release.
 
 ## Generate a project
 
@@ -25,7 +25,7 @@ To develop or generate from the unreleased `main` branch, use JDK 27 and Maven W
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.2.0 \
+  -DarchetypeVersion=2.3.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
@@ -73,6 +73,16 @@ Run the MySQL Testcontainers tests with Docker available:
 ```bash
 CI=true sh ./mvnw test
 ```
+
+Release `2.3.0` also includes `AGENTS.md`, `llms.txt`, five workflows under `.agents/skills/`, and the shared validation entry point:
+
+```bash
+make agent-check SCOPE=fast
+make agent-check SCOPE=affected
+make agent-check                 # Full verification, requiring Docker.
+```
+
+`affected` conservatively selects checks from Git changes and falls back to full verification when the impact is uncertain or its optional Python 3 selector is unavailable. Read the generated project's testing guide for the selected scope; a fast pass does not certify Docker integration behavior. The [business-task benchmark](../benchmarks/README.md) is a separate repository-only tool, not part of the generated application.
 
 ## Run the application
 

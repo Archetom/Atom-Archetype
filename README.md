@@ -8,24 +8,25 @@
 
 简体中文 | [English](README.en.md)
 
-Atom Archetype 是一个 Maven Archetype，用于生成采用领域驱动设计（DDD）的多模块项目。当前 `main` 基于 Java 27 和 Spring Boot 4.1。
+Atom Archetype 是一个 Maven Archetype，用于生成采用领域驱动设计（DDD）的多模块项目。稳定版 `2.3.0` 基于 Java 27 和 Spring Boot 4.1.2。
 
 生成结果是标准 Maven 工程。领域、应用和基础设施模块之间的依赖边界已经配置好，示例代码可以直接修改或删除。
 
-当前 `main` 还提供面向 AI 辅助开发的 Agent Skills、增量验证和独立业务任务 Benchmark，复用现有架构与测试工具，不增加应用运行时依赖。
+`2.3.0` 提供面向 AI 辅助开发的 Agent Skills 和增量验证；仓库另提供独立业务任务 Benchmark。这些能力复用现有架构与测试工具，不增加应用运行时依赖。
 
 ## 版本说明
 
-- `main` 是未发布的开发版本，Archetype 开发和生成项目均要求 JDK 27、Maven 3.10.0。Java 27 是非 LTS 版本，工具链升级说明见[升级指南](docs/upgrade-guide.md)。
-- `2.2.0` 是当前稳定版，使用 JDK 25。它包含不兼容变更，从 `2.1.0` 升级前请先阅读[升级指南](docs/upgrade-guide.md)。
+- `2.3.0` 是当前稳定版，要求 JDK 27、Maven 3.10.0，使用 Spring Boot 4.1.2 和 atom-common 1.2.0。相较 `2.2.0`，Java 27 是不兼容的工具链升级，且为非 LTS 版本；已有应用需按[升级指南](docs/upgrade-guide.md)合并参考项目，不能只修改 Archetype 版本。
+- `main` 保持为开发分支，当前同样使用 JDK 27、Maven 3.10.0。
+- `2.2.0` 是较早的稳定版，使用 JDK 25。从 `2.1.0` 升级到该版本的契约变化仍记录在[升级指南](docs/upgrade-guide.md)中。
 - [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) 是 Java 21 版本的旧标签。
 - Maven Central `1.1.0` 属于 Spring Boot 3.5 旧架构。
 
-以下快速开始直接使用 Maven Central 上的 `2.2.0`。
+以下快速开始直接使用 Maven Central 上的 `2.3.0`。
 
 ## 快速开始
 
-稳定版 `2.2.0` 需要 JDK 25、Docker 和 Docker Compose v2。生成后使用项目附带的 Maven Wrapper；生成命令使用 Maven 3.9.16 或更高版本。
+稳定版 `2.3.0` 需要 JDK 27、Docker 和 Docker Compose v2。生成后使用项目附带的 Maven Wrapper 3.10.0；生成命令使用 Maven 3.10.0 或更高版本。
 
 ### 1. 生成项目
 
@@ -33,7 +34,7 @@ Atom Archetype 是一个 Maven Archetype，用于生成采用领域驱动设计�
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.2.0 \
+  -DarchetypeVersion=2.3.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
@@ -76,7 +77,7 @@ curl http://localhost:8080/actuator/health
 
 ## AI 辅助开发
 
-以下能力属于尚未发布的 `main`，不包含在上方快速开始使用的 `2.2.0` 中。可按[开发](#开发)中的步骤从当前源码生成项目。
+以下 Agent 规范、Skills 和验证入口已包含在 `2.3.0` 生成项目中。Benchmark 仅在 Archetype 仓库中提供，不复制到生成项目。
 
 ### Agent Skills
 
@@ -94,7 +95,7 @@ curl http://localhost:8080/actuator/health
 
 ### 增量验证与结构化报告
 
-在仓库根目录或从 `main` 生成的项目根目录执行：
+在仓库根目录或 `2.3.0` 生成的项目根目录执行：
 
 ```bash
 make agent-check SCOPE=affected  # 根据 Git 变更保守选择验证范围

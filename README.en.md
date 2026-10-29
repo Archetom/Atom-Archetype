@@ -8,24 +8,25 @@
 
 [简体中文](README.md) | English
 
-Atom Archetype is a Maven archetype for generating multi-module projects based on Domain-Driven Design (DDD). The current `main` branch uses Java 27 and Spring Boot 4.1.
+Atom Archetype is a Maven archetype for generating multi-module projects based on Domain-Driven Design (DDD). Stable release `2.3.0` uses Java 27 and Spring Boot 4.1.2.
 
 The generated result is a standard Maven project. Dependency boundaries between domain, application, and infrastructure modules are already configured, and the example code can be changed or removed directly.
 
-The current `main` branch also supports AI-assisted development with Agent Skills, incremental validation, and independent business-task benchmarks. These reuse the existing architecture and testing tools without adding application runtime dependencies.
+Release `2.3.0` supports AI-assisted development with Agent Skills and incremental validation; the repository also provides independent business-task benchmarks. These reuse the existing architecture and testing tools without adding application runtime dependencies.
 
 ## Versions
 
-- `main` is unreleased; archetype development and generated projects require JDK 27 and Maven 3.10.0. Java 27 is a non-LTS release; see the [upgrade guide](docs/upgrade-guide.md) for the toolchain changes.
-- `2.2.0` is the current stable release and uses JDK 25. It contains breaking changes, so read the [upgrade guide](docs/upgrade-guide.md) before upgrading from `2.1.0`.
+- `2.3.0` is the current stable release, requiring JDK 27 and Maven 3.10.0, with Spring Boot 4.1.2 and atom-common 1.2.0. Java 27 is a breaking toolchain upgrade from `2.2.0` and a non-LTS release. Existing applications must merge a generated reference project using the [upgrade guide](docs/upgrade-guide.md); changing the archetype version alone does not upgrade them.
+- `main` remains the development branch and currently also uses JDK 27 and Maven 3.10.0.
+- `2.2.0` is an older stable release using JDK 25. Its contract changes from `2.1.0` remain documented in the [upgrade guide](docs/upgrade-guide.md).
 - [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) is the older Java 21 tag.
 - Maven Central `1.1.0` uses the legacy Spring Boot 3.5 architecture.
 
-The quick start below uses `2.2.0` directly from Maven Central.
+The quick start below uses `2.3.0` directly from Maven Central.
 
 ## Quick start
 
-The stable `2.2.0` release needs JDK 25, Docker, and Docker Compose v2. Use Maven 3.9.16 or newer for generation, then use the generated project's bundled Maven Wrapper.
+The stable `2.3.0` release needs JDK 27, Docker, and Docker Compose v2. Use Maven 3.10.0 or newer for generation, then use the generated project's bundled Maven Wrapper 3.10.0.
 
 ### 1. Generate a project
 
@@ -33,7 +34,7 @@ The stable `2.2.0` release needs JDK 25, Docker, and Docker Compose v2. Use Mave
 mvn -B org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
   -DarchetypeGroupId=io.github.archetom \
   -DarchetypeArtifactId=atom-archetype \
-  -DarchetypeVersion=2.2.0 \
+  -DarchetypeVersion=2.3.0 \
   -DgroupId=com.example.orders \
   -DartifactId=orders-service \
   -Dpackage=com.example.orders \
@@ -76,7 +77,7 @@ Business APIs require authentication by default. In production, configure the JW
 
 ## AI-assisted development
 
-The capabilities below are part of the unreleased `main` branch, not the `2.2.0` release used in the quick start above. Follow [Development](#development) to generate a project from the current sources.
+The Agent rules, Skills, and verification entry point below are included in projects generated with `2.3.0`. Benchmarks are available only in the archetype repository and are not copied into generated projects.
 
 ### Agent Skills
 
@@ -94,7 +95,7 @@ These workflows require no particular model or editor and remain after the User 
 
 ### Incremental validation and structured reports
 
-Run from the repository root or the root of a project generated from `main`:
+Run from the repository root or the root of a project generated with `2.3.0`:
 
 ```bash
 make agent-check SCOPE=affected  # Select checks conservatively from Git changes
