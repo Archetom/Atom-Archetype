@@ -12,6 +12,9 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Dependabot regenerates mvnw.cmd with CRLF and fails the whitespace check; bump the Maven wrapper by hand.
+      - dependency-name: org.apache.maven:apache-maven
 
   - package-ecosystem: maven
     directory: /src/main/resources/archetype-resources
@@ -24,6 +27,9 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Dependabot regenerates mvnw.cmd with CRLF and fails the whitespace check; bump the Maven wrapper by hand.
+      - dependency-name: org.apache.maven:apache-maven
 
   - package-ecosystem: github-actions
     directory: /
