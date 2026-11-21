@@ -4,6 +4,10 @@ All notable architecture, compatibility, and security changes are documented her
 
 ## [Unreleased]
 
+### Changed
+
+- Upgrade generated applications to Spring Boot 4.2.0 and refresh independently managed dependencies.
+
 ## [2.3.0] — 2026-10-29
 
 ### Added

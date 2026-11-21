@@ -3,7 +3,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.archetom/atom-archetype.svg)](https://central.sonatype.com/artifact/io.github.archetom/atom-archetype)
 [![CI](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml/badge.svg)](https://github.com/Archetom/atom-archetype/actions/workflows/ci.yml)
 [![Java 27](https://img.shields.io/badge/Java-27-007396.svg)](https://openjdk.org/projects/jdk/27/)
-[![Spring Boot 4.1](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot 4.2](https://img.shields.io/badge/Spring%20Boot-4.2-6DB33F.svg)](https://spring.io/projects/spring-boot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 简体中文 | [English](README.en.md)
@@ -17,7 +17,7 @@ Atom Archetype 是一个 Maven Archetype，用于生成采用领域驱动设计�
 ## 版本说明
 
 - `2.3.0` 是当前稳定版，要求 JDK 27、Maven 3.10.0，使用 Spring Boot 4.1.2 和 atom-common 1.2.0。相较 `2.2.0`，Java 27 是不兼容的工具链升级，且为非 LTS 版本；已有应用需按[升级指南](docs/upgrade-guide.md)合并参考项目，不能只修改 Archetype 版本。
-- `main` 保持为开发分支，当前同样使用 JDK 27、Maven 3.10.0。
+- `main` 保持为开发分支，当前使用 Spring Boot 4.2.0、JDK 27 和 Maven Wrapper 3.10.1。
 - `2.2.0` 是较早的稳定版，使用 JDK 25。从 `2.1.0` 升级到该版本的契约变化仍记录在[升级指南](docs/upgrade-guide.md)中。
 - [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) 是 Java 21 版本的旧标签。
 - Maven Central `1.1.0` 属于 Spring Boot 3.5 旧架构。
@@ -152,7 +152,7 @@ make agent-check                # 默认 full，包含 Docker 集成测试
 
 ## 开发
 
-开发 `main` 需要 JDK 27；仓库及其生成项目使用 Maven Wrapper 3.10.0，系统 Maven 的最低版本也是 3.10.0。模板位于 `src/main/resources/archetype-resources/`，元数据位于 `src/main/resources/META-INF/maven/archetype-metadata.xml`。
+开发 `main` 需要 JDK 27；仓库及其生成项目使用 Maven Wrapper 3.10.1，系统 Maven 的最低版本为 3.10.0。模板位于 `src/main/resources/archetype-resources/`，元数据位于 `src/main/resources/META-INF/maven/archetype-metadata.xml`。
 
 ```bash
 CI=false make demo

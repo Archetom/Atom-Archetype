@@ -8,7 +8,7 @@
     <packaging>maven-archetype</packaging>
 
     <name>Atom :: Archetype</name>
-    <description>A Maven archetype for generating Java 27 and Spring Boot 4.1 multi-module applications with Domain-Driven Design patterns.</description>
+    <description>A Maven archetype for generating Java 27 and Spring Boot 4.2 multi-module applications with Domain-Driven Design patterns.</description>
     <url>https://github.com/Archetom/atom-archetype</url>
 
     <licenses>
@@ -53,7 +53,7 @@
         <maven.jar.plugin.version>3.5.1</maven.jar.plugin.version>
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
         <maven.central.plugin.version>0.12.0</maven.central.plugin.version>
-        <versions.maven.plugin.version>2.25.1</versions.maven.plugin.version>
+        <versions.maven.plugin.version>2.25.2</versions.maven.plugin.version>
         <central.autoPublish>false</central.autoPublish>
         <central.waitUntil>validated</central.waitUntil>
     </properties>

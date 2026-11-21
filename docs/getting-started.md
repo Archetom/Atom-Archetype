@@ -17,7 +17,7 @@ docker compose version
 
 For `2.3.0`, use Maven 3.10.0 or newer for generation, then use the generated project's Maven Wrapper 3.10.0. Docker is required for the supplied MySQL service and Testcontainers integration tests. Java 27 is a non-LTS release and is required for both building and running the generated application.
 
-`main` remains the development branch and uses the same JDK 27/Maven 3.10.0 baseline. Run `CI=false make demo` from the repository root only when you intend to install and generate that checkout instead of the stable release.
+`main` remains the development branch and uses Spring Boot 4.2.0 and Maven Wrapper 3.10.1 with JDK 27. Run `CI=false make demo` from the repository root only when you intend to install and generate that checkout instead of the stable release.
 
 ## Generate a project
 
