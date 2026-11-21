@@ -17,7 +17,7 @@ Release `2.3.0` supports AI-assisted development with Agent Skills and increment
 ## Versions
 
 - `2.3.0` is the current stable release, requiring JDK 27 and Maven 3.10.0, with Spring Boot 4.1.2 and atom-common 1.2.0. Java 27 is a breaking toolchain upgrade from `2.2.0` and a non-LTS release. Existing applications must merge a generated reference project using the [upgrade guide](docs/upgrade-guide.md); changing the archetype version alone does not upgrade them.
-- `main` remains the development branch and uses Spring Boot 4.2.0, JDK 27, and Maven Wrapper 3.10.1.
+- `main` remains the development branch and uses Spring Boot 4.2.0 and JDK 27.
 - `2.2.0` is an older stable release using JDK 25. Its contract changes from `2.1.0` remain documented in the [upgrade guide](docs/upgrade-guide.md).
 - [`v2.0.0`](https://github.com/Archetom/Atom-Archetype/tree/v2.0.0) is the older Java 21 tag.
 - Maven Central `1.1.0` uses the legacy Spring Boot 3.5 architecture.
@@ -152,7 +152,7 @@ Both `baseline` and `engineering` retain `AGENTS.md`, so the comparison measures
 
 ## Development
 
-Development on `main` requires JDK 27. The repository and projects generated from it use Maven Wrapper 3.10.1; system Maven installations must also be 3.10.0 or newer. Template sources live in `src/main/resources/archetype-resources/`; metadata lives in `src/main/resources/META-INF/maven/archetype-metadata.xml`.
+Development on `main` requires JDK 27. The repository and projects generated from it use Maven Wrapper; system Maven installations must also be 3.10.0 or newer. Template sources live in `src/main/resources/archetype-resources/`; metadata lives in `src/main/resources/META-INF/maven/archetype-metadata.xml`.
 
 ```bash
 CI=false make demo

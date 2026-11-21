@@ -6,7 +6,7 @@ Canonical repository: https://github.com/Archetom/atom-archetype
 Maven coordinates: io.github.archetom:atom-archetype
 Current stable release: 2.3.0 (Maven Central, Java 27 non-LTS, Maven 3.10.0, atom-common 1.2.0)
 Previous stable release: 2.2.0 (Java 25)
-Development baseline: main (development branch, Spring Boot 4.2.0, Java 27 non-LTS, Maven Wrapper 3.10.1)
+Development baseline: main (development branch, Spring Boot 4.2.0, Java 27 non-LTS)
 Legacy Maven Central release: 1.1.0 (Spring Boot 3.5 architecture)
 License: MIT
 

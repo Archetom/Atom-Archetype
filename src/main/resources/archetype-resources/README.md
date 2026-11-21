@@ -10,7 +10,7 @@
 $h2 环境要求
 
 - JDK 27（非 LTS 版本；部署环境也需要 Java 27 或更高版本）
-- 内置 Maven Wrapper 3.10.1（若使用系统 Maven，最低版本为 3.10.0）
+- 内置 Maven Wrapper（若使用系统 Maven，最低版本为 3.10.0）
 - Docker 与 Docker Compose，用于本地 MySQL 和集成测试
 - Make（可选）
 

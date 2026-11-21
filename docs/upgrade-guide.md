@@ -6,7 +6,7 @@ A Maven archetype generates source code once. It is not an application parent or
 
 | Source | Status | Java | Notes |
 |---|---|---|---|
-| `main` | Unreleased development version | 27 | Spring Boot 4.2.0; Maven Wrapper 3.10.1 (minimum Maven 3.10.0); non-LTS Java baseline |
+| `main` | Unreleased development version | 27 | Spring Boot 4.2.0; Maven 3.10.0 or newer; non-LTS Java baseline |
 | Maven Central `2.3.0` | Current stable release | 27 | Spring Boot 4.1.2; Maven 3.10.0; atom-common 1.2.0; Agent Skills and scoped verification |
 | Maven Central `2.2.0` | Older stable release | 25 | Bearer JWT authentication for HTTP and gRPC, optional gRPC server, RPC-safe facades |
 | Maven Central `2.1.0` | Older release | 25 | First release on JDK 25 |
